@@ -1,0 +1,27 @@
+﻿<nz-modal
+  [nzVisible]="open"
+  [nzTitle]="isEditMode ? 'Sua danh muc thuoc' : 'Them danh muc thuoc'"
+  [nzOkText]="isEditMode ? 'Cap nhat' : 'Luu'"
+  nzCancelText="Huy"
+  [nzOkLoading]="isSubmitting"
+  (nzOnCancel)="close()"
+  (nzOnOk)="save()"
+>
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="form" nzLayout="vertical" class="popup-form">
+      <nz-form-item>
+        <nz-form-label [nzRequired]="true">Ten danh muc</nz-form-label>
+        <nz-form-control nzErrorTip="Vui long nhap ten danh muc">
+          <input nz-input formControlName="name" placeholder="VD: Khang sinh" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Mo ta ngan</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="description" rows="3" placeholder="Mo ta ngan cho danh muc"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>

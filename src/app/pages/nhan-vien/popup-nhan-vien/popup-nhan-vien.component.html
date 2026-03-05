@@ -1,0 +1,47 @@
+<nz-modal
+  [nzVisible]="open"
+  nzTitle="Thêm nhân viên"
+  nzWidth="760"
+  nzOkText="Lưu"
+  nzCancelText="Hủy"
+  (nzOnCancel)="close()"
+  (nzOnOk)="save()"
+>
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="form" nzLayout="vertical">
+      <div class="grid-form">
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Tên nhân viên</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng nhập tên nhân viên">
+            <input nz-input formControlName="name" placeholder="Nhập tên nhân viên" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Số điện thoại</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng nhập số điện thoại">
+            <input nz-input formControlName="phone" placeholder="Nhập số điện thoại" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Chức vụ</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="role" nzPlaceHolder="Chọn chức vụ">
+              <nz-option *ngFor="let item of roleOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Ca làm</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="shift" nzPlaceHolder="Chọn ca làm">
+              <nz-option *ngFor="let item of shiftOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </form>
+  </ng-container>
+</nz-modal>

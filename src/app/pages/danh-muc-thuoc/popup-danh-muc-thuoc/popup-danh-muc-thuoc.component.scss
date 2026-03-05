@@ -1,0 +1,19 @@
+:host {
+  display: block;
+}
+
+.popup-form {
+  margin-top: 8px;
+}
+
+:host ::ng-deep .popup-form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+:host ::ng-deep .popup-form .ant-form-item-label > label {
+  height: auto;
+}
+
+:host ::ng-deep .popup-form textarea[nz-input] {
+  width: 100%;
+}

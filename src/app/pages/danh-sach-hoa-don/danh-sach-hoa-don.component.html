@@ -1,0 +1,71 @@
+<div class="page-wrap">
+  <app-menu></app-menu>
+
+  <main class="main-content">
+    <header class="page-header">
+      <nz-breadcrumb>
+        <nz-breadcrumb-item>Trang chủ</nz-breadcrumb-item>
+        <nz-breadcrumb-item>Danh sách hóa đơn</nz-breadcrumb-item>
+      </nz-breadcrumb>
+      <button nz-button nzType="primary" routerLink="/hoa-don">Tạo hóa đơn mới</button>
+    </header>
+
+    <nz-card nzTitle="Danh sách hóa đơn">
+      <div class="filter-row" [formGroup]="filterForm">
+        <input nz-input formControlName="keyword" placeholder="Tìm mã hóa đơn hoặc tên khách hàng" />
+        <nz-select formControlName="status" nzPlaceHolder="Trạng thái">
+          <nz-option *ngFor="let item of statusOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
+        </nz-select>
+      </div>
+
+      <nz-table [nzData]="pagedInvoices" [nzShowPagination]="false" nzSize="middle">
+        <thead>
+          <tr>
+            <th>Mã hóa đơn</th>
+            <th>Khách hàng</th>
+            <th>Ngày tạo</th>
+            <th class="text-right">Tổng tiền</th>
+            <th>Trạng thái</th>
+            <th class="text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of pagedInvoices">
+            <td>{{ item.code }}</td>
+            <td>{{ item.customerName }}</td>
+            <td>{{ item.createdAt }}</td>
+            <td class="text-right">{{ item.totalAmount | number }} đ</td>
+            <td>
+              <nz-tag [nzColor]="item.paymentStatus === 'Đã thanh toán' ? 'success' : item.paymentStatus === 'Chưa thanh toán' ? 'warning' : 'default'">
+                {{ item.paymentStatus }}
+              </nz-tag>
+            </td>
+            <td class="text-right">
+              <div class="action-buttons">
+                <button nz-button nzType="text" nzSize="small" aria-label="Xem">
+                  <span nz-icon nzType="eye"></span>
+                  <span>Xem</span>
+                </button>
+                <button nz-button nzType="text" nzSize="small" aria-label="In">
+                  <span nz-icon nzType="printer"></span>
+                  <span>In</span>
+                </button>
+                <button nz-button nzType="text" nzSize="small" nzDanger aria-label="Xóa">
+                  <span nz-icon nzType="delete"></span>
+                  <span>Xóa</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+
+      <app-pagging
+        [total]="filteredInvoices.length"
+        [pageIndex]="pageIndex"
+        [pageSize]="pageSize"
+        (pageIndexChange)="onPageChange($event)"
+      ></app-pagging>
+    </nz-card>
+  </main>
+</div>

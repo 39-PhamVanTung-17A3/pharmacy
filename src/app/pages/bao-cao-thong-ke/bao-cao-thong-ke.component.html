@@ -1,0 +1,62 @@
+<div class="page-wrap">
+  <app-menu></app-menu>
+
+  <main class="main-content">
+    <header class="page-header">
+      <nz-breadcrumb>
+        <nz-breadcrumb-item>Trang chủ</nz-breadcrumb-item>
+        <nz-breadcrumb-item>Báo cáo thống kê</nz-breadcrumb-item>
+      </nz-breadcrumb>
+    </header>
+
+    <nz-card nzTitle="Bộ lọc báo cáo" class="mb-16">
+      <div class="filter-row" [formGroup]="filterForm">
+        <input nz-input formControlName="keyword" placeholder="Tìm theo kỳ báo cáo" />
+        <nz-select formControlName="type" nzPlaceHolder="Loại báo cáo">
+          <nz-option *ngFor="let item of reportTypeOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
+        </nz-select>
+        <nz-range-picker></nz-range-picker>
+      </div>
+    </nz-card>
+
+    <div class="content-grid">
+      <nz-card nzTitle="Biểu đồ tổng quan">
+        <highcharts-chart
+          [Highcharts]="highcharts"
+          [options]="reportChartOptions"
+          class="chart-wrap"
+        ></highcharts-chart>
+      </nz-card>
+
+      <nz-card nzTitle="Bảng chi tiết">
+        <nz-table [nzData]="pagedRows" [nzShowPagination]="false" nzSize="middle">
+          <thead>
+            <tr>
+              <th>Kỳ báo cáo</th>
+              <th class="text-right">Số hóa đơn</th>
+              <th class="text-right">Doanh thu</th>
+              <th class="text-right">Chi phí</th>
+              <th class="text-right">Lợi nhuận</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of pagedRows">
+              <td>{{ item.month }}</td>
+              <td class="text-right">{{ item.invoices }}</td>
+              <td class="text-right">{{ item.revenue | number }} đ</td>
+              <td class="text-right">{{ item.cost | number }} đ</td>
+              <td class="text-right">{{ getProfit(item) | number }} đ</td>
+            </tr>
+          </tbody>
+        </nz-table>
+
+        <app-pagging
+          [total]="filteredRows.length"
+          [pageIndex]="pageIndex"
+          [pageSize]="pageSize"
+          (pageIndexChange)="onPageChange($event)"
+        ></app-pagging>
+      </nz-card>
+    </div>
+  </main>
+</div>

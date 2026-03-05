@@ -1,0 +1,66 @@
+﻿<div class="page-wrap">
+  <app-menu></app-menu>
+
+  <main class="main-content">
+    <header class="page-header">
+      <nz-breadcrumb>
+        <nz-breadcrumb-item>Trang chủ</nz-breadcrumb-item>
+        <nz-breadcrumb-item>Kho thuốc</nz-breadcrumb-item>
+      </nz-breadcrumb>
+      <button nz-button nzType="primary" (click)="openPopup()">Thêm thuốc mới</button>
+    </header>
+
+    <nz-card nzTitle="Danh sách thuốc" [nzExtra]="extraTpl">
+      <ng-template #extraTpl>
+        <input nz-input [formControl]="filterForm.controls.keyword" placeholder="Tìm tên thuốc / danh mục" />
+      </ng-template>
+
+      <nz-table [nzData]="pagedMedicines" [nzShowPagination]="false" nzSize="middle">
+        <thead>
+          <tr>
+            <th>Tên thuốc</th>
+            <th>Danh mục</th>
+            <th>Đơn vị</th>
+            <th class="text-right">Số lượng</th>
+            <th>Hạn sử dụng</th>
+            <th class="text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of pagedMedicines">
+            <td>{{ item.name }}</td>
+            <td>{{ item.category }}</td>
+            <td>{{ item.unit }}</td>
+            <td class="text-right">{{ item.quantity }}</td>
+            <td>{{ item.expiryDate }}</td>
+            <td class="text-right">
+              <div class="action-buttons">
+                <button nz-button nzType="text" nzSize="small" aria-label="Sửa">
+                  <span nz-icon nzType="edit"></span>
+                  <span>Sửa</span>
+                </button>
+                <button nz-button nzType="text" nzSize="small" nzDanger aria-label="Xóa">
+                  <span nz-icon nzType="delete"></span>
+                  <span>Xóa</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+
+      <app-pagging
+        [total]="filteredMedicines.length"
+        [pageIndex]="pageIndex"
+        [pageSize]="pageSize"
+        (pageIndexChange)="onPageChange($event)"
+      ></app-pagging>
+    </nz-card>
+  </main>
+
+  <app-popup-thuoc
+    [open]="isPopupOpen"
+    (closePopup)="closePopup()"
+    (submitMedicine)="addMedicine($event)"
+  ></app-popup-thuoc>
+</div>

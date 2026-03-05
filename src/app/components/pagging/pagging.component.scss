@@ -1,0 +1,16 @@
+﻿:host {
+  display: block;
+}
+
+.pagination-wrap {
+  border-top: 1px solid #f0f0f0;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pagination-wrap span {
+  font-size: 12px;
+  color: #8c8c8c;
+}

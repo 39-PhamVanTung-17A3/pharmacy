@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+.page-wrap {
+  min-height: 100vh;
+  background: #f5f7fb;
+}
+
+.main-content {
+  margin-left: 260px;
+  padding: 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.action-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.action-buttons button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

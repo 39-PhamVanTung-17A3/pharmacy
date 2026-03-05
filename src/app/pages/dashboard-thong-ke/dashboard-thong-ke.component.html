@@ -1,0 +1,37 @@
+<div class="page-wrap">
+  <app-menu></app-menu>
+
+  <main class="main-content">
+    <header class="page-header">
+      <nz-breadcrumb>
+        <nz-breadcrumb-item>Trang chủ</nz-breadcrumb-item>
+        <nz-breadcrumb-item>Dashboard thống kê</nz-breadcrumb-item>
+      </nz-breadcrumb>
+    </header>
+
+    <section class="kpi-grid">
+      <nz-card *ngFor="let item of kpis">
+        <div class="kpi-label">{{ item.label }}</div>
+        <div class="kpi-value">{{ item.value }}</div>
+      </nz-card>
+    </section>
+
+    <section class="chart-grid">
+      <nz-card>
+        <highcharts-chart
+          [Highcharts]="highcharts"
+          [options]="revenueChartOptions"
+          class="chart-wrap"
+        ></highcharts-chart>
+      </nz-card>
+
+      <nz-card>
+        <highcharts-chart
+          [Highcharts]="highcharts"
+          [options]="topMedicineChartOptions"
+          class="chart-wrap"
+        ></highcharts-chart>
+      </nz-card>
+    </section>
+  </main>
+</div>

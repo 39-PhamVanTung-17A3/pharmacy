@@ -1,0 +1,64 @@
+<div class="page-wrap">
+  <app-menu></app-menu>
+
+  <main class="main-content">
+    <header class="page-header">
+      <nz-breadcrumb>
+        <nz-breadcrumb-item>Trang chủ</nz-breadcrumb-item>
+        <nz-breadcrumb-item>Nhân viên</nz-breadcrumb-item>
+      </nz-breadcrumb>
+      <button nz-button nzType="primary" (click)="openPopup()">Thêm nhân viên</button>
+    </header>
+
+    <nz-card nzTitle="Danh sách nhân viên" [nzExtra]="extraTpl">
+      <ng-template #extraTpl>
+        <input nz-input [formControl]="filterForm.controls.keyword" placeholder="Tìm tên, số điện thoại hoặc chức vụ" />
+      </ng-template>
+
+      <nz-table [nzData]="pagedEmployees" [nzShowPagination]="false" nzSize="middle">
+        <thead>
+          <tr>
+            <th>Tên nhân viên</th>
+            <th>Số điện thoại</th>
+            <th>Chức vụ</th>
+            <th>Ca làm</th>
+            <th class="text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of pagedEmployees">
+            <td>{{ item.name }}</td>
+            <td>{{ item.phone }}</td>
+            <td>{{ item.role }}</td>
+            <td>{{ item.shift }}</td>
+            <td class="text-right">
+              <div class="action-buttons">
+                <button nz-button nzType="text" nzSize="small" aria-label="Sửa">
+                  <span nz-icon nzType="edit"></span>
+                  <span>Sửa</span>
+                </button>
+                <button nz-button nzType="text" nzSize="small" nzDanger aria-label="Xóa">
+                  <span nz-icon nzType="delete"></span>
+                  <span>Xóa</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+
+      <app-pagging
+        [total]="filteredEmployees.length"
+        [pageIndex]="pageIndex"
+        [pageSize]="pageSize"
+        (pageIndexChange)="onPageChange($event)"
+      ></app-pagging>
+    </nz-card>
+  </main>
+
+  <app-popup-nhan-vien
+    [open]="isPopupOpen"
+    (closePopup)="closePopup()"
+    (submitEmployee)="addEmployee($event)"
+  ></app-popup-nhan-vien>
+</div>

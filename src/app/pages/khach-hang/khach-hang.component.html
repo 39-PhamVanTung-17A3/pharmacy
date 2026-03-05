@@ -1,0 +1,64 @@
+<div class="page-wrap">
+  <app-menu></app-menu>
+
+  <main class="main-content">
+    <header class="page-header">
+      <nz-breadcrumb>
+        <nz-breadcrumb-item>Trang chủ</nz-breadcrumb-item>
+        <nz-breadcrumb-item>Khách hàng</nz-breadcrumb-item>
+      </nz-breadcrumb>
+      <button nz-button nzType="primary" (click)="openPopup()">Thêm khách hàng</button>
+    </header>
+
+    <nz-card nzTitle="Danh sách khách hàng" [nzExtra]="extraTpl">
+      <ng-template #extraTpl>
+        <input nz-input [formControl]="filterForm.controls.keyword" placeholder="Tìm tên, số điện thoại hoặc hạng khách hàng" />
+      </ng-template>
+
+      <nz-table [nzData]="pagedCustomers" [nzShowPagination]="false" nzSize="middle">
+        <thead>
+          <tr>
+            <th>Tên khách hàng</th>
+            <th>Số điện thoại</th>
+            <th>Địa chỉ</th>
+            <th>Hạng khách hàng</th>
+            <th class="text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of pagedCustomers">
+            <td>{{ item.name }}</td>
+            <td>{{ item.phone }}</td>
+            <td>{{ item.address }}</td>
+            <td>{{ item.loyaltyLevel }}</td>
+            <td class="text-right">
+              <div class="action-buttons">
+                <button nz-button nzType="text" nzSize="small" aria-label="Sửa">
+                  <span nz-icon nzType="edit"></span>
+                  <span>Sửa</span>
+                </button>
+                <button nz-button nzType="text" nzSize="small" nzDanger aria-label="Xóa">
+                  <span nz-icon nzType="delete"></span>
+                  <span>Xóa</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+
+      <app-pagging
+        [total]="filteredCustomers.length"
+        [pageIndex]="pageIndex"
+        [pageSize]="pageSize"
+        (pageIndexChange)="onPageChange($event)"
+      ></app-pagging>
+    </nz-card>
+  </main>
+
+  <app-popup-khach-hang
+    [open]="isPopupOpen"
+    (closePopup)="closePopup()"
+    (submitCustomer)="addCustomer($event)"
+  ></app-popup-khach-hang>
+</div>

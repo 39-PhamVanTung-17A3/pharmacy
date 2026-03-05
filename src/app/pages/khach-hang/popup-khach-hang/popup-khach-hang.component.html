@@ -1,0 +1,45 @@
+<nz-modal
+  [nzVisible]="open"
+  nzTitle="Thêm khách hàng"
+  nzWidth="760"
+  nzOkText="Lưu"
+  nzCancelText="Hủy"
+  (nzOnCancel)="close()"
+  (nzOnOk)="save()"
+>
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="form" nzLayout="vertical">
+      <div class="grid-form">
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Tên khách hàng</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng nhập tên khách hàng">
+            <input nz-input formControlName="name" placeholder="Nhập tên khách hàng" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Số điện thoại</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng nhập số điện thoại">
+            <input nz-input formControlName="phone" placeholder="Nhập số điện thoại" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="full-width">
+          <nz-form-label>Địa chỉ</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="address" placeholder="Nhập địa chỉ khách hàng" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Hạng khách hàng</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="loyaltyLevel" nzPlaceHolder="Chọn hạng khách hàng">
+              <nz-option *ngFor="let item of loyaltyOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </form>
+  </ng-container>
+</nz-modal>

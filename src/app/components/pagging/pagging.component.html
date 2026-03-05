@@ -1,0 +1,11 @@
+﻿<div class="pagination-wrap">
+  <span>Trang {{ pageIndex }} / {{ totalPages }}</span>
+  <nz-pagination
+    [nzTotal]="total"
+    [nzPageIndex]="pageIndex"
+    [nzPageSize]="pageSize"
+    [nzSize]="'small'"
+    [nzShowSizeChanger]="false"
+    (nzPageIndexChange)="onPageIndexChange($event)"
+  ></nz-pagination>
+</div>
