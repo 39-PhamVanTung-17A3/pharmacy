@@ -1,22 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
-import { CustomerPayload, PopupKhachHangComponent } from './popup-khach-hang/popup-khach-hang.component';
-
-interface CustomerItem {
-  name: string;
-  phone: string;
-  address: string;
-  loyaltyLevel: string;
-}
+import { KhachHang, KhachHangService } from './khach-hang.service';
+import { PopupKhachHangComponent } from './popup-khach-hang/popup-khach-hang.component';
 
 @Component({
   selector: 'app-khach-hang',
@@ -32,72 +29,101 @@ interface CustomerItem {
     NzCardModule,
     NzIconModule,
     NzInputModule,
+    NzPopconfirmModule,
     NzTableModule
   ],
   templateUrl: './khach-hang.component.html',
   styleUrl: './khach-hang.component.scss'
 })
-export class KhachHangComponent {
+export class KhachHangComponent implements OnInit {
   isPopupOpen = false;
+  editingCustomer: KhachHang | null = null;
+
   pageIndex = 1;
-  readonly pageSize = 5;
+  readonly pageSize = 10;
+  totalItems = 0;
+  deletingId: number | null = null;
+
+  customerList: KhachHang[] = [];
 
   private readonly fb = inject(FormBuilder);
+  private readonly khachHangService = inject(KhachHangService);
+  private readonly notification = inject(NzNotificationService);
 
   readonly filterForm = this.fb.nonNullable.group({
     keyword: ['']
   });
 
-  customerList: CustomerItem[] = [
-    { name: 'Nguyễn Văn An', phone: '0901234567', address: 'Quận 1, TP.HCM', loyaltyLevel: 'Thân thiết' },
-    { name: 'Trần Thị Bình', phone: '0912345678', address: 'Quận 3, TP.HCM', loyaltyLevel: 'Thường' },
-    { name: 'Lê Minh Châu', phone: '0987654321', address: 'TP. Thủ Đức, TP.HCM', loyaltyLevel: 'VIP' },
-    { name: 'Phạm Hoàng Dương', phone: '0977777666', address: 'Quận Bình Thạnh, TP.HCM', loyaltyLevel: 'Thân thiết' },
-    { name: 'Đỗ Ngọc Hà', phone: '0934567890', address: 'Quận 10, TP.HCM', loyaltyLevel: 'Thường' },
-    { name: 'Võ Anh Khoa', phone: '0922222333', address: 'Quận Tân Bình, TP.HCM', loyaltyLevel: 'VIP' }
-  ];
+  async ngOnInit(): Promise<void> {
+    this.filterForm.controls.keyword.valueChanges.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => {
+      this.pageIndex = 1;
+      void this.loadCustomers();
+    });
 
-  get filteredCustomers(): CustomerItem[] {
-    const keyword = this.filterForm.controls.keyword.value.trim().toLowerCase();
-    if (!keyword) {
-      return this.customerList;
-    }
-
-    return this.customerList.filter(
-      (item) =>
-        item.name.toLowerCase().includes(keyword) ||
-        item.phone.toLowerCase().includes(keyword) ||
-        item.loyaltyLevel.toLowerCase().includes(keyword)
-    );
+    await this.loadCustomers();
   }
 
-  get pagedCustomers(): CustomerItem[] {
-    const start = (this.pageIndex - 1) * this.pageSize;
-    return this.filteredCustomers.slice(start, start + this.pageSize);
+  openCreatePopup(): void {
+    this.editingCustomer = null;
+    this.isPopupOpen = true;
   }
 
-  openPopup(): void {
+  openEditPopup(item: KhachHang): void {
+    this.editingCustomer = item;
     this.isPopupOpen = true;
   }
 
   closePopup(): void {
     this.isPopupOpen = false;
+    this.editingCustomer = null;
   }
 
   onPageChange(page: number): void {
     this.pageIndex = page;
+    void this.loadCustomers();
   }
 
-  addCustomer(payload: CustomerPayload): void {
-    this.customerList = [
-      {
-        name: payload.name,
-        phone: payload.phone,
-        address: payload.address || 'Chưa cập nhật',
-        loyaltyLevel: payload.loyaltyLevel
-      },
-      ...this.customerList
-    ];
+  async onCustomerSaved(_saved: KhachHang): Promise<void> {
     this.pageIndex = 1;
+    await this.loadCustomers();
+  }
+
+  async deleteCustomer(item: KhachHang): Promise<void> {
+    if (this.deletingId !== null) {
+      return;
+    }
+
+    this.deletingId = item.id;
+    try {
+      await this.khachHangService.delete(item.id);
+      this.notification.success('Thành công', 'Xóa khách hàng thành công');
+
+      await this.loadCustomers();
+      if (this.customerList.length === 0 && this.pageIndex > 1) {
+        this.pageIndex -= 1;
+        await this.loadCustomers();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Xóa khách hàng thất bại';
+      this.notification.error('Thất bại', message);
+      console.error('Delete khách hàng failed', error);
+    } finally {
+      this.deletingId = null;
+    }
+  }
+
+  private async loadCustomers(): Promise<void> {
+    try {
+      const keyword = this.filterForm.controls.keyword.value.trim();
+      const pageData = await this.khachHangService.findAll(this.pageIndex, this.pageSize, keyword);
+      this.customerList = pageData.items;
+      this.totalItems = pageData.totalElements;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Không thể tải danh sách khách hàng';
+      this.notification.error('Thất bại', message);
+      console.error('Load khách hàng failed', error);
+      this.customerList = [];
+      this.totalItems = 0;
+    }
   }
 }

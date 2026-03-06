@@ -1,12 +1,5 @@
-<nz-modal
-  [nzVisible]="open"
-  nzTitle="Thêm khách hàng"
-  nzWidth="760"
-  nzOkText="Lưu"
-  nzCancelText="Hủy"
-  (nzOnCancel)="close()"
-  (nzOnOk)="save()"
->
+<nz-modal [nzVisible]="open" [nzTitle]="isEditMode ? 'Cập nhật khách hàng' : 'Thêm khách hàng'" nzWidth="760"
+  nzOkText="Lưu" nzCancelText="Hủy" [nzOkLoading]="isSubmitting" (nzOnCancel)="close()" (nzOnOk)="save()">
   <ng-container *nzModalContent>
     <form nz-form [formGroup]="form" nzLayout="vertical">
       <div class="grid-form">
@@ -25,18 +18,9 @@
         </nz-form-item>
 
         <nz-form-item class="full-width">
-          <nz-form-label>Địa chỉ</nz-form-label>
-          <nz-form-control>
+          <nz-form-label [nzRequired]="true">Địa chỉ</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng nhập địa chỉ khách hàng">
             <input nz-input formControlName="address" placeholder="Nhập địa chỉ khách hàng" />
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item>
-          <nz-form-label [nzRequired]="true">Hạng khách hàng</nz-form-label>
-          <nz-form-control>
-            <nz-select formControlName="loyaltyLevel" nzPlaceHolder="Chọn hạng khách hàng">
-              <nz-option *ngFor="let item of loyaltyOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
-            </nz-select>
           </nz-form-control>
         </nz-form-item>
       </div>

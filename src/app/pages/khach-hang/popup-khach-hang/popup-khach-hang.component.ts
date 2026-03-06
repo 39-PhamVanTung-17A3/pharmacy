@@ -1,65 +1,106 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { NzSelectModule } from 'ng-zorro-antd/select';
-
-export interface CustomerPayload {
-  name: string;
-  phone: string;
-  address: string;
-  loyaltyLevel: string;
-}
+import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { KhachHang, KhachHangService } from '../khach-hang.service';
 
 @Component({
   selector: 'app-popup-khach-hang',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NzButtonModule, NzFormModule, NzInputModule, NzModalModule, NzSelectModule],
+  imports: [CommonModule, ReactiveFormsModule, NzButtonModule, NzFormModule, NzInputModule, NzModalModule, NzNotificationModule],
   templateUrl: './popup-khach-hang.component.html',
   styleUrl: './popup-khach-hang.component.scss'
 })
-export class PopupKhachHangComponent {
+export class PopupKhachHangComponent implements OnChanges {
   @Input() open = false;
+  @Input() editingCustomer: KhachHang | null = null;
+
   @Output() closePopup = new EventEmitter<void>();
-  @Output() submitCustomer = new EventEmitter<CustomerPayload>();
+  @Output() customerSaved = new EventEmitter<KhachHang>();
 
   private readonly fb = inject(FormBuilder);
+  private readonly khachHangService = inject(KhachHangService);
+  private readonly notification = inject(NzNotificationService);
 
-  readonly loyaltyOptions = ['Thường', 'Thân thiết', 'VIP'];
+  isSubmitting = false;
 
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(120)]],
     phone: ['', [Validators.required, Validators.maxLength(20)]],
-    address: ['', [Validators.maxLength(250)]],
-    loyaltyLevel: ['Thường', Validators.required]
+    address: ['', [Validators.required, Validators.maxLength(1000)]]
   });
 
+  get isEditMode(): boolean {
+    return this.editingCustomer !== null;
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['open'] && this.open) {
+      this.syncFormWithMode();
+    }
+  }
+
   close(): void {
+    if (this.isSubmitting) {
+      return;
+    }
     this.closePopup.emit();
   }
 
-  save(): void {
-    if (this.form.invalid) {
+  async save(): Promise<void> {
+    if (this.form.invalid || this.isSubmitting) {
       this.form.markAllAsTouched();
       return;
     }
 
-    const value = this.form.getRawValue();
-    this.submitCustomer.emit({
-      name: value.name.trim(),
-      phone: value.phone.trim(),
-      address: value.address.trim(),
-      loyaltyLevel: value.loyaltyLevel
-    });
+    this.isSubmitting = true;
+    try {
+      const value = this.form.getRawValue();
+      const name = value.name.trim();
+      const phone = value.phone.trim();
+      const address = value.address.trim();
+
+      const saved = this.isEditMode
+        ? await this.khachHangService.update(this.editingCustomer!.id, name, phone, address)
+        : await this.khachHangService.create(name, phone, address);
+
+      this.customerSaved.emit(saved);
+      this.notification.success('Thành công', this.isEditMode ? 'Cập nhật khách hàng thành công' : 'Thêm khách hàng thành công');
+      this.form.reset();
+      this.closePopup.emit();
+    } catch (error) {
+      const message =
+        error instanceof HttpErrorResponse
+          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
+          : error instanceof Error
+            ? error.message
+            : 'Có lỗi xảy ra, vui lòng thử lại';
+      this.notification.error('Thất bại', message);
+      console.error('Save khách hàng failed', error);
+    } finally {
+      this.isSubmitting = false;
+    }
+  }
+
+  private syncFormWithMode(): void {
+    if (this.editingCustomer) {
+      this.form.setValue({
+        name: this.editingCustomer.name,
+        phone: this.editingCustomer.phone,
+        address: this.editingCustomer.address
+      });
+      return;
+    }
+
     this.form.reset({
       name: '',
       phone: '',
-      address: '',
-      loyaltyLevel: 'Thường'
+      address: ''
     });
-    this.close();
   }
 }
