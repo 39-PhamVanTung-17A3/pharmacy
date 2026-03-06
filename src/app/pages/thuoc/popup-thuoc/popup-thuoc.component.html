@@ -1,9 +1,10 @@
-﻿<nz-modal
+<nz-modal
   [nzVisible]="open"
-  nzTitle="Thêm thuốc mới"
+  [nzTitle]="isEditMode ? 'Cập nhật thuốc' : 'Thêm thuốc mới'"
   nzWidth="760"
   nzOkText="Lưu"
   nzCancelText="Hủy"
+  [nzOkLoading]="isSubmitting"
   (nzOnCancel)="close()"
   (nzOnOk)="save()"
 >
@@ -28,24 +29,10 @@
 
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Đơn vị</nz-form-label>
-          <nz-form-control nzErrorTip="Vui lòng chọn đơn vị">
-            <nz-select formControlName="unit" nzPlaceHolder="Chọn đơn vị">
-              <nz-option *ngFor="let item of unitOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
-            </nz-select>
+          <nz-form-control nzErrorTip="Vui lòng nhập đơn vị">
+            <input nz-input formControlName="unit" placeholder="Nhập đơn vị" />
           </nz-form-control>
         </nz-form-item>
-
-        <!-- <nz-form-item>
-          <nz-form-label [nzRequired]="true">Ngày hết hạn</nz-form-label>
-          <nz-form-control nzErrorTip="Vui lòng chọn ngày hết hạn">
-            <nz-date-picker
-              formControlName="expiryDate"
-              nzFormat="dd/MM/yyyy"
-              nzPlaceHolder="Chọn ngày hết hạn"
-              class="w-full"
-            ></nz-date-picker>
-          </nz-form-control>
-        </nz-form-item> -->
       </div>
     </form>
   </ng-container>
