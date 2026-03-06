@@ -35,21 +35,11 @@
                   <span nz-icon nzType="edit"></span>
                   <span>Sửa</span>
                 </button>
-                <button
-                  nz-button
-                  nzType="text"
-                  nzSize="small"
-                  nzDanger
-                  aria-label="Xóa"
-                  [nzLoading]="deletingId === item.id"
-                  [disabled]="deletingId !== null"
-                  nz-popconfirm
+                <button nz-button nzType="text" nzSize="small" nzDanger aria-label="Xóa"
+                  [nzLoading]="deletingId === item.id" [disabled]="deletingId !== null" nz-popconfirm
                   [nzPopconfirmTitle]="'Ban co chac muon xoa danh muc ' + item.name + '?'"
-                  nzPopconfirmPlacement="topRight"
-                  nzOkText="Xoa"
-                  nzCancelText="Huy"
-                  (nzOnConfirm)="deleteCategory(item)"
-                >
+                  nzPopconfirmPlacement="topRight" nzOkText="Xoa" nzCancelText="Huy"
+                  (nzOnConfirm)="deleteCategory(item)">
                   <span nz-icon nzType="delete"></span>
                   <span>Xóa</span>
                 </button>
@@ -59,19 +49,11 @@
         </tbody>
       </nz-table>
 
-      <app-pagging
-        [total]="totalItems"
-        [pageIndex]="pageIndex"
-        [pageSize]="pageSize"
-        (pageIndexChange)="onPageChange($event)"
-      ></app-pagging>
+      <app-pagging [total]="totalItems" [pageIndex]="pageIndex" [pageSize]="pageSize"
+        (pageIndexChange)="onPageChange($event)"></app-pagging>
     </nz-card>
   </main>
 
-  <app-popup-danh-muc-thuoc
-    [open]="isPopupOpen"
-    [editingCategory]="editingCategory"
-    (closePopup)="closePopup()"
-    (categorySaved)="onCategorySaved($event)"
-  ></app-popup-danh-muc-thuoc>
+  <app-popup-danh-muc-thuoc [open]="isPopupOpen" [editingCategory]="editingCategory" (closePopup)="closePopup()"
+    (categorySaved)="onCategorySaved($event)"></app-popup-danh-muc-thuoc>
 </div>

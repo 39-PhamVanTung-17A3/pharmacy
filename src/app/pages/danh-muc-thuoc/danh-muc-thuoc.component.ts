@@ -14,6 +14,7 @@ import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
 import { PopupDanhMucThuocComponent } from './popup-danh-muc-thuoc/popup-danh-muc-thuoc.component';
 import { DanhMucThuoc, DanhMucThuocService } from './danh-muc-thuoc.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-danh-muc-thuoc',
@@ -104,7 +105,12 @@ export class DanhMucThuocComponent implements OnInit {
         await this.loadCategories();
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Xoa danh muc that bai';
+      const message =
+        error instanceof HttpErrorResponse
+          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
+          : error instanceof Error
+            ? error.message
+            : 'Có lỗi xảy ra, vui lòng thử lại';
       this.notification.error('That bai', message);
       console.error('Delete danh muc thuoc failed', error);
     } finally {
@@ -119,7 +125,12 @@ export class DanhMucThuocComponent implements OnInit {
       this.categoryList = pageData.items;
       this.totalItems = pageData.totalElements;
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Khong the tai danh sach danh muc';
+      const message =
+        error instanceof HttpErrorResponse
+          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
+          : error instanceof Error
+            ? error.message
+            : 'Có lỗi xảy ra, vui lòng thử lại';
       this.notification.error('That bai', message);
       console.error('Load danh muc thuoc failed', error);
       this.categoryList = [];

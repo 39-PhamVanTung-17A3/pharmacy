@@ -21,7 +21,7 @@
           <nz-form-label [nzRequired]="true">Danh mục</nz-form-label>
           <nz-form-control nzErrorTip="Vui lòng chọn danh mục">
             <nz-select formControlName="category" nzPlaceHolder="Chọn danh mục">
-              <nz-option *ngFor="let item of categoryOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
+              <nz-option *ngFor="let item of categoryOptions" [nzLabel]="item.name" [nzValue]="item"></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -35,7 +35,7 @@
           </nz-form-control>
         </nz-form-item>
 
-        <nz-form-item>
+        <!-- <nz-form-item>
           <nz-form-label [nzRequired]="true">Ngày hết hạn</nz-form-label>
           <nz-form-control nzErrorTip="Vui lòng chọn ngày hết hạn">
             <nz-date-picker
@@ -45,7 +45,7 @@
               class="w-full"
             ></nz-date-picker>
           </nz-form-control>
-        </nz-form-item>
+        </nz-form-item> -->
       </div>
     </form>
   </ng-container>

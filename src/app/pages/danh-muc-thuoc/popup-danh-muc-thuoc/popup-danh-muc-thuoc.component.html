@@ -1,12 +1,6 @@
-﻿<nz-modal
-  [nzVisible]="open"
-  [nzTitle]="isEditMode ? 'Sua danh muc thuoc' : 'Them danh muc thuoc'"
-  [nzOkText]="isEditMode ? 'Cap nhat' : 'Luu'"
-  nzCancelText="Huy"
-  [nzOkLoading]="isSubmitting"
-  (nzOnCancel)="close()"
-  (nzOnOk)="save()"
->
+﻿<nz-modal [nzVisible]="open" [nzTitle]="isEditMode ? 'Sua danh muc thuoc' : 'Them danh muc thuoc'"
+  [nzOkText]="isEditMode ? 'Cap nhat' : 'Luu'" nzCancelText="Huy" [nzOkLoading]="isSubmitting" (nzOnCancel)="close()"
+  (nzOnOk)="save()">
   <ng-container *nzModalContent>
     <form nz-form [formGroup]="form" nzLayout="vertical" class="popup-form">
       <nz-form-item>

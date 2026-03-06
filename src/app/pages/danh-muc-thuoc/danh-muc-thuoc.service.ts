@@ -2,36 +2,11 @@
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { BaseResponse } from '../../models/base-response.model';
+import { DanhMucThuoc, DanhMucThuocApiResponse } from '../../models/danh-muc-thuoc.model';
+import { PageResponse } from '../../models/page-response.model';
 import { environment } from '../../../environments/environment';
 
-interface DanhMucThuocApiResponse {
-  id: number;
-  name: string;
-  description: string | null;
-}
-
-interface DanhMucThuocPageApiResponse {
-  items: DanhMucThuocApiResponse[];
-  totalElements: number;
-  totalPages: number;
-  page: number;
-  size: number;
-}
-
-export interface DanhMucThuoc {
-  id: number;
-  name: string;
-  description?: string;
-  medicineCount: number;
-}
-
-export interface DanhMucThuocPage {
-  items: DanhMucThuoc[];
-  totalElements: number;
-  totalPages: number;
-  page: number;
-  size: number;
-}
+export type { DanhMucThuoc } from '../../models/danh-muc-thuoc.model';
 
 @Injectable({
   providedIn: 'root'
@@ -40,14 +15,14 @@ export class DanhMucThuocService {
   private readonly apiUrl = environment.beDomain + '/api/danh-muc-thuoc';
   private readonly http = inject(HttpClient);
 
-  async findAll(page: number, size: number, keyword?: string): Promise<DanhMucThuocPage> {
+  async findAll(page: number, size: number, keyword?: string): Promise<PageResponse<DanhMucThuoc>> {
     let params = new HttpParams().set('page', page).set('size', size);
     if (keyword?.trim()) {
       params = params.set('keyword', keyword.trim());
     }
 
     const result = await firstValueFrom(
-      this.http.get<BaseResponse<DanhMucThuocPageApiResponse>>(this.apiUrl, { params })
+      this.http.get<BaseResponse<PageResponse<DanhMucThuocApiResponse>>>(this.apiUrl, { params })
     );
 
     const data = this.unwrapData(result);

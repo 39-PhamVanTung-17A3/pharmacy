@@ -7,6 +7,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
 import { DanhMucThuoc, DanhMucThuocService } from '../danh-muc-thuoc.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-popup-danh-muc-thuoc',
@@ -79,7 +80,12 @@ export class PopupDanhMucThuocComponent implements OnChanges {
       this.form.reset();
       this.closePopup.emit();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Co loi xay ra, vui long thu lai';
+      const message =
+        error instanceof HttpErrorResponse
+          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
+          : error instanceof Error
+            ? error.message
+            : 'Có lỗi xảy ra, vui lòng thử lại';
       this.notification.error('That bai', message);
       console.error('Save danh muc thuoc failed', error);
     } finally {

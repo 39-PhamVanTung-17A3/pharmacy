@@ -11,9 +11,14 @@ import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
 import { MedicinePayload, PopupThuocComponent } from './popup-thuoc/popup-thuoc.component';
 
+interface MedicineCategory {
+  id: number;
+  name: string;
+}
+
 interface MedicineItem {
   name: string;
-  category: string;
+  category: MedicineCategory;
   unit: string;
   quantity: number;
   expiryDate: string;
@@ -50,12 +55,48 @@ export class ThuocComponent {
   });
 
   medicineList: MedicineItem[] = [
-    { name: 'Amoxicillin 500mg', category: 'Kháng sinh', unit: 'Vỉ', quantity: 250, expiryDate: '2026-12-30' },
-    { name: 'Panadol Extra', category: 'Giảm đau', unit: 'Hộp', quantity: 20, expiryDate: '2027-02-15' },
-    { name: 'Augmentin 625mg', category: 'Kháng sinh', unit: 'Hộp', quantity: 85, expiryDate: '2026-11-01' },
-    { name: 'Decolgen ND', category: 'Giảm đau', unit: 'Vỉ', quantity: 142, expiryDate: '2027-01-30' },
-    { name: 'Paracetamol 500mg', category: 'Giảm đau', unit: 'Vỉ', quantity: 500, expiryDate: '2026-10-10' },
-    { name: 'Vitamin C 1000mg', category: 'Vitamin', unit: 'Hộp', quantity: 70, expiryDate: '2027-03-21' }
+    {
+      name: 'Amoxicillin 500mg',
+      category: { id: 1, name: 'Kháng sinh' },
+      unit: 'Vỉ',
+      quantity: 250,
+      expiryDate: '2026-12-30'
+    },
+    {
+      name: 'Panadol Extra',
+      category: { id: 2, name: 'Giảm đau' },
+      unit: 'Hộp',
+      quantity: 20,
+      expiryDate: '2027-02-15'
+    },
+    {
+      name: 'Augmentin 625mg',
+      category: { id: 1, name: 'Kháng sinh' },
+      unit: 'Hộp',
+      quantity: 85,
+      expiryDate: '2026-11-01'
+    },
+    {
+      name: 'Decolgen ND',
+      category: { id: 2, name: 'Giảm đau' },
+      unit: 'Vỉ',
+      quantity: 142,
+      expiryDate: '2027-01-30'
+    },
+    {
+      name: 'Paracetamol 500mg',
+      category: { id: 2, name: 'Giảm đau' },
+      unit: 'Vỉ',
+      quantity: 500,
+      expiryDate: '2026-10-10'
+    },
+    {
+      name: 'Vitamin C 1000mg',
+      category: { id: 3, name: 'Vitamin' },
+      unit: 'Hộp',
+      quantity: 70,
+      expiryDate: '2027-03-21'
+    }
   ];
 
   get filteredMedicines(): MedicineItem[] {
@@ -65,7 +106,7 @@ export class ThuocComponent {
     }
 
     return this.medicineList.filter(
-      (item) => item.name.toLowerCase().includes(keyword) || item.category.toLowerCase().includes(keyword)
+      (item) => item.name.toLowerCase().includes(keyword) || item.category.name.toLowerCase().includes(keyword)
     );
   }
 
@@ -93,7 +134,7 @@ export class ThuocComponent {
         category: payload.category,
         unit: payload.unit,
         quantity: payload.quantity,
-        expiryDate: payload.expiryDate
+        expiryDate: ''
       },
       ...this.medicineList
     ];

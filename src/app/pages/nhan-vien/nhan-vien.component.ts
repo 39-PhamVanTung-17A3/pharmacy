@@ -1,22 +1,20 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
-import { EmployeePayload, PopupNhanVienComponent } from './popup-nhan-vien/popup-nhan-vien.component';
-
-interface EmployeeItem {
-  name: string;
-  phone: string;
-  role: string;
-  shift: string;
-}
+import { NhanVien, NhanVienService } from './nhan-vien.service';
+import { PopupNhanVienComponent } from './popup-nhan-vien/popup-nhan-vien.component';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-nhan-vien',
@@ -32,72 +30,122 @@ interface EmployeeItem {
     NzCardModule,
     NzIconModule,
     NzInputModule,
+    NzPopconfirmModule,
     NzTableModule
   ],
   templateUrl: './nhan-vien.component.html',
   styleUrl: './nhan-vien.component.scss'
 })
-export class NhanVienComponent {
+export class NhanVienComponent implements OnInit {
+  private readonly roleLabelMap: Record<string, string> = {
+    ADMIN: 'Quản lý',
+    PHARMACIST: 'Dược sĩ',
+    CASHIER: 'Thu ngân',
+    WAREHOUSE: 'Kho vận'
+  };
+
   isPopupOpen = false;
+  editingEmployee: NhanVien | null = null;
+
   pageIndex = 1;
-  readonly pageSize = 5;
+  readonly pageSize = 10;
+  totalItems = 0;
+  deletingId: number | null = null;
+
+  employeeList: NhanVien[] = [];
 
   private readonly fb = inject(FormBuilder);
+  private readonly nhanVienService = inject(NhanVienService);
+  private readonly notification = inject(NzNotificationService);
 
   readonly filterForm = this.fb.nonNullable.group({
     keyword: ['']
   });
 
-  employeeList: EmployeeItem[] = [
-    { name: 'Nguyễn Hoàng Nam', phone: '0903001001', role: 'Dược sĩ', shift: 'Ca sáng' },
-    { name: 'Trần Thu Trang', phone: '0903001002', role: 'Thu ngân', shift: 'Ca chiều' },
-    { name: 'Lê Quang Huy', phone: '0903001003', role: 'Quản lý', shift: 'Hành chính' },
-    { name: 'Phạm Mỹ Linh', phone: '0903001004', role: 'Dược sĩ', shift: 'Ca tối' },
-    { name: 'Đặng Quốc Bảo', phone: '0903001005', role: 'Kho vận', shift: 'Ca sáng' },
-    { name: 'Vũ Thanh Tùng', phone: '0903001006', role: 'Thu ngân', shift: 'Ca tối' }
-  ];
+  async ngOnInit(): Promise<void> {
+    this.filterForm.controls.keyword.valueChanges.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => {
+      this.pageIndex = 1;
+      void this.loadEmployees();
+    });
 
-  get filteredEmployees(): EmployeeItem[] {
-    const keyword = this.filterForm.controls.keyword.value.trim().toLowerCase();
-    if (!keyword) {
-      return this.employeeList;
-    }
-
-    return this.employeeList.filter(
-      (item) =>
-        item.name.toLowerCase().includes(keyword) ||
-        item.phone.toLowerCase().includes(keyword) ||
-        item.role.toLowerCase().includes(keyword)
-    );
+    await this.loadEmployees();
   }
 
-  get pagedEmployees(): EmployeeItem[] {
-    const start = (this.pageIndex - 1) * this.pageSize;
-    return this.filteredEmployees.slice(start, start + this.pageSize);
+  openCreatePopup(): void {
+    this.editingEmployee = null;
+    this.isPopupOpen = true;
   }
 
-  openPopup(): void {
+  openEditPopup(item: NhanVien): void {
+    this.editingEmployee = item;
     this.isPopupOpen = true;
   }
 
   closePopup(): void {
     this.isPopupOpen = false;
+    this.editingEmployee = null;
   }
 
   onPageChange(page: number): void {
     this.pageIndex = page;
+    void this.loadEmployees();
   }
 
-  addEmployee(payload: EmployeePayload): void {
-    this.employeeList = [
-      {
-        name: payload.name,
-        phone: payload.phone,
-        role: payload.role,
-        shift: payload.shift
-      },
-      ...this.employeeList
-    ];
+  async onEmployeeSaved(_saved: NhanVien): Promise<void> {
     this.pageIndex = 1;
+    await this.loadEmployees();
+  }
+
+  async deleteEmployee(item: NhanVien): Promise<void> {
+    if (this.deletingId !== null) {
+      return;
+    }
+
+    this.deletingId = item.id;
+    try {
+      await this.nhanVienService.delete(item.id);
+      this.notification.success('Thành công', 'Xóa nhân viên thành công');
+
+      await this.loadEmployees();
+      if (this.employeeList.length === 0 && this.pageIndex > 1) {
+        this.pageIndex -= 1;
+        await this.loadEmployees();
+      }
+    } catch (error) {
+      const message =
+        error instanceof HttpErrorResponse
+          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
+          : error instanceof Error
+            ? error.message
+            : 'Có lỗi xảy ra, vui lòng thử lại';
+      this.notification.error('Thất bại', message);
+      console.error('Delete nhân viên failed', error);
+    } finally {
+      this.deletingId = null;
+    }
+  }
+
+  private async loadEmployees(): Promise<void> {
+    try {
+      const keyword = this.filterForm.controls.keyword.value.trim();
+      const pageData = await this.nhanVienService.findAll(this.pageIndex, this.pageSize, keyword);
+      this.employeeList = pageData.items;
+      this.totalItems = pageData.totalElements;
+    } catch (error) {
+      const message =
+        error instanceof HttpErrorResponse
+          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
+          : error instanceof Error
+            ? error.message
+            : 'Có lỗi xảy ra, vui lòng thử lại';
+      this.notification.error('Thất bại', message);
+      console.error('Load nhân viên failed', error);
+      this.employeeList = [];
+      this.totalItems = 0;
+    }
+  }
+
+  getRoleLabel(role: string): string {
+    return this.roleLabelMap[role] ?? role;
   }
 }

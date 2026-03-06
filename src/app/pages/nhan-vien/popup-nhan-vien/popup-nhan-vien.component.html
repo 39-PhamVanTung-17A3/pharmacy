@@ -1,12 +1,5 @@
-<nz-modal
-  [nzVisible]="open"
-  nzTitle="Thêm nhân viên"
-  nzWidth="760"
-  nzOkText="Lưu"
-  nzCancelText="Hủy"
-  (nzOnCancel)="close()"
-  (nzOnOk)="save()"
->
+<nz-modal [nzVisible]="open" [nzTitle]="isEditMode ? 'Cập nhật nhân viên' : 'Thêm nhân viên'" nzWidth="760"
+  nzOkText="Lưu" nzCancelText="Hủy" [nzOkLoading]="isSubmitting" (nzOnCancel)="close()" (nzOnOk)="save()">
   <ng-container *nzModalContent>
     <form nz-form [formGroup]="form" nzLayout="vertical">
       <div class="grid-form">
@@ -25,23 +18,25 @@
         </nz-form-item>
 
         <nz-form-item>
-          <nz-form-label [nzRequired]="true">Chức vụ</nz-form-label>
-          <nz-form-control>
-            <nz-select formControlName="role" nzPlaceHolder="Chọn chức vụ">
-              <nz-option *ngFor="let item of roleOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
+          <nz-form-label [nzRequired]="true">Vai trò</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng chọn vai trò">
+            <nz-select formControlName="role" nzPlaceHolder="Chọn vai trò">
+              <nz-option *ngFor="let item of roleOptions" [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Ca làm</nz-form-label>
-          <nz-form-control>
+          <nz-form-control nzErrorTip="Vui lòng chọn ca làm">
             <nz-select formControlName="shift" nzPlaceHolder="Chọn ca làm">
               <nz-option *ngFor="let item of shiftOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
       </div>
+      <p *ngIf="!isEditMode" class="default-password-note">Mật khẩu mặc định khi tạo mới: <strong>123aA&#64;</strong>
+      </p>
     </form>
   </ng-container>
 </nz-modal>
