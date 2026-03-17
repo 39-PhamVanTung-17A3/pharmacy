@@ -5,6 +5,7 @@ export interface ThuocApiResponse {
   name: string;
   category: DanhMucThuocApiResponse;
   unit: string;
+  totalQuantity: number;
 }
 
 export interface Thuoc {
@@ -16,4 +17,5 @@ export interface Thuoc {
     description?: string;
   };
   unit: string;
+  totalQuantity: number;
 }

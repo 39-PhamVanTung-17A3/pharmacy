@@ -66,7 +66,8 @@ export class ThuocService {
         name: item.category.name,
         description: item.category.description?.trim() || undefined
       },
-      unit: item.unit
+      unit: item.unit,
+      totalQuantity: item.totalQuantity ?? 0
     };
   }
 }

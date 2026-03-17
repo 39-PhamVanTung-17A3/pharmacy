@@ -22,6 +22,7 @@
             <th>Tên thuốc</th>
             <th>Danh mục</th>
             <th>Đơn vị</th>
+            <th class="text-right">Tổng tồn</th>
             <th class="text-right">Thao tác</th>
           </tr>
         </thead>
@@ -30,6 +31,7 @@
             <td>{{ item.name }}</td>
             <td>{{ item.category.name }}</td>
             <td>{{ item.unit }}</td>
+            <td class="text-right">{{ item.totalQuantity | number }}</td>
             <td class="text-right">
               <div class="action-buttons">
                 <button nz-button nzType="text" nzSize="small" aria-label="Sửa" [disabled]="deletingId !== null"
