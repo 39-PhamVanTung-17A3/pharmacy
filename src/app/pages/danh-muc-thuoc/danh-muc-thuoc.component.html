@@ -1,4 +1,4 @@
-﻿<div class="page-wrap">
+<div class="page-wrap">
   <app-menu></app-menu>
 
   <main class="main-content">
@@ -37,8 +37,8 @@
                 </button>
                 <button nz-button nzType="text" nzSize="small" nzDanger aria-label="Xóa"
                   [nzLoading]="deletingId === item.id" [disabled]="deletingId !== null" nz-popconfirm
-                  [nzPopconfirmTitle]="'Ban co chac muon xoa danh muc ' + item.name + '?'"
-                  nzPopconfirmPlacement="topRight" nzOkText="Xoa" nzCancelText="Huy"
+                  [nzPopconfirmTitle]="'Bạn có chắc muốn xóa danh mục ' + item.name + '?'"
+                  nzPopconfirmPlacement="topRight" nzOkText="Xóa" nzCancelText="Hủy"
                   (nzOnConfirm)="deleteCategory(item)">
                   <span nz-icon nzType="delete"></span>
                   <span>Xóa</span>

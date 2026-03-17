@@ -14,7 +14,7 @@ import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
 import { PopupThuocComponent } from './popup-thuoc/popup-thuoc.component';
 import { Thuoc, ThuocService } from './thuoc.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import { getErrorMessage } from '../../utils/error.util';
 
 @Component({
   selector: 'app-thuoc',
@@ -105,12 +105,8 @@ export class ThuocComponent implements OnInit {
         await this.loadMedicines();
       }
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại'; this.notification.error('Thất bại', message); this.notification.error('Thất bại', message);
+      const message = getErrorMessage(error);
+      this.notification.error('Thất bại', message);
       console.error('Delete thuốc failed', error);
     } finally {
       this.deletingId = null;
@@ -124,12 +120,8 @@ export class ThuocComponent implements OnInit {
       this.medicineList = pageData.items;
       this.totalItems = pageData.totalElements;
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại'; this.notification.error('Thất bại', message); this.notification.error('Thất bại', message);
+      const message = getErrorMessage(error);
+      this.notification.error('Thất bại', message);
       console.error('Load thuốc failed', error);
       this.medicineList = [];
       this.totalItems = 0;

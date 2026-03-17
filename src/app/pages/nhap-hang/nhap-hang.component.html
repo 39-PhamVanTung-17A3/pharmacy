@@ -12,7 +12,11 @@
 
     <nz-card nzTitle="Danh sách phiếu nhập" [nzExtra]="extraTpl">
       <ng-template #extraTpl>
-        <input nz-input [formControl]="filterForm.controls.keyword" placeholder="Tìm theo tên thuốc, mã lô hàng hoặc nhà cung cấp" />
+        <input
+          nz-input
+          [formControl]="filterForm.controls.keyword"
+          placeholder="Tìm theo tên thuốc, mã lô hàng hoặc nhà cung cấp"
+        />
       </ng-template>
 
       <nz-table [nzData]="importList" [nzShowPagination]="false" nzSize="middle">

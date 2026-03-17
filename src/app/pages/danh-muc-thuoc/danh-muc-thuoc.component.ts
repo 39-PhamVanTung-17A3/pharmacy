@@ -1,4 +1,4 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
@@ -14,7 +14,7 @@ import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
 import { PopupDanhMucThuocComponent } from './popup-danh-muc-thuoc/popup-danh-muc-thuoc.component';
 import { DanhMucThuoc, DanhMucThuocService } from './danh-muc-thuoc.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import { getErrorMessage } from '../../utils/error.util';
 
 @Component({
   selector: 'app-danh-muc-thuoc',
@@ -97,7 +97,7 @@ export class DanhMucThuocComponent implements OnInit {
     this.deletingId = item.id;
     try {
       await this.danhMucThuocService.delete(item.id);
-      this.notification.success('Thanh cong', 'Xoa danh muc thanh cong');
+      this.notification.success('Thành công', 'Xóa danh mục thành công');
 
       await this.loadCategories();
       if (this.categoryList.length === 0 && this.pageIndex > 1) {
@@ -105,14 +105,9 @@ export class DanhMucThuocComponent implements OnInit {
         await this.loadCategories();
       }
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại';
-      this.notification.error('That bai', message);
-      console.error('Delete danh muc thuoc failed', error);
+      const message = getErrorMessage(error);
+      this.notification.error('Thất bại', message);
+      console.error('Delete danh mục thuoc failed', error);
     } finally {
       this.deletingId = null;
     }
@@ -125,14 +120,9 @@ export class DanhMucThuocComponent implements OnInit {
       this.categoryList = pageData.items;
       this.totalItems = pageData.totalElements;
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại';
-      this.notification.error('That bai', message);
-      console.error('Load danh muc thuoc failed', error);
+      const message = getErrorMessage(error);
+      this.notification.error('Thất bại', message);
+      console.error('Load danh mục thuoc failed', error);
       this.categoryList = [];
       this.totalItems = 0;
     }

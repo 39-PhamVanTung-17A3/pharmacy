@@ -1,4 +1,4 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -7,7 +7,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
 import { DanhMucThuoc, DanhMucThuocService } from '../danh-muc-thuoc.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import { getErrorMessage } from '../../../utils/error.util';
 
 @Component({
   selector: 'app-popup-danh-muc-thuoc',
@@ -76,18 +76,13 @@ export class PopupDanhMucThuocComponent implements OnChanges {
         : await this.danhMucThuocService.create(name, description);
 
       this.categorySaved.emit(saved);
-      this.notification.success('Thanh cong', this.isEditMode ? 'Cap nhat danh muc thanh cong' : 'Them danh muc thanh cong');
+      this.notification.success('Thành công', this.isEditMode ? 'Cập nhật danh mục thành công' : 'Thêm danh mục thành công');
       this.form.reset();
       this.closePopup.emit();
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại';
-      this.notification.error('That bai', message);
-      console.error('Save danh muc thuoc failed', error);
+      const message = getErrorMessage(error);
+      this.notification.error('Thất bại', message);
+      console.error('Save danh mục thuốc failed', error);
     } finally {
       this.isSubmitting = false;
     }

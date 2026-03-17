@@ -1,5 +1,5 @@
-﻿import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
+import { getErrorMessage } from '../../../utils/error.util';
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -96,12 +96,7 @@ export class PopupThuocComponent implements OnInit, OnChanges {
       this.form.reset();
       this.closePopup.emit();
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại';
+      const message = getErrorMessage(error);
       this.notification.error('Thất bại', message);
       console.error('Save thuốc failed', error);
     } finally {
@@ -115,12 +110,8 @@ export class PopupThuocComponent implements OnInit, OnChanges {
       this.categoryOptions = response.items;
     } catch (error) {
       this.categoryOptions = [];
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại'; this.notification.error('Thất bại', message); this.notification.error('Thất bại', message);
+      const message = getErrorMessage(error);
+      this.notification.error('Thất bại', message);
       console.error('Load danh mục trong popup thuốc failed', error);
     }
   }

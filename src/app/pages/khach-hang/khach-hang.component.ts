@@ -14,7 +14,7 @@ import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
 import { KhachHang, KhachHangService } from './khach-hang.service';
 import { PopupKhachHangComponent } from './popup-khach-hang/popup-khach-hang.component';
-import { HttpErrorResponse } from '@angular/common/http';
+import { getErrorMessage } from '../../utils/error.util';
 
 @Component({
   selector: 'app-khach-hang',
@@ -105,12 +105,8 @@ export class KhachHangComponent implements OnInit {
         await this.loadCustomers();
       }
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại'; this.notification.error('Thất bại', message);
+      const message = getErrorMessage(error);
+      this.notification.error('Thất bại', message);
       console.error('Delete khách hàng failed', error);
     } finally {
       this.deletingId = null;
@@ -124,12 +120,8 @@ export class KhachHangComponent implements OnInit {
       this.customerList = pageData.items;
       this.totalItems = pageData.totalElements;
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại'; this.notification.error('Thất bại', message);
+      const message = getErrorMessage(error);
+      this.notification.error('Thất bại', message);
       console.error('Load khách hàng failed', error);
       this.customerList = [];
       this.totalItems = 0;

@@ -1,5 +1,13 @@
-<nz-modal [nzVisible]="open" [nzTitle]="isEditMode ? 'Cập nhật phiếu nhập' : 'Tạo phiếu nhập'" nzWidth="760"
-  nzOkText="Lưu" nzCancelText="Hủy" [nzOkLoading]="isSubmitting" (nzOnCancel)="close()" (nzOnOk)="save()">
+<nz-modal
+  [nzVisible]="open"
+  [nzTitle]="isEditMode ? 'Cập nhật phiếu nhập' : 'Tạo phiếu nhập'"
+  nzWidth="760"
+  nzOkText="Lưu"
+  nzCancelText="Hủy"
+  [nzOkLoading]="isSubmitting"
+  (nzOnCancel)="close()"
+  (nzOnOk)="save()"
+>
   <ng-container *nzModalContent>
     <form nz-form [formGroup]="form" nzLayout="vertical">
       <div class="grid-form">
@@ -48,7 +56,7 @@
         </nz-form-item>
 
         <nz-form-item>
-          <nz-form-label [nzRequired]="true">Hạn dùng</nz-form-label>
+          <nz-form-label>Hạn dùng</nz-form-label>
           <nz-form-control nzErrorTip="Vui lòng chọn hạn dùng">
             <input nz-input type="date" formControlName="expiryDate" />
           </nz-form-control>

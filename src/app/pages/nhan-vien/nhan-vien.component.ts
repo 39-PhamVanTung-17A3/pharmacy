@@ -14,7 +14,7 @@ import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
 import { NhanVien, NhanVienService } from './nhan-vien.service';
 import { PopupNhanVienComponent } from './popup-nhan-vien/popup-nhan-vien.component';
-import { HttpErrorResponse } from '@angular/common/http';
+import { getErrorMessage } from '../../utils/error.util';
 
 @Component({
   selector: 'app-nhan-vien',
@@ -112,12 +112,7 @@ export class NhanVienComponent implements OnInit {
         await this.loadEmployees();
       }
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại';
+      const message = getErrorMessage(error);
       this.notification.error('Thất bại', message);
       console.error('Delete nhân viên failed', error);
     } finally {
@@ -132,12 +127,7 @@ export class NhanVienComponent implements OnInit {
       this.employeeList = pageData.items;
       this.totalItems = pageData.totalElements;
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại';
+      const message = getErrorMessage(error);
       this.notification.error('Thất bại', message);
       console.error('Load nhân viên failed', error);
       this.employeeList = [];

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
+import { getErrorMessage } from '../../../utils/error.util';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -94,12 +94,7 @@ export class PopupNhanVienComponent implements OnChanges {
       this.form.reset();
       this.closePopup.emit();
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại';
+      const message = getErrorMessage(error);
       this.notification.error('Thất bại', message);
       console.error('Save nhân viên failed', error);
     } finally {

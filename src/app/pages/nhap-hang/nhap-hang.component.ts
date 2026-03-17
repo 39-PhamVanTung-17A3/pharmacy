@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
+import { getErrorMessage } from '../../utils/error.util';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
@@ -105,12 +105,7 @@ export class NhapHangComponent implements OnInit {
         await this.loadImports();
       }
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại';
+      const message = getErrorMessage(error);
       this.notification.error('Thất bại', message);
       console.error('Delete nhập hàng failed', error);
     } finally {
@@ -129,12 +124,7 @@ export class NhapHangComponent implements OnInit {
       this.importList = pageData.items;
       this.totalItems = pageData.totalElements;
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.message || error.message || 'Có lỗi xảy ra, vui lòng thử lại'
-          : error instanceof Error
-            ? error.message
-            : 'Có lỗi xảy ra, vui lòng thử lại';
+      const message = getErrorMessage(error);
       this.notification.error('Thất bại', message);
       console.error('Load nhập hàng failed', error);
       this.importList = [];
