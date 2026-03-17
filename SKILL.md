@@ -93,6 +93,9 @@ Quy tac:
 - Toan bo text UI (label, button, notification, popconfirm, placeholder, breadcrumb) phai dung tieng Viet co dau dung chinh ta
 - Khong viet text khong dau, tru ten bien/ham/file/path trong code
 - File `.ts`, `.html`, `.scss`, `.md` phai luu UTF-8 (khong BOM) de tranh loi font/ky tu
+- Khong ghi file code bang cach co the them BOM (vi du `Set-Content -Encoding UTF8` tren Windows PowerShell 5.1)
+- Neu dung PowerShell de ghi file, uu tien `[System.IO.File]::WriteAllText(path, content, (New-Object System.Text.UTF8Encoding($false)))`
+- Sau khi script ghi file, neu co nghi ngo encoding thi kiem tra byte dau file; khong duoc la `EF BB BF`
 - Khi copy text tu nguon ngoai, phai kiem tra lai ky tu tieng Viet truoc khi commit
 
 ## 9. Checklist truoc khi ket thuc

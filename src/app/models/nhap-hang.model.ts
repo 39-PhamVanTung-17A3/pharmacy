@@ -23,3 +23,31 @@ export interface NhapHang {
   expiryDate: string;
   importedAt: string;
 }
+
+export interface NhapHangSaleTreeNodeApiResponse {
+  title: string;
+  key: string;
+  selectable: boolean;
+  disabled: boolean;
+  isLeaf: boolean;
+  children: NhapHangSaleTreeNodeApiResponse[];
+}
+
+export interface NhapHangSaleTreeApiResponse {
+  treeNodes: NhapHangSaleTreeNodeApiResponse[];
+  imports: NhapHangApiResponse[];
+}
+
+export interface NhapHangSaleTreeNode {
+  title: string;
+  key: string;
+  selectable: boolean;
+  disabled: boolean;
+  isLeaf: boolean;
+  children: NhapHangSaleTreeNode[];
+}
+
+export interface NhapHangSaleTree {
+  treeNodes: NhapHangSaleTreeNode[];
+  imports: NhapHang[];
+}

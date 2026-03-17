@@ -1,25 +1,21 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
-
-interface InvoiceItem {
-  code: string;
-  customerName: string;
-  createdAt: string;
-  totalAmount: number;
-  paymentStatus: 'Đã thanh toán' | 'Chưa thanh toán' | 'Đã hủy';
-}
+import { getErrorMessage } from '../../utils/error.util';
+import { HoaDon, HoaDonService } from '../hoa-don/hoa-don.service';
 
 @Component({
   selector: 'app-danh-sach-hoa-don',
@@ -35,55 +31,99 @@ interface InvoiceItem {
     NzCardModule,
     NzIconModule,
     NzInputModule,
-    NzSelectModule,
+    NzModalModule,
     NzTableModule,
     NzTagModule
   ],
   templateUrl: './danh-sach-hoa-don.component.html',
   styleUrl: './danh-sach-hoa-don.component.scss'
 })
-export class DanhSachHoaDonComponent {
+export class DanhSachHoaDonComponent implements OnInit {
   pageIndex = 1;
-  readonly pageSize = 5;
+  readonly pageSize = 10;
+  totalItems = 0;
+  loading = false;
+  deletingId: number | null = null;
+  deleteConfirmOpen = false;
+  deletingInvoice: HoaDon | null = null;
 
   private readonly fb = inject(FormBuilder);
+  private readonly hoaDonService = inject(HoaDonService);
+  private readonly notification = inject(NzNotificationService);
 
   readonly filterForm = this.fb.nonNullable.group({
-    keyword: [''],
-    status: ['Tất cả']
+    keyword: ['']
   });
 
-  readonly statusOptions = ['Tất cả', 'Đã thanh toán', 'Chưa thanh toán', 'Đã hủy'];
+  invoices: HoaDon[] = [];
 
-  invoiceList: InvoiceItem[] = [
-    { code: 'HD000125', customerName: 'Nguyễn Văn An', createdAt: '2026-03-01', totalAmount: 185000, paymentStatus: 'Đã thanh toán' },
-    { code: 'HD000124', customerName: 'Khách lẻ', createdAt: '2026-02-28', totalAmount: 75000, paymentStatus: 'Đã thanh toán' },
-    { code: 'HD000123', customerName: 'Trần Thị Bình', createdAt: '2026-02-27', totalAmount: 920000, paymentStatus: 'Chưa thanh toán' },
-    { code: 'HD000122', customerName: 'Lê Minh Châu', createdAt: '2026-02-26', totalAmount: 1250000, paymentStatus: 'Đã thanh toán' },
-    { code: 'HD000121', customerName: 'Đỗ Ngọc Hà', createdAt: '2026-02-25', totalAmount: 640000, paymentStatus: 'Đã hủy' },
-    { code: 'HD000120', customerName: 'Võ Anh Khoa', createdAt: '2026-02-24', totalAmount: 380000, paymentStatus: 'Chưa thanh toán' }
-  ];
+  async ngOnInit(): Promise<void> {
+    this.filterForm.controls.keyword.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe(() => {
+        this.pageIndex = 1;
+        this.loadInvoices();
+      });
 
-  get filteredInvoices(): InvoiceItem[] {
-    const keyword = this.filterForm.controls.keyword.value.trim().toLowerCase();
-    const status = this.filterForm.controls.status.value;
-
-    return this.invoiceList.filter((item) => {
-      const matchKeyword =
-        !keyword ||
-        item.code.toLowerCase().includes(keyword) ||
-        item.customerName.toLowerCase().includes(keyword);
-      const matchStatus = status === 'Tất cả' || item.paymentStatus === status;
-      return matchKeyword && matchStatus;
-    });
+    await this.loadInvoices();
   }
 
-  get pagedInvoices(): InvoiceItem[] {
-    const start = (this.pageIndex - 1) * this.pageSize;
-    return this.filteredInvoices.slice(start, start + this.pageSize);
+  openDeleteConfirm(invoice: HoaDon): void {
+    this.deletingInvoice = invoice;
+    this.deleteConfirmOpen = true;
   }
 
-  onPageChange(page: number): void {
+  closeDeleteConfirm(force = false): void {
+    if (!force && this.deletingId !== null) {
+      return;
+    }
+    this.deleteConfirmOpen = false;
+    this.deletingInvoice = null;
+  }
+
+  async confirmDelete(rollbackStock: boolean): Promise<void> {
+    if (!this.deletingInvoice) {
+      return;
+    }
+
+    this.deletingId = this.deletingInvoice.id;
+    try {
+      await this.hoaDonService.delete(this.deletingInvoice.id, rollbackStock);
+      this.notification.success(
+        'Thành công',
+        rollbackStock ? 'Đã xóa hóa đơn và hoàn lại hàng vào kho' : 'Đã xóa hóa đơn, không hoàn lại hàng'
+      );
+      this.closeDeleteConfirm(true);
+      await this.loadInvoices();
+    } catch (error) {
+      const message = getErrorMessage(error, 'Không thể xóa hóa đơn');
+      this.notification.error('Thất bại', message);
+      console.error('Delete hóa đơn failed', error);
+    } finally {
+      this.deletingId = null;
+    }
+  }
+
+  async onPageChange(page: number): Promise<void> {
     this.pageIndex = page;
+    await this.loadInvoices();
+  }
+
+  private async loadInvoices(): Promise<void> {
+    this.loading = true;
+    try {
+      const pageData = await this.hoaDonService.findAll(this.pageIndex, this.pageSize, this.filterForm.controls.keyword.value);
+      this.invoices = pageData.items;
+      this.totalItems = pageData.totalElements;
+      this.pageIndex = pageData.page;
+    } catch (error) {
+      const message = getErrorMessage(error, 'Không tải được danh sách hóa đơn');
+      this.notification.error('Thất bại', message);
+      this.invoices = [];
+      this.totalItems = 0;
+      console.error('Load danh sách hóa đơn failed', error);
+    } finally {
+      this.loading = false;
+    }
   }
 }

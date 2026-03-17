@@ -1,4 +1,4 @@
-﻿<div class="page-wrap">
+<div class="page-wrap">
   <app-menu></app-menu>
 
   <main class="main-content">
@@ -7,13 +7,23 @@
         <nz-breadcrumb-item>Trang chủ</nz-breadcrumb-item>
         <nz-breadcrumb-item>Hóa đơn</nz-breadcrumb-item>
       </nz-breadcrumb>
-      <strong>Mã đơn: HD000124</strong>
+      <strong>Mã đơn: {{ currentInvoiceCode }}</strong>
     </header>
 
     <div class="bill-grid">
       <nz-card nzTitle="Danh sách sản phẩm">
-        <form [formGroup]="saleForm" class="mb-12">
-          <input nz-input formControlName="keyword" placeholder="Tìm tên thuốc hoặc mã vạch" />
+        <form [formGroup]="saleForm" class="mb-12 stack-12">
+          <nz-tree-select
+            formControlName="selectedImportKey"
+            [nzNodes]="medicineImportTreeNodes"
+            nzShowSearch
+            nzAllowClear
+            nzPlaceHolder="Chọn thuốc theo lô nhập"
+            class="w-full"
+          ></nz-tree-select>
+          <div class="subtle" *ngIf="!loadingMedicineTree && medicineImportTreeNodes.length === 0">
+            Chưa có thuốc nào để hiển thị.
+          </div>
         </form>
 
         <nz-table [nzData]="billItems" [nzShowPagination]="false" nzSize="middle">
@@ -51,14 +61,20 @@
               </td>
               <td class="text-right">{{ item.price * item.quantity | number }} đ</td>
               <td class="text-right">
-                <button nz-button nzType="text" nzDanger (click)="removeItem(i)">Xóa</button>
+                <button nz-button nzType="text" nzDanger (click)="removeItem(i)">
+                  <span nz-icon nzType="delete"></span>
+                  Xóa
+                </button>
               </td>
             </tr>
           </tbody>
         </nz-table>
 
         <div class="table-footer">
-          <button nz-button nzType="default" nzDanger (click)="clearBill()">Xóa tất cả</button>
+          <button nz-button nzType="default" nzDanger (click)="clearBill()">
+            <span nz-icon nzType="delete"></span>
+            Xóa tất cả
+          </button>
           <span>{{ billItems.length }} mặt hàng</span>
         </div>
       </nz-card>
@@ -66,13 +82,32 @@
       <div class="summary-col">
         <nz-card nzTitle="Thông tin khách hàng">
           <form [formGroup]="customerForm" class="stack-12">
-            <input nz-input formControlName="customerName" placeholder="Tên khách hàng" />
-            <input nz-input formControlName="phone" placeholder="Số điện thoại" />
+            <div class="customer-actions">
+              <nz-select
+                formControlName="customerId"
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn khách hàng"
+                class="customer-select"
+              >
+                <nz-option
+                  *ngFor="let customer of customerOptions"
+                  [nzLabel]="customer.name + ' - ' + customer.phone"
+                  [nzValue]="customer.id"
+                ></nz-option>
+              </nz-select>
+              <button nz-button nzType="default" type="button" (click)="openCreateCustomerPopup()">
+                <span nz-icon nzType="user-add"></span>
+                Thêm mới
+              </button>
+            </div>
+
+            <input nz-input formControlName="phone" placeholder="Số điện thoại" readonly />
           </form>
         </nz-card>
 
         <nz-card nzTitle="Thanh toán">
-          <form [formGroup]="paymentForm" class="stack-12">
+          <form [formGroup]="paymentForm" class="stack-12" (ngSubmit)="submitCheckout()">
             <div class="row-between"><span>Tổng tiền hàng</span><strong>{{ subtotal | number }} đ</strong></div>
             <nz-divider></nz-divider>
 
@@ -85,10 +120,20 @@
             <div class="row-between"><span>Cần thu</span><strong>{{ totalNeedPay | number }} đ</strong></div>
             <div class="row-between"><span>Tiền thừa</span><strong [class.negative]="returnAmount < 0">{{ returnAmount | number }} đ</strong></div>
 
-            <button nz-button nzType="primary" nzBlock>Xác nhận thanh toán</button>
+            <button nz-button nzType="primary" nzBlock [nzLoading]="checkoutLoading" [disabled]="checkoutLoading" type="submit">
+              <span nz-icon nzType="check-circle"></span>
+              Xác nhận thanh toán
+            </button>
           </form>
         </nz-card>
       </div>
     </div>
   </main>
+
+  <app-popup-khach-hang
+    [open]="customerPopupOpen"
+    [editingCustomer]="null"
+    (closePopup)="closeCustomerPopup()"
+    (customerSaved)="onCustomerSaved($event)"
+  ></app-popup-khach-hang>
 </div>

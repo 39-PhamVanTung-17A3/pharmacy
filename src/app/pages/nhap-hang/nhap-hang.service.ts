@@ -1,9 +1,16 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+﻿import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { BaseResponse } from '../../models/base-response.model';
-import { NhapHang, NhapHangApiResponse } from '../../models/nhap-hang.model';
+import {
+  NhapHang,
+  NhapHangApiResponse,
+  NhapHangSaleTree,
+  NhapHangSaleTreeApiResponse,
+  NhapHangSaleTreeNode,
+  NhapHangSaleTreeNodeApiResponse
+} from '../../models/nhap-hang.model';
 import { PageResponse } from '../../models/page-response.model';
 
 export type { NhapHang } from '../../models/nhap-hang.model';
@@ -32,6 +39,18 @@ export class NhapHangService {
       totalPages: data.totalPages,
       page: data.page,
       size: data.size
+    };
+  }
+
+  async findSaleTree(): Promise<NhapHangSaleTree> {
+    const result = await firstValueFrom(
+      this.http.get<BaseResponse<NhapHangSaleTreeApiResponse>>(`${this.apiUrl}/sale-tree`)
+    );
+
+    const data = this.unwrapData(result);
+    return {
+      treeNodes: data.treeNodes.map((node) => this.mapSaleTreeNodeFromApi(node)),
+      imports: data.imports.map((item) => this.mapFromApi(item))
     };
   }
 
@@ -112,6 +131,17 @@ export class NhapHangService {
       sellPrice: item.sellPrice ?? 0,
       expiryDate: item.expiryDate,
       importedAt: item.importedAt
+    };
+  }
+
+  private mapSaleTreeNodeFromApi(item: NhapHangSaleTreeNodeApiResponse): NhapHangSaleTreeNode {
+    return {
+      title: item.title,
+      key: item.key,
+      selectable: item.selectable,
+      disabled: item.disabled,
+      isLeaf: item.isLeaf,
+      children: (item.children ?? []).map((child) => this.mapSaleTreeNodeFromApi(child))
     };
   }
 }

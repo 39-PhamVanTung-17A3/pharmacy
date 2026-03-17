@@ -58,6 +58,16 @@
   gap: 12px;
 }
 
+.customer-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.customer-select {
+  flex: 1;
+}
+
 .row-between {
   display: flex;
   align-items: center;

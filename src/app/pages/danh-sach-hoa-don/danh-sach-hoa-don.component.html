@@ -13,12 +13,9 @@
     <nz-card nzTitle="Danh sách hóa đơn">
       <div class="filter-row" [formGroup]="filterForm">
         <input nz-input formControlName="keyword" placeholder="Tìm mã hóa đơn hoặc tên khách hàng" />
-        <nz-select formControlName="status" nzPlaceHolder="Trạng thái">
-          <nz-option *ngFor="let item of statusOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
-        </nz-select>
       </div>
 
-      <nz-table [nzData]="pagedInvoices" [nzShowPagination]="false" nzSize="middle">
+      <nz-table [nzData]="invoices" [nzShowPagination]="false" nzSize="middle" [nzLoading]="loading">
         <thead>
           <tr>
             <th>Mã hóa đơn</th>
@@ -30,15 +27,13 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of pagedInvoices">
+          <tr *ngFor="let item of invoices">
             <td>{{ item.code }}</td>
             <td>{{ item.customerName }}</td>
-            <td>{{ item.createdAt }}</td>
-            <td class="text-right">{{ item.totalAmount | number }} đ</td>
+            <td>{{ item.saleAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="text-right">{{ item.totalNeedPay | number }} đ</td>
             <td>
-              <nz-tag [nzColor]="item.paymentStatus === 'Đã thanh toán' ? 'success' : item.paymentStatus === 'Chưa thanh toán' ? 'warning' : 'default'">
-                {{ item.paymentStatus }}
-              </nz-tag>
+              <nz-tag nzColor="success">Đã thanh toán</nz-tag>
             </td>
             <td class="text-right">
               <div class="action-buttons">
@@ -50,7 +45,8 @@
                   <span nz-icon nzType="printer"></span>
                   <span>In</span>
                 </button>
-                <button nz-button nzType="text" nzSize="small" nzDanger aria-label="Xóa">
+                <button nz-button nzType="text" nzSize="small" nzDanger aria-label="Xóa"
+                  [disabled]="deletingId === item.id" (click)="openDeleteConfirm(item)">
                   <span nz-icon nzType="delete"></span>
                   <span>Xóa</span>
                 </button>
@@ -60,12 +56,23 @@
         </tbody>
       </nz-table>
 
-      <app-pagging
-        [total]="filteredInvoices.length"
-        [pageIndex]="pageIndex"
-        [pageSize]="pageSize"
-        (pageIndexChange)="onPageChange($event)"
-      ></app-pagging>
+      <app-pagging [total]="totalItems" [pageIndex]="pageIndex" [pageSize]="pageSize"
+        (pageIndexChange)="onPageChange($event)"></app-pagging>
     </nz-card>
   </main>
 </div>
+
+<nz-modal [nzVisible]="deleteConfirmOpen" nzTitle="Xác nhận xóa hóa đơn" [nzClosable]="false" [nzMaskClosable]="false"
+  [nzFooter]="deleteFooterTpl" (nzOnCancel)="closeDeleteConfirm()">
+  <ng-container *nzModalContent>
+    <p>Bạn muốn xóa hóa đơn <strong>{{ deletingInvoice?.code }}</strong> theo cách nào?</p>
+  </ng-container>
+
+  <ng-template #deleteFooterTpl>
+    <button nz-button (click)="closeDeleteConfirm()" [disabled]="deletingId !== null">Hủy</button>
+    <button nz-button nzDanger (click)="confirmDelete(false)" [disabled]="deletingId !== null">Không hoàn lại
+      hàng</button>
+    <button nz-button nzType="primary" (click)="confirmDelete(true)" [nzLoading]="deletingId !== null">Hoàn lại hàng vào
+      kho</button>
+  </ng-template>
+</nz-modal>
