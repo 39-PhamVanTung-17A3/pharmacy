@@ -16,6 +16,7 @@ import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
 import { getErrorMessage } from '../../utils/error.util';
 import { HoaDon, HoaDonService } from '../hoa-don/hoa-don.service';
+import { PopupChiTietHoaDonComponent } from './popup-chi-tiet-hoa-don/popup-chi-tiet-hoa-don.component';
 
 @Component({
   selector: 'app-danh-sach-hoa-don',
@@ -26,6 +27,7 @@ import { HoaDon, HoaDonService } from '../hoa-don/hoa-don.service';
     RouterLink,
     MenuComponent,
     PaggingComponent,
+    PopupChiTietHoaDonComponent,
     NzBreadCrumbModule,
     NzButtonModule,
     NzCardModule,
@@ -43,6 +45,8 @@ export class DanhSachHoaDonComponent implements OnInit {
   readonly pageSize = 10;
   totalItems = 0;
   loading = false;
+  viewingInvoiceId: number | null = null;
+  viewDetailOpen = false;
   deletingId: number | null = null;
   deleteConfirmOpen = false;
   deletingInvoice: HoaDon | null = null;
@@ -71,6 +75,16 @@ export class DanhSachHoaDonComponent implements OnInit {
   openDeleteConfirm(invoice: HoaDon): void {
     this.deletingInvoice = invoice;
     this.deleteConfirmOpen = true;
+  }
+
+  openViewDetail(invoice: HoaDon): void {
+    this.viewDetailOpen = true;
+    this.viewingInvoiceId = invoice.id;
+  }
+
+  closeViewDetail(): void {
+    this.viewDetailOpen = false;
+    this.viewingInvoiceId = null;
   }
 
   closeDeleteConfirm(force = false): void {

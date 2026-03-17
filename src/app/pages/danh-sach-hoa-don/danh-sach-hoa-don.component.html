@@ -37,7 +37,7 @@
             </td>
             <td class="text-right">
               <div class="action-buttons">
-                <button nz-button nzType="text" nzSize="small" aria-label="Xem">
+                <button nz-button nzType="text" nzSize="small" aria-label="Xem" (click)="openViewDetail(item)">
                   <span nz-icon nzType="eye"></span>
                   <span>Xem</span>
                 </button>
@@ -76,3 +76,6 @@
       kho</button>
   </ng-template>
 </nz-modal>
+
+<app-popup-chi-tiet-hoa-don [open]="viewDetailOpen" [invoiceId]="viewingInvoiceId"
+  (closePopup)="closeViewDetail()"></app-popup-chi-tiet-hoa-don>
