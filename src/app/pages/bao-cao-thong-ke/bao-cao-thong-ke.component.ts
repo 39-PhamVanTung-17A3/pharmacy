@@ -1,23 +1,20 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import * as Highcharts from 'highcharts';
 import { HighchartsChartModule } from 'highcharts-angular';
 import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
-
-interface ReportRow {
-  month: string;
-  invoices: number;
-  revenue: number;
-  cost: number;
-}
+import { getErrorMessage } from '../../utils/error.util';
+import { BaoCaoReportType, BaoCaoThongKeRow, BaoCaoThongKeService } from './bao-cao-thong-ke.service';
 
 @Component({
   selector: 'app-bao-cao-thong-ke',
@@ -38,69 +35,136 @@ interface ReportRow {
   templateUrl: './bao-cao-thong-ke.component.html',
   styleUrl: './bao-cao-thong-ke.component.scss'
 })
-export class BaoCaoThongKeComponent {
+export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
   pageIndex = 1;
   readonly pageSize = 5;
+  loading = false;
 
+  private readonly destroy$ = new Subject<void>();
   private readonly fb = inject(FormBuilder);
+  private readonly baoCaoThongKeService = inject(BaoCaoThongKeService);
+  private readonly notification = inject(NzNotificationService);
 
-  readonly filterForm = this.fb.nonNullable.group({
-    keyword: [''],
-    type: ['Tháng']
+  readonly filterForm = this.fb.group({
+    keyword: this.fb.nonNullable.control(''),
+    type: this.fb.nonNullable.control<BaoCaoReportType>('MONTH'),
+    dateRange: this.fb.control<Date[] | null>(null)
   });
 
-  readonly reportTypeOptions = ['Tháng', 'Quý', 'Năm'];
-
-  reportRows: ReportRow[] = [
-    { month: '01/2026', invoices: 3120, revenue: 920000000, cost: 690000000 },
-    { month: '02/2026', invoices: 3280, revenue: 980000000, cost: 725000000 },
-    { month: '03/2026', invoices: 3410, revenue: 1025000000, cost: 756000000 },
-    { month: '04/2026', invoices: 3550, revenue: 1090000000, cost: 801000000 },
-    { month: '05/2026', invoices: 3670, revenue: 1145000000, cost: 835000000 },
-    { month: '06/2026', invoices: 3810, revenue: 1198000000, cost: 872000000 }
+  readonly reportTypeOptions: Array<{ label: string; value: BaoCaoReportType }> = [
+    { label: 'Tháng', value: 'MONTH' },
+    { label: 'Quý', value: 'QUARTER' },
+    { label: 'Năm', value: 'YEAR' }
   ];
 
-  readonly highcharts = Highcharts;
+  reportRows: BaoCaoThongKeRow[] = [];
 
-  readonly reportChartOptions: Highcharts.Options = {
+  readonly highcharts = Highcharts;
+  reportChartOptions: Highcharts.Options = {
     chart: { type: 'column' },
-    title: { text: 'Doanh thu và chi phí theo tháng' },
-    xAxis: { categories: ['01/2026', '02/2026', '03/2026', '04/2026', '05/2026', '06/2026'] },
-    yAxis: { title: { text: 'Triệu đồng' } },
+    title: { text: 'Doanh thu và chi phí theo kỳ' },
+    xAxis: { categories: [] },
+    yAxis: { title: { text: 'VNĐ' } },
     series: [
       {
         type: 'column',
         name: 'Doanh thu',
-        data: [920, 980, 1025, 1090, 1145, 1198]
+        data: []
       },
       {
         type: 'column',
         name: 'Chi phí',
-        data: [690, 725, 756, 801, 835, 872]
+        data: []
+      },
+      {
+        type: 'column',
+        name: 'Lợi nhuận',
+        data: []
       }
     ],
     credits: { enabled: false }
   };
 
-  get filteredRows(): ReportRow[] {
-    const keyword = this.filterForm.controls.keyword.value.trim().toLowerCase();
-    if (!keyword) {
-      return this.reportRows;
-    }
-
-    return this.reportRows.filter((row) => row.month.toLowerCase().includes(keyword));
+  async ngOnInit(): Promise<void> {
+    this.bindFilters();
+    await this.loadSummary();
   }
 
-  get pagedRows(): ReportRow[] {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  get pagedRows(): BaoCaoThongKeRow[] {
     const start = (this.pageIndex - 1) * this.pageSize;
-    return this.filteredRows.slice(start, start + this.pageSize);
-  }
-
-  getProfit(item: ReportRow): number {
-    return item.revenue - item.cost;
+    return this.reportRows.slice(start, start + this.pageSize);
   }
 
   onPageChange(page: number): void {
     this.pageIndex = page;
+  }
+
+  private bindFilters(): void {
+    this.filterForm.controls.keyword.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(async () => {
+        this.pageIndex = 1;
+        await this.loadSummary();
+      });
+
+    this.filterForm.controls.type.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(async () => {
+      this.pageIndex = 1;
+      await this.loadSummary();
+    });
+
+    this.filterForm.controls.dateRange.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(async () => {
+      this.pageIndex = 1;
+      await this.loadSummary();
+    });
+  }
+
+  private async loadSummary(): Promise<void> {
+    this.loading = true;
+    try {
+      const type = this.filterForm.controls.type.value;
+      const keyword = this.filterForm.controls.keyword.value;
+      const dateRange = this.filterForm.controls.dateRange.value;
+
+      const data = await this.baoCaoThongKeService.getSummary(type, keyword, dateRange);
+      this.reportRows = data.rows;
+      this.buildChart(this.reportRows, type);
+    } catch (error) {
+      const message = getErrorMessage(error, 'Không tải được dữ liệu báo cáo thống kê');
+      this.notification.error('Thất bại', message);
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  private buildChart(rows: BaoCaoThongKeRow[], type: BaoCaoReportType): void {
+    const titleType = this.reportTypeOptions.find((item) => item.value === type)?.label ?? 'Kỳ';
+
+    this.reportChartOptions = {
+      ...this.reportChartOptions,
+      title: { text: `Doanh thu, chi phí và lợi nhuận theo ${titleType.toLowerCase()}` },
+      xAxis: { categories: rows.map((item) => item.periodLabel) },
+      series: [
+        {
+          type: 'column',
+          name: 'Doanh thu',
+          data: rows.map((item) => item.revenue)
+        },
+        {
+          type: 'column',
+          name: 'Chi phí',
+          data: rows.map((item) => item.cost)
+        },
+        {
+          type: 'column',
+          name: 'Lợi nhuận',
+          data: rows.map((item) => item.profit)
+        }
+      ]
+    };
   }
 }

@@ -12,23 +12,25 @@
     <nz-card nzTitle="Bộ lọc báo cáo" class="mb-16">
       <div class="filter-row" [formGroup]="filterForm">
         <input nz-input formControlName="keyword" placeholder="Tìm theo kỳ báo cáo" />
+
         <nz-select formControlName="type" nzPlaceHolder="Loại báo cáo">
-          <nz-option *ngFor="let item of reportTypeOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
+          <nz-option *ngFor="let item of reportTypeOptions" [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
         </nz-select>
-        <nz-range-picker></nz-range-picker>
+
+        <nz-range-picker
+          formControlName="dateRange"
+          nzFormat="dd/MM/yyyy"
+          nzPlaceHolder="Từ ngày,Đến ngày"
+        ></nz-range-picker>
       </div>
     </nz-card>
 
     <div class="content-grid">
-      <nz-card nzTitle="Biểu đồ tổng quan">
-        <highcharts-chart
-          [Highcharts]="highcharts"
-          [options]="reportChartOptions"
-          class="chart-wrap"
-        ></highcharts-chart>
+      <nz-card nzTitle="Biểu đồ tổng quan" [nzLoading]="loading">
+        <highcharts-chart [Highcharts]="highcharts" [options]="reportChartOptions" class="chart-wrap"></highcharts-chart>
       </nz-card>
 
-      <nz-card nzTitle="Bảng chi tiết">
+      <nz-card nzTitle="Bảng chi tiết" [nzLoading]="loading">
         <nz-table [nzData]="pagedRows" [nzShowPagination]="false" nzSize="middle">
           <thead>
             <tr>
@@ -41,17 +43,17 @@
           </thead>
           <tbody>
             <tr *ngFor="let item of pagedRows">
-              <td>{{ item.month }}</td>
-              <td class="text-right">{{ item.invoices }}</td>
+              <td>{{ item.periodLabel }}</td>
+              <td class="text-right">{{ item.invoiceCount }}</td>
               <td class="text-right">{{ item.revenue | number }} đ</td>
               <td class="text-right">{{ item.cost | number }} đ</td>
-              <td class="text-right">{{ getProfit(item) | number }} đ</td>
+              <td class="text-right">{{ item.profit | number }} đ</td>
             </tr>
           </tbody>
         </nz-table>
 
         <app-pagging
-          [total]="filteredRows.length"
+          [total]="reportRows.length"
           [pageIndex]="pageIndex"
           [pageSize]="pageSize"
           (pageIndexChange)="onPageChange($event)"
