@@ -19,6 +19,21 @@
   margin-bottom: 16px;
 }
 
+.filter-panel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-panel label {
+  font-size: 13px;
+  color: #475569;
+}
+
+.filter-panel nz-select {
+  width: 180px;
+}
+
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -38,14 +53,81 @@
   color: #1f1f1f;
 }
 
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.insight-label {
+  color: #6b7280;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.insight-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.insight-hint {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
 .chart-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
+.chart-card {
+  min-height: 380px;
+}
+
+.chart-card-wide {
+  grid-column: span 2;
+}
+
 .chart-wrap {
   width: 100%;
   height: 360px;
   display: block;
+}
+
+@media (max-width: 1200px) {
+  .kpi-grid,
+  .insight-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .kpi-grid,
+  .insight-grid,
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card-wide {
+    grid-column: span 1;
+  }
+
+  .chart-wrap {
+    height: 320px;
+  }
 }

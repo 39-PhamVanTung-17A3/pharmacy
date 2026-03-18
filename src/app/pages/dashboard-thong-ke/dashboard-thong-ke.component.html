@@ -1,4 +1,4 @@
-<div class="page-wrap">
+﻿<div class="page-wrap">
   <app-menu></app-menu>
 
   <main class="main-content">
@@ -7,6 +7,13 @@
         <nz-breadcrumb-item>Trang chủ</nz-breadcrumb-item>
         <nz-breadcrumb-item>Dashboard thống kê</nz-breadcrumb-item>
       </nz-breadcrumb>
+
+      <div class="filter-panel">
+        <label>Chu kỳ</label>
+        <nz-select [(ngModel)]="selectedPeriod" (ngModelChange)="onPeriodChange()" [nzDisabled]="loading">
+          <nz-option *ngFor="let option of periodOptions" [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+        </nz-select>
+      </div>
     </header>
 
     <section class="kpi-grid">
@@ -16,8 +23,16 @@
       </nz-card>
     </section>
 
+    <section class="insight-grid">
+      <nz-card *ngFor="let item of insights">
+        <div class="insight-label">{{ item.label }}</div>
+        <div class="insight-value">{{ item.value }}</div>
+        <div class="insight-hint">{{ item.hint }}</div>
+      </nz-card>
+    </section>
+
     <section class="chart-grid">
-      <nz-card>
+      <nz-card class="chart-card chart-card-wide">
         <highcharts-chart
           [Highcharts]="highcharts"
           [options]="revenueChartOptions"
@@ -25,10 +40,18 @@
         ></highcharts-chart>
       </nz-card>
 
-      <nz-card>
+      <nz-card class="chart-card">
         <highcharts-chart
           [Highcharts]="highcharts"
           [options]="topMedicineChartOptions"
+          class="chart-wrap"
+        ></highcharts-chart>
+      </nz-card>
+
+      <nz-card class="chart-card">
+        <highcharts-chart
+          [Highcharts]="highcharts"
+          [options]="topMedicineBarChartOptions"
           class="chart-wrap"
         ></highcharts-chart>
       </nz-card>
