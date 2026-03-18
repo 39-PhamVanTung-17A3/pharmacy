@@ -1,4 +1,4 @@
-<div class="page-wrap">
+﻿<div class="page-wrap">
   <app-menu></app-menu>
 
   <main class="main-content">
@@ -13,14 +13,9 @@
     <div class="bill-grid">
       <nz-card nzTitle="Danh sách sản phẩm">
         <form [formGroup]="saleForm" class="mb-12 stack-12">
-          <nz-tree-select
-            formControlName="selectedImportKey"
-            [nzNodes]="medicineImportTreeNodes"
-            nzShowSearch
-            nzAllowClear
-            nzPlaceHolder="Chọn thuốc theo lô nhập"
-            class="w-full"
-          ></nz-tree-select>
+          <nz-tree-select formControlName="selectedImportKey" [nzNodes]="medicineImportTreeNodes" nzShowSearch
+            nzAllowClear nzPlaceHolder="Chọn thuốc theo lô nhập" class="w-full"
+            (nzExpandChange)="onMedicineNodeExpand($event)"></nz-tree-select>
           <div class="subtle" *ngIf="!loadingMedicineTree && medicineImportTreeNodes.length === 0">
             Chưa có thuốc nào để hiển thị.
           </div>
@@ -50,14 +45,9 @@
                 </div>
               </td>
               <td class="text-right">
-                <nz-input-number
-                  [ngModel]="item.price"
-                  [ngModelOptions]="{ standalone: true }"
-                  (ngModelChange)="updatePrice(i, $event)"
-                  [nzMin]="0"
-                  [nzStep]="1000"
-                  class="price-input"
-                ></nz-input-number>
+                <nz-input-number [ngModel]="item.price" [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="updatePrice(i, $event)" [nzMin]="0" [nzStep]="1000"
+                  class="price-input"></nz-input-number>
               </td>
               <td class="text-right">{{ item.price * item.quantity | number }} đ</td>
               <td class="text-right">
@@ -83,18 +73,10 @@
         <nz-card nzTitle="Thông tin khách hàng">
           <form [formGroup]="customerForm" class="stack-12">
             <div class="customer-actions">
-              <nz-select
-                formControlName="customerId"
-                nzShowSearch
-                nzAllowClear
-                nzPlaceHolder="Chọn khách hàng"
-                class="customer-select"
-              >
-                <nz-option
-                  *ngFor="let customer of customerOptions"
-                  [nzLabel]="customer.name + ' - ' + customer.phone"
-                  [nzValue]="customer.id"
-                ></nz-option>
+              <nz-select formControlName="customerId" nzShowSearch nzAllowClear nzPlaceHolder="Chọn khách hàng"
+                class="customer-select">
+                <nz-option *ngFor="let customer of customerOptions" [nzLabel]="customer.name + ' - ' + customer.phone"
+                  [nzValue]="customer.id"></nz-option>
               </nz-select>
               <button nz-button nzType="default" type="button" (click)="openCreateCustomerPopup()">
                 <span nz-icon nzType="user-add"></span>
@@ -118,9 +100,11 @@
             <nz-input-number formControlName="amountPaid" [nzMin]="0" [nzStep]="1000" class="w-full"></nz-input-number>
 
             <div class="row-between"><span>Cần thu</span><strong>{{ totalNeedPay | number }} đ</strong></div>
-            <div class="row-between"><span>Tiền thừa</span><strong [class.negative]="returnAmount < 0">{{ returnAmount | number }} đ</strong></div>
+            <div class="row-between"><span>Tiền thừa</span><strong [class.negative]="returnAmount < 0">{{ returnAmount |
+                number }} đ</strong></div>
 
-            <button nz-button nzType="primary" nzBlock [nzLoading]="checkoutLoading" [disabled]="checkoutLoading" type="submit">
+            <button nz-button nzType="primary" nzBlock [nzLoading]="checkoutLoading" [disabled]="checkoutLoading"
+              type="submit">
               <span nz-icon nzType="check-circle"></span>
               Xác nhận thanh toán
             </button>
@@ -130,10 +114,7 @@
     </div>
   </main>
 
-  <app-popup-khach-hang
-    [open]="customerPopupOpen"
-    [editingCustomer]="null"
-    (closePopup)="closeCustomerPopup()"
-    (customerSaved)="onCustomerSaved($event)"
-  ></app-popup-khach-hang>
+  <app-popup-khach-hang [open]="customerPopupOpen" [editingCustomer]="null" (closePopup)="closeCustomerPopup()"
+    (customerSaved)="onCustomerSaved($event)"></app-popup-khach-hang>
 </div>
+

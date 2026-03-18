@@ -54,6 +54,16 @@ export class NhapHangService {
     };
   }
 
+  async findSaleImportsByMedicineId(medicineId: number): Promise<NhapHang[]> {
+    const params = new HttpParams().set('medicineId', medicineId);
+    const result = await firstValueFrom(
+      this.http.get<BaseResponse<NhapHangApiResponse[]>>(`${this.apiUrl}/sale-imports`, { params })
+    );
+    return this.unwrapData(result)
+      .map((item) => this.mapFromApi(item))
+      .filter((item) => item.quantity > 0);
+  }
+
   async create(
     medicineId: number,
     batchCode: string,

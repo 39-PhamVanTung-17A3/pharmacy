@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
@@ -12,12 +12,14 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTreeNodeOptions } from 'ng-zorro-antd/core/tree';
+import { NzFormatEmitEvent } from 'ng-zorro-antd/tree';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { MenuComponent } from '../../components/menu/menu.component';
 import { getErrorMessage } from '../../utils/error.util';
 import { KhachHang, KhachHangService } from '../khach-hang/khach-hang.service';
 import { PopupKhachHangComponent } from '../khach-hang/popup-khach-hang/popup-khach-hang.component';
 import { NhapHang, NhapHangService } from '../nhap-hang/nhap-hang.service';
+import { Thuoc, ThuocService } from '../thuoc/thuoc.service';
 import { HoaDonItemRequest, HoaDonService } from './hoa-don.service';
 
 interface BillItem {
@@ -55,6 +57,7 @@ interface BillItem {
 export class HoaDonComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly nhapHangService = inject(NhapHangService);
+  private readonly thuocService = inject(ThuocService);
   private readonly khachHangService = inject(KhachHangService);
   private readonly hoaDonService = inject(HoaDonService);
   private readonly notification = inject(NzNotificationService);
@@ -74,7 +77,9 @@ export class HoaDonComponent implements OnInit {
   });
 
   medicineImportTreeNodes: NzTreeNodeOptions[] = [];
-  importOptions: NhapHang[] = [];
+  importOptionsById = new Map<number, NhapHang>();
+  loadedMedicineNodeKeys = new Set<string>();
+  loadingMedicineNodeKeys = new Set<string>();
   loadingMedicineTree = false;
 
   customerOptions: KhachHang[] = [];
@@ -98,7 +103,7 @@ export class HoaDonComponent implements OnInit {
       this.onImportOrderSelected(selectedKey);
     });
 
-    await Promise.all([this.loadCustomers(), this.loadMedicineImportTree()]);
+    await Promise.all([this.loadCustomers(), this.loadMedicineTreeByMedicine()]);
   }
 
   get subtotal(): number {
@@ -194,7 +199,7 @@ export class HoaDonComponent implements OnInit {
         selectedImportKey: null
       });
 
-      await this.loadMedicineImportTree();
+      await this.loadMedicineTreeByMedicine();
     } catch (error) {
       const message = getErrorMessage(error, 'Không thể thanh toán hóa đơn');
       this.notification.error('Thất bại', message);
@@ -234,7 +239,7 @@ export class HoaDonComponent implements OnInit {
     }
 
     const importId = Number(selectedKey.replace('import-', ''));
-    const selectedImport = this.importOptions.find((item) => item.id === importId);
+    const selectedImport = this.importOptionsById.get(importId);
     if (!selectedImport) {
       return;
     }
@@ -274,18 +279,85 @@ export class HoaDonComponent implements OnInit {
       this.loadingCustomers = false;
     }
   }
+  async onMedicineNodeExpand(event: NzFormatEmitEvent): Promise<void> {
+    const node = event.node;
+    if (!node || event.eventName !== 'expand' || !node.isExpanded) {
+      return;
+    }
 
-  private async loadMedicineImportTree(): Promise<void> {
+    const medicineKey = String(node.key ?? '');
+    if (!medicineKey.startsWith('medicine-')) {
+      return;
+    }
+    if (this.loadedMedicineNodeKeys.has(medicineKey) || this.loadingMedicineNodeKeys.has(medicineKey)) {
+      return;
+    }
+
+    const medicineId = Number(medicineKey.replace('medicine-', ''));
+    if (!Number.isFinite(medicineId)) {
+      return;
+    }
+
+    this.loadingMedicineNodeKeys.add(medicineKey);
+    try {
+      const imports = await this.nhapHangService.findSaleImportsByMedicineId(medicineId);
+      imports.forEach((item) => this.importOptionsById.set(item.id, item));
+
+      const children: NzTreeNodeOptions[] = imports.map((item) => ({
+        title: `Lô ${item.batchCode} (Tồn kho: ${item.quantity} - Giá bán: ${item.sellPrice})`,
+        key: `import-${item.id}`,
+        isLeaf: true,
+        selectable: true
+      }));
+
+      this.medicineImportTreeNodes = this.medicineImportTreeNodes.map((treeNode) => {
+        if (String(treeNode.key) !== medicineKey) {
+          return treeNode;
+        }
+        return {
+          ...treeNode,
+          children,
+          isLeaf: children.length === 0
+        };
+      });
+
+      this.loadedMedicineNodeKeys.add(medicineKey);
+    } catch (error) {
+      const message = getErrorMessage(error, 'Không tải được danh sách lô nhập của thuốc');
+      this.notification.error('Thất bại', message);
+    } finally {
+      this.loadingMedicineNodeKeys.delete(medicineKey);
+    }
+  }
+
+  private async loadMedicineTreeByMedicine(): Promise<void> {
     this.loadingMedicineTree = true;
     try {
-      const saleTree = await this.nhapHangService.findSaleTree();
-      this.medicineImportTreeNodes = saleTree.treeNodes as NzTreeNodeOptions[];
-      this.importOptions = saleTree.imports;
+      const pageData = await this.thuocService.findAll(1, 1000);
+      const medicines = pageData.items;
+
+      this.medicineImportTreeNodes = medicines.map((medicine: Thuoc) => {
+        const hasStock = medicine.totalQuantity > 0;
+        return {
+          key: `medicine-${medicine.id}`,
+          title: `${medicine.name} (${hasStock ? `Còn hàng: ${medicine.totalQuantity}` : 'Hết hàng'})`,
+          selectable: false,
+          isLeaf: !hasStock,
+          disabled: false,
+          children: []
+        } as NzTreeNodeOptions;
+      });
+
+      this.importOptionsById.clear();
+      this.loadedMedicineNodeKeys.clear();
+      this.loadingMedicineNodeKeys.clear();
     } catch (error) {
-      const message = getErrorMessage(error, 'Không tải được danh sách thuốc theo lô nhập');
+      const message = getErrorMessage(error, 'Không tải được danh sách thuốc');
       this.notification.error('Thất bại', message);
       this.medicineImportTreeNodes = [];
-      this.importOptions = [];
+      this.importOptionsById.clear();
+      this.loadedMedicineNodeKeys.clear();
+      this.loadingMedicineNodeKeys.clear();
     } finally {
       this.loadingMedicineTree = false;
     }
@@ -300,3 +372,5 @@ export class HoaDonComponent implements OnInit {
     );
   }
 }
+
+
