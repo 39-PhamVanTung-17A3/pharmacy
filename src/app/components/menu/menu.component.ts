@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
@@ -26,8 +26,11 @@ interface MenuSection {
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.scss'
 })
-export class MenuComponent {
+export class MenuComponent implements OnInit {
   private readonly authService = inject(AuthService);
+
+  isMenuOpen = true;
+  isMobile = false;
 
   readonly sections: MenuSection[] = [
     {
@@ -60,6 +63,15 @@ export class MenuComponent {
     }
   ];
 
+  ngOnInit(): void {
+    this.updateViewport();
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.updateViewport();
+  }
+
   get session() {
     return this.authService.session;
   }
@@ -81,6 +93,17 @@ export class MenuComponent {
     return parsedRole ? ROLE_LABELS[parsedRole] : this.session?.role || '-';
   }
 
+  get showFloatingToggle(): boolean {
+    return this.isMobile || !this.isMenuOpen;
+  }
+
+  get siderWidth(): number {
+    if (this.isMobile) {
+      return 260;
+    }
+    return this.isMenuOpen ? 260 : 92;
+  }
+
   can(permission?: string): boolean {
     if (!permission) {
       return true;
@@ -92,7 +115,34 @@ export class MenuComponent {
     return section.items.some((item) => this.can(item.permission));
   }
 
+  toggleMenu(): void {
+    this.isMenuOpen = !this.isMenuOpen;
+    this.applyLayoutWidth();
+  }
+
+  closeMobileMenu(): void {
+    if (!this.isMobile) {
+      return;
+    }
+    this.isMenuOpen = false;
+    this.applyLayoutWidth();
+  }
+
   async logout(): Promise<void> {
     await this.authService.logout();
+  }
+
+  private updateViewport(): void {
+    const nextIsMobile = window.innerWidth <= 1024;
+    if (nextIsMobile !== this.isMobile) {
+      this.isMobile = nextIsMobile;
+      this.isMenuOpen = !nextIsMobile;
+    }
+    this.applyLayoutWidth();
+  }
+
+  private applyLayoutWidth(): void {
+    const width = this.isMobile ? '0px' : this.isMenuOpen ? '260px' : '92px';
+    document.documentElement.style.setProperty('--app-sider-width', width);
   }
 }

@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --app-sider-width: 260px;
+}
+
 *,
 *::before,
 *::after {

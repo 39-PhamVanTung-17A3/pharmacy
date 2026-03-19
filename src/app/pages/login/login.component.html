@@ -1,18 +1,46 @@
 <div class="login-page">
-  <nz-card nzTitle="Đăng nhập hệ thống" class="login-card">
-    <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
-      <label>Số điện thoại</label>
-      <input nz-input formControlName="phone" placeholder="Nhập số điện thoại" />
+  <div class="login-shell">
+    <section class="brand-panel">
+      <div class="brand-badge">PHARMA</div>
+      <h1>Hệ thống kho thuốc</h1>
+      <p>Quản lý tồn kho, lô và hạn dùng tập trung cho nhà thuốc và quầy bán.</p>
 
-      <label>Mật khẩu</label>
-      <nz-input-group [nzSuffix]="passwordToggleIcon">
-        <input nz-input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Nhập mật khẩu" />
-      </nz-input-group>
-      <ng-template #passwordToggleIcon>
-        <span nz-icon [nzType]="showPassword ? 'eye-invisible' : 'eye'" (click)="togglePasswordVisibility()"></span>
-      </ng-template>
+      <ul class="feature-list">
+        <li>
+          <span nz-icon nzType="database"></span>
+          <span>Theo dõi tồn kho theo lô nhập</span>
+        </li>
+        <li>
+          <span nz-icon nzType="alert"></span>
+          <span>Cảnh báo thuốc sắp hết hạn, sắp hết hàng</span>
+        </li>
+        <li>
+          <span nz-icon nzType="line-chart"></span>
+          <span>Báo cáo doanh thu và hiệu suất bán hàng</span>
+        </li>
+      </ul>
+    </section>
 
-      <button nz-button nzType="primary" [disabled]="loading" [nzLoading]="loading" class="submit-btn">Đăng nhập</button>
-    </form>
-  </nz-card>
+    <nz-card class="login-card">
+      <div class="card-head">
+        <h2>Đăng nhập</h2>
+        <p>Sử dụng tài khoản nhân viên để truy cập hệ thống</p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
+        <label>Số điện thoại</label>
+        <input nz-input formControlName="phone" placeholder="Nhập số điện thoại" />
+
+        <label>Mật khẩu</label>
+        <nz-input-group [nzSuffix]="passwordToggleIcon">
+          <input nz-input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Nhập mật khẩu" />
+        </nz-input-group>
+        <ng-template #passwordToggleIcon>
+          <span nz-icon [nzType]="showPassword ? 'eye-invisible' : 'eye'" (click)="togglePasswordVisibility()"></span>
+        </ng-template>
+
+        <button nz-button nzType="primary" [disabled]="loading" [nzLoading]="loading" class="submit-btn">Đăng nhập</button>
+      </form>
+    </nz-card>
+  </div>
 </div>

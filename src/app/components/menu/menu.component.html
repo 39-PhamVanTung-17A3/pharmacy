@@ -1,25 +1,44 @@
-<nz-sider class="app-sider" nzTheme="light" [nzWidth]="260">
+<button *ngIf="showFloatingToggle" class="floating-toggle" type="button" (click)="toggleMenu()">
+  <span nz-icon [nzType]="isMenuOpen ? 'menu-fold' : 'menu-unfold'"></span>
+</button>
+
+<div *ngIf="isMobile && isMenuOpen" class="menu-backdrop" (click)="closeMobileMenu()"></div>
+
+<nz-sider
+  class="app-sider"
+  nzTheme="light"
+  [nzWidth]="siderWidth"
+  [style.width.px]="siderWidth"
+  [style.min-width.px]="siderWidth"
+  [style.max-width.px]="siderWidth"
+  [style.flex]="'0 0 ' + siderWidth + 'px'"
+  [class.closed]="!isMenuOpen"
+  [class.mobile]="isMobile"
+>
   <div class="brand">
     <div class="brand-mark">{{ initials }}</div>
-    <div>
+    <div class="brand-text" [class.hidden]="!isMenuOpen && !isMobile">
       <h1>Pharma Pro</h1>
       <p>Kho thuốc thông minh</p>
     </div>
+    <button class="toggle-btn" type="button" (click)="toggleMenu()">
+      <span nz-icon [nzType]="isMenuOpen ? 'menu-fold' : 'menu-unfold'"></span>
+    </button>
   </div>
 
-  <div class="staff-card">
+  <div class="staff-card" [class.hidden]="!isMenuOpen && !isMobile">
     <strong>{{ displayName }}</strong>
     <span>{{ roleLabel }}</span>
   </div>
 
   <nav class="side-nav">
     <section *ngFor="let section of sections" class="menu-section" [class.hidden]="!sectionVisible(section)">
-      <h4>{{ section.title }}</h4>
+      <h4 [class.hidden]="!isMenuOpen && !isMobile">{{ section.title }}</h4>
       <ul>
         <li *ngFor="let item of section.items" [class.hidden]="!can(item.permission)">
           <button *ngIf="item.isAction" type="button" class="menu-link action-link" (click)="logout()">
             <span nz-icon [nzType]="item.icon"></span>
-            <span>{{ item.label }}</span>
+            <span class="menu-label" [class.hidden]="!isMenuOpen && !isMobile">{{ item.label }}</span>
           </button>
 
           <a
@@ -28,16 +47,17 @@
             [routerLink]="item.route!"
             routerLinkActive="active"
             [routerLinkActiveOptions]="{ exact: true }"
+            (click)="closeMobileMenu()"
           >
             <span nz-icon [nzType]="item.icon"></span>
-            <span>{{ item.label }}</span>
+            <span class="menu-label" [class.hidden]="!isMenuOpen && !isMobile">{{ item.label }}</span>
           </a>
         </li>
       </ul>
     </section>
   </nav>
 
-  <div class="sider-footer">
+  <div class="sider-footer" [class.hidden]="!isMenuOpen && !isMobile">
     <span>Cơ sở dữ liệu thuốc, lô và hạn dùng</span>
   </div>
 </nz-sider>
