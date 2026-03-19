@@ -59,55 +59,6 @@ export class PopupNhapHangComponent implements OnInit, OnChanges {
     return this.editingImport !== null;
   }
 
-  get showMedicineError(): boolean {
-    const control = this.form.controls.medicineId;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get showBatchCodeError(): boolean {
-    const control = this.form.controls.batchCode;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get showSupplierError(): boolean {
-    const control = this.form.controls.supplier;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get showQuantityError(): boolean {
-    const control = this.form.controls.quantity;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get showImportPriceError(): boolean {
-    const control = this.form.controls.importPrice;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get showSellPriceError(): boolean {
-    const control = this.form.controls.sellPrice;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get showImportedAtError(): boolean {
-    const control = this.form.controls.importedAt;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get batchCodeErrorMessage(): string {
-    if (this.form.controls.batchCode.hasError('required')) {
-      return 'Vui lòng nhập mã lô hàng';
-    }
-    return '';
-  }
-
-  get supplierErrorMessage(): string {
-    if (this.form.controls.supplier.hasError('maxlength')) {
-      return 'Nhà cung cấp tối đa 160 ký tự';
-    }
-    return '';
-  }
-
   async ngOnInit(): Promise<void> {
     await this.loadMedicineOptions();
   }
@@ -128,9 +79,9 @@ export class PopupNhapHangComponent implements OnInit, OnChanges {
   async save(): Promise<void> {
     if (this.form.invalid || this.isSubmitting) {
       this.form.markAllAsTouched();
-      Object.values(this.form.controls).forEach((control) => {
+      Object.values(this.form.controls).forEach(control => {
         control.markAsDirty();
-        control.updateValueAndValidity({ onlySelf: true, emitEvent: false });
+        control.updateValueAndValidity();
       });
       return;
     }
@@ -149,26 +100,26 @@ export class PopupNhapHangComponent implements OnInit, OnChanges {
 
       const saved = this.isEditMode
         ? await this.nhapHangService.update(
-            this.editingImport!.id,
-            medicineId,
-            batchCode,
-            supplier,
-            quantity,
-            importPrice,
-            sellPrice,
-            expiryDate,
-            importedAt
-          )
+          this.editingImport!.id,
+          medicineId,
+          batchCode,
+          supplier,
+          quantity,
+          importPrice,
+          sellPrice,
+          expiryDate,
+          importedAt
+        )
         : await this.nhapHangService.create(
-            medicineId,
-            batchCode,
-            supplier,
-            quantity,
-            importPrice,
-            sellPrice,
-            expiryDate,
-            importedAt
-          );
+          medicineId,
+          batchCode,
+          supplier,
+          quantity,
+          importPrice,
+          sellPrice,
+          expiryDate,
+          importedAt
+        );
 
       this.importSaved.emit(saved);
       this.notification.success('Thành công', this.isEditMode ? 'Cập nhật phiếu nhập thành công' : 'Tạo phiếu nhập thành công');

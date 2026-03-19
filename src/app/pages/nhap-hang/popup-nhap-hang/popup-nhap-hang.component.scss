@@ -15,17 +15,3 @@
 .w-full {
   width: 100%;
 }
-
-.field-error {
-  margin-top: 4px;
-  color: #ff4d4f;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-:host ::ng-deep input.ant-input.invalid-control,
-:host ::ng-deep .invalid-control.ant-input-number,
-:host ::ng-deep nz-select.invalid-control .ant-select-selector {
-  border-color: #ff4d4f !important;
-  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.12) !important;
-}
