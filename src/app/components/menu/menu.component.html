@@ -1,4 +1,4 @@
-﻿<nz-sider class="app-sider" nzTheme="light" [nzWidth]="260">
+<nz-sider class="app-sider" nzTheme="light" [nzWidth]="260">
   <div class="brand">
     <div class="brand-mark">PP</div>
     <div>
@@ -8,22 +8,24 @@
   </div>
 
   <ul nz-menu nzMode="inline" class="side-menu">
-    <li nz-menu-item routerLink="/bao-cao-thong-ke" routerLinkActive="ant-menu-item-selected" [routerLinkActiveOptions]="{ exact: true }">
+    <li *ngIf="can('PERM_REPORT_VIEW')" nz-menu-item routerLink="/bao-cao-thong-ke" routerLinkActive="ant-menu-item-selected" [routerLinkActiveOptions]="{ exact: true }">
       Báo cáo thống kê
     </li>
-    <li nz-menu-item routerLink="/danh-muc-thuoc" routerLinkActive="ant-menu-item-selected" [routerLinkActiveOptions]="{ exact: true }">
+    <li *ngIf="can('PERM_MEDICINE_MANAGE')" nz-menu-item routerLink="/danh-muc-thuoc" routerLinkActive="ant-menu-item-selected" [routerLinkActiveOptions]="{ exact: true }">
       Danh mục thuốc
     </li>
-    <li nz-menu-item routerLink="/thuoc" routerLinkActive="ant-menu-item-selected">Kho thuốc</li>
-    <li nz-menu-item routerLink="/nhap-hang" routerLinkActive="ant-menu-item-selected">Nhập hàng</li>
-    <li nz-menu-item routerLink="/khach-hang" routerLinkActive="ant-menu-item-selected">Khách hàng</li>
-    <li nz-menu-item routerLink="/nhan-vien" routerLinkActive="ant-menu-item-selected">Nhân viên</li>
-    <li nz-menu-item routerLink="/hoa-don" routerLinkActive="ant-menu-item-selected">Tạo hóa đơn</li>
-    <li nz-menu-item routerLink="/danh-sach-hoa-don" routerLinkActive="ant-menu-item-selected">Danh sách hóa đơn</li>
+    <li *ngIf="can('PERM_MEDICINE_MANAGE')" nz-menu-item routerLink="/thuoc" routerLinkActive="ant-menu-item-selected">Kho thuốc</li>
+    <li *ngIf="can('PERM_IMPORT_MANAGE')" nz-menu-item routerLink="/nhap-hang" routerLinkActive="ant-menu-item-selected">Nhập hàng</li>
+    <li *ngIf="can('PERM_CUSTOMER_MANAGE')" nz-menu-item routerLink="/khach-hang" routerLinkActive="ant-menu-item-selected">Khách hàng</li>
+    <li *ngIf="can('PERM_EMPLOYEE_MANAGE')" nz-menu-item routerLink="/nhan-vien" routerLinkActive="ant-menu-item-selected">Nhân viên</li>
+    <li *ngIf="can('PERM_INVOICE_MANAGE')" nz-menu-item routerLink="/hoa-don" routerLinkActive="ant-menu-item-selected">Tạo hóa đơn</li>
+    <li *ngIf="can('PERM_INVOICE_MANAGE')" nz-menu-item routerLink="/danh-sach-hoa-don" routerLinkActive="ant-menu-item-selected">Danh sách hóa đơn</li>
+    <li nz-menu-item routerLink="/doi-mat-khau" routerLinkActive="ant-menu-item-selected">Đổi mật khẩu</li>
+    <li nz-menu-item (click)="logout()">Đăng xuất</li>
   </ul>
 
   <div class="sider-footer">
-    <strong>Quản trị</strong>
-    <span>Quản trị viên</span>
+    <strong>{{ session?.name || 'Nhân viên' }}</strong>
+    <span>{{ session?.role || '-' }}</span>
   </div>
 </nz-sider>

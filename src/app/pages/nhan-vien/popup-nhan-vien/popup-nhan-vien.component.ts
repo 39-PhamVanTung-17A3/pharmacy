@@ -1,5 +1,4 @@
 import { CommonModule } from '@angular/common';
-import { getErrorMessage } from '../../../utils/error.util';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -8,6 +7,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { getErrorMessage } from '../../../utils/error.util';
 import { NhanVien, NhanVienService } from '../nhan-vien.service';
 
 @Component({
@@ -40,7 +40,8 @@ export class PopupNhanVienComponent implements OnChanges {
   isSubmitting = false;
 
   readonly roleOptions = [
-    { label: 'Quản lý', value: 'ADMIN' },
+    { label: 'Quản lý', value: 'MANAGER' },
+    { label: 'Quản trị', value: 'ADMIN' },
     { label: 'Dược sĩ', value: 'PHARMACIST' },
     { label: 'Thu ngân', value: 'CASHIER' },
     { label: 'Kho vận', value: 'WAREHOUSE' }
@@ -50,7 +51,7 @@ export class PopupNhanVienComponent implements OnChanges {
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(120)]],
     phone: ['', [Validators.required, Validators.maxLength(20)]],
-    role: ['', Validators.required],
+    role: ['MANAGER', Validators.required],
     shift: ['', Validators.required]
   });
 
@@ -82,7 +83,7 @@ export class PopupNhanVienComponent implements OnChanges {
       const value = this.form.getRawValue();
       const name = value.name.trim();
       const phone = value.phone.trim();
-      const role = value.role.trim();
+      const role = value.role.trim().toUpperCase();
       const shift = value.shift.trim();
 
       const saved = this.isEditMode
@@ -116,22 +117,17 @@ export class PopupNhanVienComponent implements OnChanges {
     this.form.reset({
       name: '',
       phone: '',
-      role: '',
+      role: 'MANAGER',
       shift: ''
     });
   }
 
   private normalizeRoleValue(role: string): string {
-    const matchedByValue = this.roleOptions.find((option) => option.value === role);
+    const normalizedRole = (role || '').trim().toUpperCase();
+    const matchedByValue = this.roleOptions.find((option) => option.value === normalizedRole);
     if (matchedByValue) {
       return matchedByValue.value;
     }
-
-    const matchedByLabel = this.roleOptions.find((option) => option.label === role);
-    if (matchedByLabel) {
-      return matchedByLabel.value;
-    }
-
-    return role;
+    return 'MANAGER';
   }
 }

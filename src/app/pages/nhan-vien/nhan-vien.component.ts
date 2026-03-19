@@ -38,11 +38,13 @@ import { getErrorMessage } from '../../utils/error.util';
 })
 export class NhanVienComponent implements OnInit {
   private readonly roleLabelMap: Record<string, string> = {
-    ADMIN: 'Quản lý',
+    MANAGER: 'Quản lý',
+    ADMIN: 'Quản trị',
     PHARMACIST: 'Dược sĩ',
     CASHIER: 'Thu ngân',
     WAREHOUSE: 'Kho vận'
   };
+
 
   isPopupOpen = false;
   editingEmployee: NhanVien | null = null;

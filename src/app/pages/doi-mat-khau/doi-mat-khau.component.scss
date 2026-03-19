@@ -1,0 +1,42 @@
+:host {
+  display: block;
+}
+
+.page-wrap {
+  min-height: 100vh;
+  background: #f5f7fb;
+}
+
+.main-content {
+  margin-left: 260px;
+  padding: 24px;
+}
+
+.page-header {
+  margin-bottom: 16px;
+}
+
+.card-wrap {
+  max-width: 600px;
+}
+
+.form-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.submit-btn {
+  width: fit-content;
+  margin-top: 8px;
+}
+
+[nz-icon] {
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 16px;
+  }
+}
