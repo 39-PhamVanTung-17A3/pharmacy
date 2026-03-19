@@ -20,45 +20,195 @@
         <nz-range-picker
           formControlName="dateRange"
           nzFormat="dd/MM/yyyy"
-          nzPlaceHolder="Từ ngày,Đến ngày"
+          [nzPlaceHolder]="['Từ ngày', 'Đến ngày']"
         ></nz-range-picker>
       </div>
     </nz-card>
 
+    <nz-card nzTitle="KPI quản trị kinh doanh" class="mb-16" [nzLoading]="loading">
+      <div class="kpi-grid">
+        <div class="kpi-item">
+          <div class="kpi-label">Tổng hóa đơn</div>
+          <div class="kpi-value">{{ kpiTongHop.totalInvoiceCount | number }}</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-label">Tổng số lượng bán</div>
+          <div class="kpi-value">{{ kpiTongHop.totalSoldQuantity | number }}</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-label">Doanh thu gộp</div>
+          <div class="kpi-value">{{ kpiTongHop.grossRevenue | number }} đ</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-label">Chiết khấu</div>
+          <div class="kpi-value">{{ kpiTongHop.totalDiscount | number }} đ</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-label">Doanh thu thuần</div>
+          <div class="kpi-value">{{ kpiTongHop.netRevenue | number }} đ</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-label">Lợi nhuận gộp</div>
+          <div class="kpi-value">{{ kpiTongHop.grossProfit | number }} đ</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-label">Biên lợi nhuận</div>
+          <div class="kpi-value">{{ kpiTongHop.grossMarginPercent | number: '1.0-2' }}%</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-label">Giá trị tồn kho</div>
+          <div class="kpi-value">{{ kpiTongHop.inventoryValue | number }} đ</div>
+        </div>
+      </div>
+    </nz-card>
+
+    <nz-card nzTitle="So sánh với kỳ trước" class="mb-16" [nzLoading]="loading">
+      <div class="kpi-grid">
+        <div class="kpi-item">
+          <div class="kpi-label">Doanh thu kỳ hiện tại ({{ comparison.currentPeriodLabel || '-' }})</div>
+          <div class="kpi-value">{{ comparison.currentRevenue | number }} đ</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-label">Doanh thu kỳ trước ({{ comparison.previousPeriodLabel || '-' }})</div>
+          <div class="kpi-value">{{ comparison.previousRevenue | number }} đ</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-label">Tăng/giảm doanh thu</div>
+          <div class="kpi-value">{{ comparison.revenueChangePercent | number: '1.0-2' }}%</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-label">Tăng/giảm lợi nhuận</div>
+          <div class="kpi-value">{{ comparison.profitChangePercent | number: '1.0-2' }}%</div>
+        </div>
+      </div>
+    </nz-card>
+
     <div class="content-grid">
-      <nz-card nzTitle="Biểu đồ tổng quan" [nzLoading]="loading">
+      <nz-card nzTitle="Biểu đồ doanh thu - lợi nhuận theo kỳ" [nzLoading]="loading" class="card-full-width">
         <highcharts-chart [Highcharts]="highcharts" [options]="reportChartOptions" class="chart-wrap"></highcharts-chart>
       </nz-card>
+      <nz-card nzTitle="Doanh thu theo nhóm thuốc" [nzLoading]="loading">
+        <highcharts-chart [Highcharts]="highcharts" [options]="categoryChartOptions" class="chart-wrap"></highcharts-chart>
+      </nz-card>
+      <nz-card nzTitle="Doanh thu theo khung giờ" [nzLoading]="loading">
+        <highcharts-chart [Highcharts]="highcharts" [options]="hourlyChartOptions" class="chart-wrap"></highcharts-chart>
+      </nz-card>
+    </div>
 
-      <nz-card nzTitle="Bảng chi tiết" [nzLoading]="loading">
-        <nz-table [nzData]="pagedRows" [nzShowPagination]="false" nzSize="middle">
+    <div class="content-grid mt-16">
+      <nz-card nzTitle="Top thuốc bán chạy" [nzLoading]="loading">
+        <nz-table [nzData]="topSellingMedicines" [nzShowPagination]="false" nzSize="small">
           <thead>
             <tr>
-              <th>Kỳ báo cáo</th>
-              <th class="text-right">Số hóa đơn</th>
+              <th>Thuốc</th>
+              <th>Nhóm</th>
+              <th class="text-right">Số lượng</th>
               <th class="text-right">Doanh thu</th>
-              <th class="text-right">Chi phí</th>
-              <th class="text-right">Lợi nhuận</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of pagedRows">
-              <td>{{ item.periodLabel }}</td>
-              <td class="text-right">{{ item.invoiceCount }}</td>
+            <tr *ngFor="let item of topSellingMedicines">
+              <td>{{ item.medicineName }}</td>
+              <td>{{ item.categoryName }}</td>
+              <td class="text-right">{{ item.soldQuantity | number }}</td>
               <td class="text-right">{{ item.revenue | number }} đ</td>
-              <td class="text-right">{{ item.cost | number }} đ</td>
-              <td class="text-right">{{ item.profit | number }} đ</td>
             </tr>
           </tbody>
         </nz-table>
+      </nz-card>
 
-        <app-pagging
-          [total]="reportRows.length"
-          [pageIndex]="pageIndex"
-          [pageSize]="pageSize"
-          (pageIndexChange)="onPageChange($event)"
-        ></app-pagging>
+      <nz-card nzTitle="Thuốc bán chậm" [nzLoading]="loading">
+        <nz-table [nzData]="slowSellingMedicines" [nzShowPagination]="false" nzSize="small">
+          <thead>
+            <tr>
+              <th>Thuốc</th>
+              <th>Nhóm</th>
+              <th class="text-right">Số lượng bán</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of slowSellingMedicines">
+              <td>{{ item.medicineName }}</td>
+              <td>{{ item.categoryName }}</td>
+              <td class="text-right">{{ item.soldQuantity | number }}</td>
+            </tr>
+          </tbody>
+        </nz-table>
       </nz-card>
     </div>
+
+    <div class="content-grid mt-16">
+      <nz-card nzTitle="Thuốc sắp hết hàng" [nzLoading]="loading">
+        <nz-table [nzData]="lowStockMedicines" [nzShowPagination]="false" nzSize="small">
+          <thead>
+            <tr>
+              <th>Thuốc</th>
+              <th>Nhóm</th>
+              <th>Lô</th>
+              <th class="text-right">Tồn</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of lowStockMedicines">
+              <td>{{ item.medicineName }}</td>
+              <td>{{ item.categoryName }}</td>
+              <td>{{ item.batchCode }}</td>
+              <td class="text-right">{{ item.quantity | number }}</td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </nz-card>
+
+      <nz-card nzTitle="Thuốc sắp hết hạn" [nzLoading]="loading">
+        <nz-table [nzData]="expiringMedicines" [nzShowPagination]="false" nzSize="small">
+          <thead>
+            <tr>
+              <th>Thuốc</th>
+              <th>Lô</th>
+              <th>Hạn dùng</th>
+              <th class="text-right">Số ngày còn lại</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of expiringMedicines">
+              <td>{{ item.medicineName }}</td>
+              <td>{{ item.batchCode }}</td>
+              <td>{{ item.expiryDate }}</td>
+              <td class="text-right">{{ item.daysToExpiry ?? '-' }}</td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </nz-card>
+    </div>
+
+    <nz-card nzTitle="Bảng doanh thu theo kỳ" class="mt-16" [nzLoading]="loading">
+      <nz-table [nzData]="pagedRows" [nzShowPagination]="false" nzSize="middle">
+        <thead>
+          <tr>
+            <th>Kỳ báo cáo</th>
+            <th class="text-right">Số hóa đơn</th>
+            <th class="text-right">Doanh thu</th>
+            <th class="text-right">Chi phí</th>
+            <th class="text-right">Lợi nhuận</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of pagedRows">
+            <td>{{ item.periodLabel }}</td>
+            <td class="text-right">{{ item.invoiceCount }}</td>
+            <td class="text-right">{{ item.revenue | number }} đ</td>
+            <td class="text-right">{{ item.cost | number }} đ</td>
+            <td class="text-right">{{ item.profit | number }} đ</td>
+          </tr>
+        </tbody>
+      </nz-table>
+
+      <app-pagging
+        [total]="reportRows.length"
+        [pageIndex]="pageIndex"
+        [pageSize]="pageSize"
+        (pageIndexChange)="onPageChange($event)"
+      ></app-pagging>
+    </nz-card>
   </main>
 </div>

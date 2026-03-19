@@ -13,6 +13,12 @@ import * as Highcharts from 'highcharts';
 import { HighchartsChartModule } from 'highcharts-angular';
 import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
+import {
+  BaoCaoComparisonApiResponse,
+  BaoCaoMedicineRankingApiResponse,
+  BaoCaoStockAlertApiResponse,
+  BaoCaoThongKeKpiApiResponse
+} from '../../models/bao-cao-thong-ke.model';
 import { getErrorMessage } from '../../utils/error.util';
 import { BaoCaoReportType, BaoCaoThongKeRow, BaoCaoThongKeService } from './bao-cao-thong-ke.service';
 
@@ -52,36 +58,75 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
   });
 
   readonly reportTypeOptions: Array<{ label: string; value: BaoCaoReportType }> = [
+    { label: 'Ngày', value: 'DAY' },
     { label: 'Tháng', value: 'MONTH' },
     { label: 'Quý', value: 'QUARTER' },
     { label: 'Năm', value: 'YEAR' }
   ];
 
   reportRows: BaoCaoThongKeRow[] = [];
+  kpiTongHop: BaoCaoThongKeKpiApiResponse = {
+    totalInvoiceCount: 0,
+    totalSoldQuantity: 0,
+    grossRevenue: 0,
+    totalDiscount: 0,
+    netRevenue: 0,
+    totalCost: 0,
+    grossProfit: 0,
+    grossMarginPercent: 0,
+    averageOrderValue: 0,
+    inventoryValue: 0,
+    lowStockCount: 0,
+    expiringWithin90DaysCount: 0
+  };
+  topSellingMedicines: BaoCaoMedicineRankingApiResponse[] = [];
+  slowSellingMedicines: BaoCaoMedicineRankingApiResponse[] = [];
+  lowStockMedicines: BaoCaoStockAlertApiResponse[] = [];
+  expiringMedicines: BaoCaoStockAlertApiResponse[] = [];
+  comparison: BaoCaoComparisonApiResponse = {
+    currentPeriodLabel: null,
+    previousPeriodLabel: null,
+    currentInvoiceCount: 0,
+    previousInvoiceCount: 0,
+    currentRevenue: 0,
+    previousRevenue: 0,
+    revenueChangePercent: 0,
+    currentProfit: 0,
+    previousProfit: 0,
+    profitChangePercent: 0
+  };
 
   readonly highcharts = Highcharts;
   reportChartOptions: Highcharts.Options = {
     chart: { type: 'column' },
-    title: { text: 'Doanh thu và chi phí theo kỳ' },
+    title: { text: 'Doanh thu và lợi nhuận theo kỳ' },
     xAxis: { categories: [] },
     yAxis: { title: { text: 'VNĐ' } },
     series: [
-      {
-        type: 'column',
-        name: 'Doanh thu',
-        data: []
-      },
-      {
-        type: 'column',
-        name: 'Chi phí',
-        data: []
-      },
-      {
-        type: 'column',
-        name: 'Lợi nhuận',
-        data: []
-      }
+      { type: 'column', name: 'Doanh thu', data: [] },
+      { type: 'column', name: 'Chi phí', data: [] },
+      { type: 'column', name: 'Lợi nhuận', data: [] }
     ],
+    credits: { enabled: false }
+  };
+
+  categoryChartOptions: Highcharts.Options = {
+    chart: { type: 'bar' },
+    title: { text: 'Doanh thu theo nhóm thuốc' },
+    xAxis: { categories: [] },
+    yAxis: { title: { text: 'VNĐ' } },
+    legend: { enabled: false },
+    series: [{ type: 'bar', name: 'Doanh thu', data: [] }],
+    credits: { enabled: false }
+  };
+
+  hourlyChartOptions: Highcharts.Options = {
+    chart: { type: 'line' },
+    title: { text: 'Doanh thu theo khung giờ' },
+    xAxis: { categories: [] },
+    yAxis: { title: { text: 'VNĐ' } },
+    legend: { enabled: false },
+    series: [{ type: 'line', name: 'Doanh thu', data: [] }],
     credits: { enabled: false }
   };
 
@@ -132,7 +177,15 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
 
       const data = await this.baoCaoThongKeService.getSummary(type, keyword, dateRange);
       this.reportRows = data.rows;
-      this.buildChart(this.reportRows, type);
+      this.kpiTongHop = data.kpi;
+      this.topSellingMedicines = data.topSellingMedicines;
+      this.slowSellingMedicines = data.slowSellingMedicines;
+      this.lowStockMedicines = data.lowStockMedicines;
+      this.expiringMedicines = data.expiringMedicines;
+      this.comparison = data.comparison;
+      this.buildReportChart(this.reportRows, type);
+      this.buildCategoryChart(data.categoryRevenue);
+      this.buildHourlyChart(data.hourlyRevenue);
     } catch (error) {
       const message = getErrorMessage(error, 'Không tải được dữ liệu báo cáo thống kê');
       this.notification.error('Thất bại', message);
@@ -141,30 +194,33 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
     }
   }
 
-  private buildChart(rows: BaoCaoThongKeRow[], type: BaoCaoReportType): void {
-    const titleType = this.reportTypeOptions.find((item) => item.value === type)?.label ?? 'Kỳ';
-
+  private buildReportChart(rows: BaoCaoThongKeRow[], type: BaoCaoReportType): void {
+    const titleType = this.reportTypeOptions.find((item) => item.value === type)?.label ?? 'kỳ';
     this.reportChartOptions = {
       ...this.reportChartOptions,
       title: { text: `Doanh thu, chi phí và lợi nhuận theo ${titleType.toLowerCase()}` },
       xAxis: { categories: rows.map((item) => item.periodLabel) },
       series: [
-        {
-          type: 'column',
-          name: 'Doanh thu',
-          data: rows.map((item) => item.revenue)
-        },
-        {
-          type: 'column',
-          name: 'Chi phí',
-          data: rows.map((item) => item.cost)
-        },
-        {
-          type: 'column',
-          name: 'Lợi nhuận',
-          data: rows.map((item) => item.profit)
-        }
+        { type: 'column', name: 'Doanh thu', data: rows.map((item) => item.revenue) },
+        { type: 'column', name: 'Chi phí', data: rows.map((item) => item.cost) },
+        { type: 'column', name: 'Lợi nhuận', data: rows.map((item) => item.profit) }
       ]
+    };
+  }
+
+  private buildCategoryChart(categoryRevenue: Array<{ categoryName: string; revenue: number }>): void {
+    this.categoryChartOptions = {
+      ...this.categoryChartOptions,
+      xAxis: { categories: categoryRevenue.map((item) => item.categoryName) },
+      series: [{ type: 'bar', name: 'Doanh thu', data: categoryRevenue.map((item) => item.revenue) }]
+    };
+  }
+
+  private buildHourlyChart(hourlyRevenue: Array<{ hourLabel: string; revenue: number }>): void {
+    this.hourlyChartOptions = {
+      ...this.hourlyChartOptions,
+      xAxis: { categories: hourlyRevenue.map((item) => item.hourLabel) },
+      series: [{ type: 'line', name: 'Doanh thu', data: hourlyRevenue.map((item) => item.revenue) }]
     };
   }
 }
