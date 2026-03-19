@@ -1,3 +1,5 @@
+import { NhanVienRole } from './role.enum';
+
 export interface LoginRequest {
   phone: string;
   password: string;
@@ -8,7 +10,7 @@ export interface LoginResponse {
   refreshToken: string | null;
   phone: string;
   name: string;
-  role: string;
+  role: NhanVienRole;
   permissions: string[];
 }
 
@@ -17,6 +19,6 @@ export interface UserSession {
   refreshToken: string;
   phone: string;
   name: string;
-  role: string;
+  role: NhanVienRole;
   permissions: string[];
 }

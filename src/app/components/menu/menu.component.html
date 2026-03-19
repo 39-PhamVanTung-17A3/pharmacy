@@ -1,31 +1,43 @@
 <nz-sider class="app-sider" nzTheme="light" [nzWidth]="260">
   <div class="brand">
-    <div class="brand-mark">PP</div>
+    <div class="brand-mark">{{ initials }}</div>
     <div>
       <h1>Pharma Pro</h1>
-      <p>Quản lý</p>
+      <p>Kho thuốc thông minh</p>
     </div>
   </div>
 
-  <ul nz-menu nzMode="inline" class="side-menu">
-    <li *ngIf="can('PERM_REPORT_VIEW')" nz-menu-item routerLink="/bao-cao-thong-ke" routerLinkActive="ant-menu-item-selected" [routerLinkActiveOptions]="{ exact: true }">
-      Báo cáo thống kê
-    </li>
-    <li *ngIf="can('PERM_MEDICINE_MANAGE')" nz-menu-item routerLink="/danh-muc-thuoc" routerLinkActive="ant-menu-item-selected" [routerLinkActiveOptions]="{ exact: true }">
-      Danh mục thuốc
-    </li>
-    <li *ngIf="can('PERM_MEDICINE_MANAGE')" nz-menu-item routerLink="/thuoc" routerLinkActive="ant-menu-item-selected">Kho thuốc</li>
-    <li *ngIf="can('PERM_IMPORT_MANAGE')" nz-menu-item routerLink="/nhap-hang" routerLinkActive="ant-menu-item-selected">Nhập hàng</li>
-    <li *ngIf="can('PERM_CUSTOMER_MANAGE')" nz-menu-item routerLink="/khach-hang" routerLinkActive="ant-menu-item-selected">Khách hàng</li>
-    <li *ngIf="can('PERM_EMPLOYEE_MANAGE')" nz-menu-item routerLink="/nhan-vien" routerLinkActive="ant-menu-item-selected">Nhân viên</li>
-    <li *ngIf="can('PERM_INVOICE_MANAGE')" nz-menu-item routerLink="/hoa-don" routerLinkActive="ant-menu-item-selected">Tạo hóa đơn</li>
-    <li *ngIf="can('PERM_INVOICE_MANAGE')" nz-menu-item routerLink="/danh-sach-hoa-don" routerLinkActive="ant-menu-item-selected">Danh sách hóa đơn</li>
-    <li nz-menu-item routerLink="/doi-mat-khau" routerLinkActive="ant-menu-item-selected">Đổi mật khẩu</li>
-    <li nz-menu-item (click)="logout()">Đăng xuất</li>
-  </ul>
+  <div class="staff-card">
+    <strong>{{ displayName }}</strong>
+    <span>{{ roleLabel }}</span>
+  </div>
+
+  <nav class="side-nav">
+    <section *ngFor="let section of sections" class="menu-section" [class.hidden]="!sectionVisible(section)">
+      <h4>{{ section.title }}</h4>
+      <ul>
+        <li *ngFor="let item of section.items" [class.hidden]="!can(item.permission)">
+          <button *ngIf="item.isAction" type="button" class="menu-link action-link" (click)="logout()">
+            <span nz-icon [nzType]="item.icon"></span>
+            <span>{{ item.label }}</span>
+          </button>
+
+          <a
+            *ngIf="!item.isAction"
+            class="menu-link"
+            [routerLink]="item.route!"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            <span nz-icon [nzType]="item.icon"></span>
+            <span>{{ item.label }}</span>
+          </a>
+        </li>
+      </ul>
+    </section>
+  </nav>
 
   <div class="sider-footer">
-    <strong>{{ session?.name || 'Nhân viên' }}</strong>
-    <span>{{ session?.role || '-' }}</span>
+    <span>Cơ sở dữ liệu thuốc, lô và hạn dùng</span>
   </div>
 </nz-sider>

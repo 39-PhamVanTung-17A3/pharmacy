@@ -12,9 +12,10 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
+import { NhanVienRole, ROLE_LABELS, parseNhanVienRole } from '../../models/role.enum';
+import { getErrorMessage } from '../../utils/error.util';
 import { NhanVien, NhanVienService } from './nhan-vien.service';
 import { PopupNhanVienComponent } from './popup-nhan-vien/popup-nhan-vien.component';
-import { getErrorMessage } from '../../utils/error.util';
 
 @Component({
   selector: 'app-nhan-vien',
@@ -37,15 +38,6 @@ import { getErrorMessage } from '../../utils/error.util';
   styleUrl: './nhan-vien.component.scss'
 })
 export class NhanVienComponent implements OnInit {
-  private readonly roleLabelMap: Record<string, string> = {
-    MANAGER: 'Quản lý',
-    ADMIN: 'Quản trị',
-    PHARMACIST: 'Dược sĩ',
-    CASHIER: 'Thu ngân',
-    WAREHOUSE: 'Kho vận'
-  };
-
-
   isPopupOpen = false;
   editingEmployee: NhanVien | null = null;
 
@@ -137,7 +129,8 @@ export class NhanVienComponent implements OnInit {
     }
   }
 
-  getRoleLabel(role: string): string {
-    return this.roleLabelMap[role] ?? role;
+  getRoleLabel(role: NhanVienRole): string {
+    const parsedRole = parseNhanVienRole(role);
+    return parsedRole ? ROLE_LABELS[parsedRole] : role;
   }
 }

@@ -5,6 +5,7 @@ import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { BaseResponse } from '../models/base-response.model';
 import { LoginResponse, UserSession } from '../models/auth.model';
+import { NhanVienRole, parseNhanVienRole } from '../models/role.enum';
 
 const AUTH_STORAGE_KEY = 'pharmacy_auth_session';
 
@@ -58,7 +59,7 @@ export class AuthService {
       refreshToken: data.refreshToken,
       phone: data.phone,
       name: data.name,
-      role: data.role,
+      role: parseNhanVienRole(data.role) ?? NhanVienRole.MANAGER,
       permissions: data.permissions ?? []
     };
     this.setSession(session);
@@ -131,7 +132,7 @@ export class AuthService {
         refreshToken: data.refreshToken,
         phone: data.phone || currentSession?.phone || '',
         name: data.name || currentSession?.name || '',
-        role: data.role || currentSession?.role || '',
+        role: parseNhanVienRole(data.role) ?? currentSession?.role ?? NhanVienRole.MANAGER,
         permissions: data.permissions ?? currentSession?.permissions ?? []
       };
       this.setSession(nextSession);
@@ -157,6 +158,11 @@ export class AuthService {
       if (!parsed?.accessToken || !parsed?.refreshToken || !parsed?.phone) {
         return null;
       }
+      const role = parseNhanVienRole(parsed.role);
+      if (!role) {
+        return null;
+      }
+      parsed.role = role;
       return parsed;
     } catch {
       return null;

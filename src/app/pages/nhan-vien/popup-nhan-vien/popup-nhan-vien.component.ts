@@ -7,6 +7,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NhanVienRole, ROLE_OPTIONS, parseNhanVienRole } from '../../../models/role.enum';
 import { getErrorMessage } from '../../../utils/error.util';
 import { NhanVien, NhanVienService } from '../nhan-vien.service';
 
@@ -39,19 +40,13 @@ export class PopupNhanVienComponent implements OnChanges {
 
   isSubmitting = false;
 
-  readonly roleOptions = [
-    { label: 'Quản lý', value: 'MANAGER' },
-    { label: 'Quản trị', value: 'ADMIN' },
-    { label: 'Dược sĩ', value: 'PHARMACIST' },
-    { label: 'Thu ngân', value: 'CASHIER' },
-    { label: 'Kho vận', value: 'WAREHOUSE' }
-  ];
+  readonly roleOptions = ROLE_OPTIONS;
   readonly shiftOptions = ['Hành chính', 'Ca sáng', 'Ca chiều', 'Ca tối'];
 
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(120)]],
     phone: ['', [Validators.required, Validators.maxLength(20)]],
-    role: ['MANAGER', Validators.required],
+    role: [NhanVienRole.MANAGER, Validators.required],
     shift: ['', Validators.required]
   });
 
@@ -83,7 +78,7 @@ export class PopupNhanVienComponent implements OnChanges {
       const value = this.form.getRawValue();
       const name = value.name.trim();
       const phone = value.phone.trim();
-      const role = value.role.trim().toUpperCase();
+      const role = value.role;
       const shift = value.shift.trim();
 
       const saved = this.isEditMode
@@ -117,17 +112,12 @@ export class PopupNhanVienComponent implements OnChanges {
     this.form.reset({
       name: '',
       phone: '',
-      role: 'MANAGER',
+      role: NhanVienRole.MANAGER,
       shift: ''
     });
   }
 
-  private normalizeRoleValue(role: string): string {
-    const normalizedRole = (role || '').trim().toUpperCase();
-    const matchedByValue = this.roleOptions.find((option) => option.value === normalizedRole);
-    if (matchedByValue) {
-      return matchedByValue.value;
-    }
-    return 'MANAGER';
+  private normalizeRoleValue(role: NhanVienRole): NhanVienRole {
+    return parseNhanVienRole(role) ?? NhanVienRole.MANAGER;
   }
 }
