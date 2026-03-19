@@ -13,9 +13,12 @@
     <div class="bill-grid">
       <nz-card nzTitle="Danh sách sản phẩm">
         <form [formGroup]="saleForm" class="mb-12 stack-12">
-          <nz-tree-select formControlName="selectedImportKey" [nzNodes]="medicineImportTreeNodes" nzShowSearch
+          <nz-tree-select formControlName="selectedImportKey" [nzNodes]="medicineImportTreeNodes"
+            [nzExpandedKeys]="expandedMedicineKeys" [nzOpen]="medicineTreeOpen"
+            (nzOpenChange)="medicineTreeOpen = $event" nzShowSearch
             nzAllowClear nzPlaceHolder="Chọn thuốc theo lô nhập" class="w-full"
-            (nzExpandChange)="onMedicineNodeExpand($event)"></nz-tree-select>
+            (nzExpandChange)="onMedicineNodeExpand($event)"
+            (nzTreeClick)="onMedicineNodeClick($event)"></nz-tree-select>
           <div class="subtle" *ngIf="!loadingMedicineTree && medicineImportTreeNodes.length === 0">
             Chưa có thuốc nào để hiển thị.
           </div>

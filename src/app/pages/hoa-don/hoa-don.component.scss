@@ -1,15 +1,20 @@
 :host {
   display: block;
+  overflow-x: hidden;
 }
 
 .page-wrap {
   min-height: 100vh;
   background: #f5f7fb;
+  overflow-x: hidden;
 }
 
 .main-content {
   margin-left: var(--app-sider-width);
+  width: calc(100% - var(--app-sider-width));
+  max-width: 100%;
   padding: 24px;
+  box-sizing: border-box;
 }
 
 .page-header {
@@ -21,14 +26,20 @@
 
 .bill-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
   gap: 16px;
+  align-items: start;
+}
+
+.bill-grid > * {
+  min-width: 0;
 }
 
 .summary-col {
   display: grid;
   gap: 16px;
   align-content: start;
+  min-width: 0;
 }
 
 .text-right {
@@ -59,13 +70,22 @@
 }
 
 .customer-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
-  align-items: center;
+  align-items: stretch;
+  min-width: 0;
 }
 
 .customer-select {
-  flex: 1;
+  width: 100%;
+  min-width: 0;
+  max-width: 320px;
+}
+
+.customer-actions > button {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .row-between {
@@ -84,4 +104,34 @@
 
 .price-input {
   width: 130px;
+}
+
+@media (max-width: 1200px) {
+  .bill-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 992px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .customer-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-select {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
 }

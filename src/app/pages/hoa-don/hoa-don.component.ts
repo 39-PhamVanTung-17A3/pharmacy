@@ -77,6 +77,8 @@ export class HoaDonComponent implements OnInit {
   });
 
   medicineImportTreeNodes: NzTreeNodeOptions[] = [];
+  expandedMedicineKeys: string[] = [];
+  medicineTreeOpen = false;
   importOptionsById = new Map<number, NhapHang>();
   loadedMedicineNodeKeys = new Set<string>();
   loadingMedicineNodeKeys = new Set<string>();
@@ -248,6 +250,7 @@ export class HoaDonComponent implements OnInit {
     if (existedIndex >= 0) {
       this.increaseQty(existedIndex);
       this.saleForm.controls.selectedImportKey.setValue(null, { emitEvent: false });
+      this.medicineTreeOpen = false;
       return;
     }
 
@@ -255,7 +258,7 @@ export class HoaDonComponent implements OnInit {
     const newItem: BillItem = {
       importId: selectedImport.id,
       name: selectedImport.medicineName,
-      stockLabel: `Lô: ${selectedImport.batchCode} - Tồn kho: ${selectedImport.quantity}`,
+      stockLabel: `Lô: ${selectedImport.batchCode} (Tồn kho: ${selectedImport.quantity})`,
       price: defaultPrice,
       quantity: 1,
       maxQuantity: selectedImport.quantity
@@ -264,6 +267,7 @@ export class HoaDonComponent implements OnInit {
     this.billItems = [newItem, ...this.billItems];
     this.saleForm.controls.selectedImportKey.setValue(null, { emitEvent: false });
     this.syncAmountPaidWithTotalNeedPay();
+    this.medicineTreeOpen = false;
   }
 
   private async loadCustomers(): Promise<void> {
@@ -281,7 +285,7 @@ export class HoaDonComponent implements OnInit {
   }
   async onMedicineNodeExpand(event: NzFormatEmitEvent): Promise<void> {
     const node = event.node;
-    if (!node || event.eventName !== 'expand' || !node.isExpanded) {
+    if (!node || event.eventName !== 'expand') {
       return;
     }
 
@@ -289,6 +293,58 @@ export class HoaDonComponent implements OnInit {
     if (!medicineKey.startsWith('medicine-')) {
       return;
     }
+
+    this.setMedicineExpandedState(medicineKey, node.isExpanded);
+    if (!node.isExpanded) {
+      return;
+    }
+    await this.ensureMedicineNodeChildrenLoaded(medicineKey);
+  }
+
+  async onMedicineNodeClick(event: NzFormatEmitEvent): Promise<void> {
+    const node = event.node;
+    if (!node || event.eventName !== 'click') {
+      return;
+    }
+
+    const medicineKey = String(node.key ?? '');
+    if (!medicineKey.startsWith('medicine-') || node.isLeaf) {
+      return;
+    }
+
+    const singleImportKey = this.getSingleImportKeyForMedicineNode(medicineKey);
+    if (node.isExpanded && singleImportKey) {
+      this.onImportOrderSelected(singleImportKey);
+      return;
+    }
+
+    const nextExpanded = !this.expandedMedicineKeys.includes(medicineKey);
+    this.setMedicineExpandedState(medicineKey, nextExpanded);
+    if (nextExpanded) {
+      await this.ensureMedicineNodeChildrenLoaded(medicineKey);
+    }
+  }
+
+  private getSingleImportKeyForMedicineNode(medicineKey: string): string | null {
+    const medicineNode = this.medicineImportTreeNodes.find((item) => String(item.key) === medicineKey);
+    if (!medicineNode || !medicineNode.children || medicineNode.children.length !== 1) {
+      return null;
+    }
+    const childKey = String(medicineNode.children[0].key ?? '');
+    return childKey.startsWith('import-') ? childKey : null;
+  }
+
+  private setMedicineExpandedState(medicineKey: string, expanded: boolean): void {
+    if (!expanded) {
+      this.expandedMedicineKeys = this.expandedMedicineKeys.filter((key) => key !== medicineKey);
+      return;
+    }
+    if (!this.expandedMedicineKeys.includes(medicineKey)) {
+      this.expandedMedicineKeys = [...this.expandedMedicineKeys, medicineKey];
+    }
+  }
+
+  private async ensureMedicineNodeChildrenLoaded(medicineKey: string): Promise<void> {
     if (this.loadedMedicineNodeKeys.has(medicineKey) || this.loadingMedicineNodeKeys.has(medicineKey)) {
       return;
     }
@@ -322,6 +378,10 @@ export class HoaDonComponent implements OnInit {
       });
 
       this.loadedMedicineNodeKeys.add(medicineKey);
+
+      if (imports.length === 1) {
+        this.onImportOrderSelected(`import-${imports[0].id}`);
+      }
     } catch (error) {
       const message = getErrorMessage(error, 'Không tải được danh sách lô nhập của thuốc');
       this.notification.error('Thất bại', message);
@@ -351,6 +411,7 @@ export class HoaDonComponent implements OnInit {
       this.importOptionsById.clear();
       this.loadedMedicineNodeKeys.clear();
       this.loadingMedicineNodeKeys.clear();
+      this.expandedMedicineKeys = [];
     } catch (error) {
       const message = getErrorMessage(error, 'Không tải được danh sách thuốc');
       this.notification.error('Thất bại', message);
@@ -358,6 +419,7 @@ export class HoaDonComponent implements OnInit {
       this.importOptionsById.clear();
       this.loadedMedicineNodeKeys.clear();
       this.loadingMedicineNodeKeys.clear();
+      this.expandedMedicineKeys = [];
     } finally {
       this.loadingMedicineTree = false;
     }
