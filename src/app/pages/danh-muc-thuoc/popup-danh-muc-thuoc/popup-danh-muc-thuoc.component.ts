@@ -46,6 +46,25 @@ export class PopupDanhMucThuocComponent implements OnChanges {
     return this.editingCategory !== null;
   }
 
+  get showNameError(): boolean {
+    const control = this.form.controls.name;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get nameErrorMessage(): string {
+    const control = this.form.controls.name;
+    if (control.hasError('required')) {
+      return 'Vui lòng nhập tên danh mục';
+    }
+    if (control.hasError('maxlength')) {
+      return 'Tên danh mục tối đa 100 ký tự';
+    }
+    if (control.hasError('duplicated')) {
+      return 'Tên danh mục đã tồn tại';
+    }
+    return '';
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['open'] && this.open) {
       this.syncFormWithMode();
@@ -60,17 +79,19 @@ export class PopupDanhMucThuocComponent implements OnChanges {
   }
 
   async save(): Promise<void> {
-    if (this.form.invalid || this.isSubmitting) {
+
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.form.markAsDirty();
+      this.form.updateValueAndValidity({ onlySelf: false, emitEvent: true });
       return;
     }
-
     this.isSubmitting = true;
-    try {
-      const value = this.form.getRawValue();
-      const name = value.name.trim();
-      const description = value.description.trim();
 
+    const value = this.form.getRawValue();
+    const name = value.name.trim();
+    const description = value.description.trim();
+    try {
       const saved = this.isEditMode
         ? await this.danhMucThuocService.update(this.editingCategory!.id, name, description)
         : await this.danhMucThuocService.create(name, description);

@@ -54,6 +54,48 @@ export class PopupNhanVienComponent implements OnChanges {
     return this.editingEmployee !== null;
   }
 
+  get showNameError(): boolean {
+    const control = this.form.controls.name;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get showPhoneError(): boolean {
+    const control = this.form.controls.phone;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get showRoleError(): boolean {
+    const control = this.form.controls.role;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get showShiftError(): boolean {
+    const control = this.form.controls.shift;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get nameErrorMessage(): string {
+    const control = this.form.controls.name;
+    if (control.hasError('required')) {
+      return 'Vui lòng nhập tên nhân viên';
+    }
+    if (control.hasError('maxlength')) {
+      return 'Tên nhân viên tối đa 120 ký tự';
+    }
+    return '';
+  }
+
+  get phoneErrorMessage(): string {
+    const control = this.form.controls.phone;
+    if (control.hasError('required')) {
+      return 'Vui lòng nhập số điện thoại';
+    }
+    if (control.hasError('maxlength')) {
+      return 'Số điện thoại tối đa 20 ký tự';
+    }
+    return '';
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['open'] && this.open) {
       this.syncFormWithMode();

@@ -5,22 +5,25 @@
       <div class="grid-form">
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Tên khách hàng</nz-form-label>
-          <nz-form-control nzErrorTip="Vui lòng nhập tên khách hàng">
+          <nz-form-control [nzValidateStatus]="form.controls.name">
             <input nz-input formControlName="name" placeholder="Nhập tên khách hàng" />
+            <div class="field-error" *ngIf="showNameError">{{ nameErrorMessage }}</div>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Số điện thoại</nz-form-label>
-          <nz-form-control nzErrorTip="Vui lòng nhập số điện thoại">
+          <nz-form-control [nzValidateStatus]="form.controls.phone">
             <input nz-input formControlName="phone" placeholder="Nhập số điện thoại" />
+            <div class="field-error" *ngIf="showPhoneError">{{ phoneErrorMessage }}</div>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="full-width">
           <nz-form-label [nzRequired]="true">Địa chỉ</nz-form-label>
-          <nz-form-control nzErrorTip="Vui lòng nhập địa chỉ khách hàng">
+          <nz-form-control [nzValidateStatus]="form.controls.address">
             <input nz-input formControlName="address" placeholder="Nhập địa chỉ khách hàng" />
+            <div class="field-error" *ngIf="showAddressError">{{ addressErrorMessage }}</div>
           </nz-form-control>
         </nz-form-item>
       </div>

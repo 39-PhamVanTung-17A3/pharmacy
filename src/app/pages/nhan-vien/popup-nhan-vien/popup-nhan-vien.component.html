@@ -5,33 +5,37 @@
       <div class="grid-form">
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Tên nhân viên</nz-form-label>
-          <nz-form-control nzErrorTip="Vui lòng nhập tên nhân viên">
+          <nz-form-control [nzValidateStatus]="form.controls.name">
             <input nz-input formControlName="name" placeholder="Nhập tên nhân viên" />
+            <div class="field-error" *ngIf="showNameError">{{ nameErrorMessage }}</div>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Số điện thoại</nz-form-label>
-          <nz-form-control nzErrorTip="Vui lòng nhập số điện thoại">
+          <nz-form-control [nzValidateStatus]="form.controls.phone">
             <input nz-input formControlName="phone" placeholder="Nhập số điện thoại" />
+            <div class="field-error" *ngIf="showPhoneError">{{ phoneErrorMessage }}</div>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Vai trò</nz-form-label>
-          <nz-form-control nzErrorTip="Vui lòng chọn vai trò">
+          <nz-form-control [nzValidateStatus]="form.controls.role">
             <nz-select formControlName="role" nzPlaceHolder="Chọn vai trò">
               <nz-option *ngFor="let item of roleOptions" [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
             </nz-select>
+            <div class="field-error" *ngIf="showRoleError">Vui lòng chọn vai trò</div>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Ca làm</nz-form-label>
-          <nz-form-control nzErrorTip="Vui lòng chọn ca làm">
+          <nz-form-control [nzValidateStatus]="form.controls.shift">
             <nz-select formControlName="shift" nzPlaceHolder="Chọn ca làm">
               <nz-option *ngFor="let item of shiftOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
             </nz-select>
+            <div class="field-error" *ngIf="showShiftError">Vui lòng chọn ca làm</div>
           </nz-form-control>
         </nz-form-item>
       </div>

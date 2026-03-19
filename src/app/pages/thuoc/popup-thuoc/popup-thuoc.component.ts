@@ -52,6 +52,43 @@ export class PopupThuocComponent implements OnInit, OnChanges {
     return this.editingMedicine !== null;
   }
 
+  get showNameError(): boolean {
+    const control = this.form.controls.name;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get showCategoryError(): boolean {
+    const control = this.form.controls.category;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get showUnitError(): boolean {
+    const control = this.form.controls.unit;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get nameErrorMessage(): string {
+    const control = this.form.controls.name;
+    if (control.hasError('required')) {
+      return 'Vui lòng nhập tên thuốc';
+    }
+    if (control.hasError('maxlength')) {
+      return 'Tên thuốc tối đa 120 ký tự';
+    }
+    return '';
+  }
+
+  get unitErrorMessage(): string {
+    const control = this.form.controls.unit;
+    if (control.hasError('required')) {
+      return 'Vui lòng nhập đơn vị';
+    }
+    if (control.hasError('maxlength')) {
+      return 'Đơn vị tối đa 100 ký tự';
+    }
+    return '';
+  }
+
   async ngOnInit(): Promise<void> {
     await this.loadCategoryOptions();
   }

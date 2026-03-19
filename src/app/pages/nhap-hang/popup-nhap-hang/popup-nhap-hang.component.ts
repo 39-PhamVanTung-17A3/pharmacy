@@ -59,6 +59,55 @@ export class PopupNhapHangComponent implements OnInit, OnChanges {
     return this.editingImport !== null;
   }
 
+  get showMedicineError(): boolean {
+    const control = this.form.controls.medicineId;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get showBatchCodeError(): boolean {
+    const control = this.form.controls.batchCode;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get showSupplierError(): boolean {
+    const control = this.form.controls.supplier;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get showQuantityError(): boolean {
+    const control = this.form.controls.quantity;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get showImportPriceError(): boolean {
+    const control = this.form.controls.importPrice;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get showSellPriceError(): boolean {
+    const control = this.form.controls.sellPrice;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get showImportedAtError(): boolean {
+    const control = this.form.controls.importedAt;
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  get batchCodeErrorMessage(): string {
+    if (this.form.controls.batchCode.hasError('required')) {
+      return 'Vui lòng nhập mã lô hàng';
+    }
+    return '';
+  }
+
+  get supplierErrorMessage(): string {
+    if (this.form.controls.supplier.hasError('maxlength')) {
+      return 'Nhà cung cấp tối đa 160 ký tự';
+    }
+    return '';
+  }
+
   async ngOnInit(): Promise<void> {
     await this.loadMedicineOptions();
   }
@@ -79,6 +128,10 @@ export class PopupNhapHangComponent implements OnInit, OnChanges {
   async save(): Promise<void> {
     if (this.form.invalid || this.isSubmitting) {
       this.form.markAllAsTouched();
+      Object.values(this.form.controls).forEach((control) => {
+        control.markAsDirty();
+        control.updateValueAndValidity({ onlySelf: true, emitEvent: false });
+      });
       return;
     }
 

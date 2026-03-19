@@ -5,8 +5,9 @@
     <form nz-form [formGroup]="form" nzLayout="vertical" class="popup-form">
       <nz-form-item>
         <nz-form-label [nzRequired]="true">Tên danh mục</nz-form-label>
-        <nz-form-control nzErrorTip="Vui lòng nhập tên danh mục">
+        <nz-form-control [nzValidateStatus]="form.controls.name">
           <input nz-input formControlName="name" placeholder="VD: Kháng sinh" />
+          <div class="field-error" *ngIf="showNameError">{{ nameErrorMessage }}</div>
         </nz-form-control>
       </nz-form-item>
 

@@ -17,3 +17,10 @@
 :host ::ng-deep .popup-form textarea[nz-input] {
   width: 100%;
 }
+
+.field-error {
+  margin-top: 4px;
+  color: #ff4d4f;
+  font-size: 12px;
+  line-height: 1.4;
+}

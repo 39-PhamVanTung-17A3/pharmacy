@@ -11,3 +11,10 @@
 .full-width {
   grid-column: 1 / -1;
 }
+
+.field-error {
+  margin-top: 4px;
+  color: #ff4d4f;
+  font-size: 12px;
+  line-height: 1.4;
+}
