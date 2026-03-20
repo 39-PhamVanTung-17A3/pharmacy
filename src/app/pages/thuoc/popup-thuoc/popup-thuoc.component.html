@@ -1,4 +1,4 @@
-﻿<nz-modal
+<nz-modal
   [nzVisible]="open"
   [nzTitle]="isEditMode ? 'Cập nhật thuốc' : 'Thêm thuốc mới'"
   nzWidth="760"
@@ -37,7 +37,10 @@
         <nz-form-item class="full-width">
           <nz-form-label>Mã vạch thuốc</nz-form-label>
           <nz-form-control [nzValidateStatus]="form.controls.barcode" [nzErrorTip]="barcodeValidError">
-            <input nz-input formControlName="barcode" placeholder="Nhập mã vạch thuốc (nếu có)" />
+            <div class="barcode-row">
+              <input nz-input formControlName="barcode" placeholder="Nhập hoặc quét mã vạch thuốc (nếu có)" />
+              <button nz-button nzType="default" type="button" (click)="openCameraScanner()">Quét camera</button>
+            </div>
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -68,5 +71,20 @@
         <div>Mã vạch tối đa 100 ký tự</div>
       </ng-container>
     </ng-template>
+  </ng-container>
+</nz-modal>
+
+<nz-modal
+  [nzVisible]="isCameraScannerOpen"
+  nzTitle="Quét mã vạch thuốc"
+  [nzFooter]="null"
+  (nzOnCancel)="closeCameraScanner()"
+>
+  <ng-container *nzModalContent>
+    <div class="camera-scan-wrap">
+      <video #barcodeVideo class="camera-video" muted autoplay></video>
+      <div class="subtle" *ngIf="cameraScannerStarting">Đang khởi động camera...</div>
+      <div class="negative" *ngIf="cameraScannerError">{{ cameraScannerError }}</div>
+    </div>
   </ng-container>
 </nz-modal>
