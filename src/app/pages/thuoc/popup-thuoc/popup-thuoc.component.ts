@@ -45,6 +45,7 @@ export class PopupThuocComponent implements OnInit, OnChanges {
   readonly form = this.fb.group({
     name: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(120)]),
     category: this.fb.control<DanhMucThuoc | null>(null, Validators.required),
+    barcode: this.fb.nonNullable.control('', [Validators.maxLength(100)]),
     unit: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(100)])
   });
 
@@ -84,6 +85,7 @@ export class PopupThuocComponent implements OnInit, OnChanges {
       const value = this.form.getRawValue();
       const name = value.name.trim();
       const category = value.category;
+      const barcode = value.barcode.trim() || null;
       const unit = value.unit.trim();
 
       if (!category) {
@@ -94,8 +96,8 @@ export class PopupThuocComponent implements OnInit, OnChanges {
       }
 
       const saved = this.isEditMode
-        ? await this.thuocService.update(this.editingMedicine!.id, name, category.id, unit)
-        : await this.thuocService.create(name, category.id, unit);
+        ? await this.thuocService.update(this.editingMedicine!.id, name, category.id, barcode, unit)
+        : await this.thuocService.create(name, category.id, barcode, unit);
 
       this.medicineSaved.emit(saved);
       this.notification.success('Thành công', this.isEditMode ? 'Cập nhật thuốc thành công' : 'Thêm thuốc thành công');
@@ -135,6 +137,7 @@ export class PopupThuocComponent implements OnInit, OnChanges {
       this.form.setValue({
         name: this.editingMedicine.name,
         category: selectedCategory,
+        barcode: this.editingMedicine.barcode ?? '',
         unit: this.editingMedicine.unit
       });
       return;
@@ -143,6 +146,7 @@ export class PopupThuocComponent implements OnInit, OnChanges {
     this.form.reset({
       name: '',
       category: null,
+      barcode: '',
       unit: ''
     });
   }

@@ -33,6 +33,13 @@
             <input nz-input formControlName="unit" placeholder="Nhập đơn vị" />
           </nz-form-control>
         </nz-form-item>
+
+        <nz-form-item class="full-width">
+          <nz-form-label>Mã vạch thuốc</nz-form-label>
+          <nz-form-control [nzValidateStatus]="form.controls.barcode" [nzErrorTip]="barcodeValidError">
+            <input nz-input formControlName="barcode" placeholder="Nhập mã vạch thuốc (nếu có)" />
+          </nz-form-control>
+        </nz-form-item>
       </div>
     </form>
     <ng-template #nameValidError let-control>
@@ -54,6 +61,11 @@
       </ng-container>
       <ng-container *ngIf="control.errors?.['maxlength']">
         <div>Đơn vị tối đa 100 ký tự</div>
+      </ng-container>
+    </ng-template>
+    <ng-template #barcodeValidError let-control>
+      <ng-container *ngIf="control.errors?.['maxlength']">
+        <div>Mã vạch tối đa 100 ký tự</div>
       </ng-container>
     </ng-template>
   </ng-container>

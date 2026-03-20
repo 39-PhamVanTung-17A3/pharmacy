@@ -33,14 +33,22 @@ export class ThuocService {
     };
   }
 
-  async create(name: string, categoryId: number, unit: string): Promise<Thuoc> {
-    const result = await firstValueFrom(this.http.post<BaseResponse<ThuocApiResponse>>(this.apiUrl, { name, categoryId, unit }));
+  async findByBarcode(barcode: string): Promise<Thuoc> {
+    const normalizedBarcode = barcode.trim();
+    const result = await firstValueFrom(
+      this.http.get<BaseResponse<ThuocApiResponse>>(`${this.apiUrl}/barcode/${encodeURIComponent(normalizedBarcode)}`)
+    );
     return this.mapFromApi(this.unwrapData(result));
   }
 
-  async update(id: number, name: string, categoryId: number, unit: string): Promise<Thuoc> {
+  async create(name: string, categoryId: number, barcode: string | null, unit: string): Promise<Thuoc> {
+    const result = await firstValueFrom(this.http.post<BaseResponse<ThuocApiResponse>>(this.apiUrl, { name, categoryId, barcode, unit }));
+    return this.mapFromApi(this.unwrapData(result));
+  }
+
+  async update(id: number, name: string, categoryId: number, barcode: string | null, unit: string): Promise<Thuoc> {
     const result = await firstValueFrom(
-      this.http.put<BaseResponse<ThuocApiResponse>>(`${this.apiUrl}/${id}`, { name, categoryId, unit })
+      this.http.put<BaseResponse<ThuocApiResponse>>(`${this.apiUrl}/${id}`, { name, categoryId, barcode, unit })
     );
     return this.mapFromApi(this.unwrapData(result));
   }
@@ -66,6 +74,7 @@ export class ThuocService {
         name: item.category.name,
         description: item.category.description?.trim() || undefined
       },
+      barcode: item.barcode ?? null,
       unit: item.unit,
       totalQuantity: item.totalQuantity ?? 0
     };

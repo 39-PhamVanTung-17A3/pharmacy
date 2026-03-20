@@ -1,6 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { getErrorMessage } from '../../../utils/error.util';
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  SimpleChanges,
+  ViewChild,
+  inject
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -11,6 +23,12 @@ import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notif
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { Thuoc, ThuocService } from '../../thuoc/thuoc.service';
 import { NhapHang, NhapHangService } from '../nhap-hang.service';
+
+type BarcodeDetectorLike = {
+  detect: (source: ImageBitmapSource) => Promise<Array<{ rawValue?: string }>>;
+};
+
+type BarcodeDetectorCtor = new (options?: { formats?: string[] }) => BarcodeDetectorLike;
 
 @Component({
   selector: 'app-popup-nhap-hang',
@@ -29,7 +47,7 @@ import { NhapHang, NhapHangService } from '../nhap-hang.service';
   templateUrl: './popup-nhap-hang.component.html',
   styleUrl: './popup-nhap-hang.component.scss'
 })
-export class PopupNhapHangComponent implements OnInit, OnChanges {
+export class PopupNhapHangComponent implements OnInit, OnChanges, OnDestroy {
   @Input() open = false;
   @Input() editingImport: NhapHang | null = null;
 
@@ -43,8 +61,18 @@ export class PopupNhapHangComponent implements OnInit, OnChanges {
 
   isSubmitting = false;
   medicineOptions: Thuoc[] = [];
+  isCameraScannerOpen = false;
+  cameraScannerError = '';
+  cameraScannerStarting = false;
+
+  @ViewChild('barcodeVideo') barcodeVideo?: ElementRef<HTMLVideoElement>;
+  private cameraStream: MediaStream | null = null;
+  private cameraScanTimer: number | null = null;
+  private barcodeDetector: BarcodeDetectorLike | null = null;
+  private cameraScanBusy = false;
 
   readonly form = this.fb.nonNullable.group({
+    barcodeScan: [''],
     medicineId: [0, [Validators.required, Validators.min(1)]],
     batchCode: ['', Validators.required],
     supplier: ['', [Validators.maxLength(160)]],
@@ -67,19 +95,28 @@ export class PopupNhapHangComponent implements OnInit, OnChanges {
     if (changes['open'] && this.open) {
       this.syncFormWithMode();
     }
+
+    if (changes['open'] && !this.open) {
+      this.closeCameraScanner();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.stopCameraScanner();
   }
 
   close(): void {
     if (this.isSubmitting) {
       return;
     }
+    this.closeCameraScanner();
     this.closePopup.emit();
   }
 
   async save(): Promise<void> {
     if (this.form.invalid || this.isSubmitting) {
       this.form.markAllAsTouched();
-      Object.values(this.form.controls).forEach(control => {
+      Object.values(this.form.controls).forEach((control) => {
         control.markAsDirty();
         control.updateValueAndValidity();
       });
@@ -100,29 +137,32 @@ export class PopupNhapHangComponent implements OnInit, OnChanges {
 
       const saved = this.isEditMode
         ? await this.nhapHangService.update(
-          this.editingImport!.id,
-          medicineId,
-          batchCode,
-          supplier,
-          quantity,
-          importPrice,
-          sellPrice,
-          expiryDate,
-          importedAt
-        )
+            this.editingImport!.id,
+            medicineId,
+            batchCode,
+            supplier,
+            quantity,
+            importPrice,
+            sellPrice,
+            expiryDate,
+            importedAt
+          )
         : await this.nhapHangService.create(
-          medicineId,
-          batchCode,
-          supplier,
-          quantity,
-          importPrice,
-          sellPrice,
-          expiryDate,
-          importedAt
-        );
+            medicineId,
+            batchCode,
+            supplier,
+            quantity,
+            importPrice,
+            sellPrice,
+            expiryDate,
+            importedAt
+          );
 
       this.importSaved.emit(saved);
-      this.notification.success('Thành công', this.isEditMode ? 'Cập nhật phiếu nhập thành công' : 'Tạo phiếu nhập thành công');
+      this.notification.success(
+        'Thành công',
+        this.isEditMode ? 'Cập nhật phiếu nhập thành công' : 'Tạo phiếu nhập thành công'
+      );
       this.form.reset();
       this.closePopup.emit();
     } catch (error) {
@@ -134,9 +174,56 @@ export class PopupNhapHangComponent implements OnInit, OnChanges {
     }
   }
 
+  async onBarcodeScanSubmit(): Promise<void> {
+    const barcode = this.form.controls.barcodeScan.value.trim();
+    if (!barcode) {
+      this.notification.warning('Cảnh báo', 'Vui lòng nhập mã vạch thuốc để quét');
+      return;
+    }
+
+    try {
+      const medicine = await this.thuocService.findByBarcode(barcode);
+      this.form.patchValue({ medicineId: medicine.id, barcodeScan: '' });
+      this.notification.success('Thành công', `Đã chọn thuốc: ${medicine.name}`);
+    } catch (error) {
+      const message = getErrorMessage(error, 'Không tìm thấy thuốc theo mã vạch');
+      this.notification.error('Thất bại', message);
+      console.error('Scan barcode ở nhập hàng failed', error);
+    }
+  }
+
+  async openCameraScanner(): Promise<void> {
+    if (!window.isSecureContext) {
+      this.notification.warning(
+        'Cảnh báo',
+        'Trang hiện không bảo mật (HTTP). Hãy dùng HTTPS hoặc localhost để mở camera.'
+      );
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this.notification.warning('Cảnh báo', 'Thiết bị không hỗ trợ truy cập camera');
+      return;
+    }
+
+    this.isCameraScannerOpen = true;
+    this.cameraScannerError = '';
+    this.cameraScannerStarting = true;
+    setTimeout(() => {
+      void this.startCameraScanner();
+    }, 0);
+  }
+
+  closeCameraScanner(): void {
+    this.stopCameraScanner();
+    this.isCameraScannerOpen = false;
+    this.cameraScannerStarting = false;
+  }
+
   private syncFormWithMode(): void {
     if (this.editingImport) {
       this.form.setValue({
+        barcodeScan: '',
         medicineId: this.editingImport.medicineId,
         batchCode: this.editingImport.batchCode,
         supplier: this.editingImport.supplier,
@@ -150,6 +237,7 @@ export class PopupNhapHangComponent implements OnInit, OnChanges {
     }
 
     this.form.reset({
+      barcodeScan: '',
       medicineId: 0,
       batchCode: '',
       supplier: '',
@@ -170,6 +258,106 @@ export class PopupNhapHangComponent implements OnInit, OnChanges {
       const message = getErrorMessage(error, 'Không tải được danh sách thuốc');
       this.notification.error('Thất bại', message);
       console.error('Load danh sách thuốc failed', error);
+    }
+  }
+
+  private async startCameraScanner(): Promise<void> {
+    const video = this.barcodeVideo?.nativeElement;
+    if (!video) {
+      this.cameraScannerError = 'Không mở được camera. Vui lòng thử lại.';
+      this.cameraScannerStarting = false;
+      return;
+    }
+
+    try {
+      this.cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false
+      });
+      video.srcObject = this.cameraStream;
+      video.setAttribute('playsinline', 'true');
+      await video.play();
+      this.initBarcodeDetector();
+      this.startCameraDetectLoop(video);
+    } catch (error) {
+      const errorName = error instanceof DOMException ? error.name : '';
+      if (errorName === 'NotAllowedError') {
+        this.cameraScannerError = 'Bạn đã chặn quyền camera. Hãy cấp quyền camera trong trình duyệt.';
+      } else if (errorName === 'NotFoundError') {
+        this.cameraScannerError = 'Không tìm thấy camera trên thiết bị.';
+      } else if (errorName === 'NotReadableError') {
+        this.cameraScannerError = 'Camera đang được ứng dụng khác sử dụng.';
+      } else {
+        this.cameraScannerError = 'Không thể truy cập camera. Vui lòng cấp quyền camera.';
+      }
+      console.error('Start camera scanner failed', error);
+    } finally {
+      this.cameraScannerStarting = false;
+    }
+  }
+
+  private initBarcodeDetector(): void {
+    if (this.barcodeDetector) {
+      return;
+    }
+    const detectorGlobal = window as unknown as { BarcodeDetector?: BarcodeDetectorCtor };
+    if (!detectorGlobal.BarcodeDetector) {
+      this.cameraScannerError = 'Trình duyệt chưa hỗ trợ BarcodeDetector. Hãy dùng ô nhập mã hoặc máy quét.';
+      return;
+    }
+
+    this.barcodeDetector = new detectorGlobal.BarcodeDetector({
+      formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code']
+    });
+  }
+
+  private startCameraDetectLoop(video: HTMLVideoElement): void {
+    if (!this.barcodeDetector) {
+      return;
+    }
+    this.cameraScanTimer = window.setInterval(() => {
+      void this.detectFromVideoFrame(video);
+    }, 350);
+  }
+
+  private async detectFromVideoFrame(video: HTMLVideoElement): Promise<void> {
+    if (!this.barcodeDetector || this.cameraScanBusy || video.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) {
+      return;
+    }
+
+    this.cameraScanBusy = true;
+    try {
+      const results = await this.barcodeDetector.detect(video);
+      const rawValue = results.find((item) => !!item.rawValue)?.rawValue?.trim();
+      if (!rawValue) {
+        return;
+      }
+
+      this.form.patchValue({ barcodeScan: rawValue }, { emitEvent: false });
+      await this.onBarcodeScanSubmit();
+      this.closeCameraScanner();
+    } catch (error) {
+      console.error('Detect barcode from camera failed', error);
+    } finally {
+      this.cameraScanBusy = false;
+    }
+  }
+
+  private stopCameraScanner(): void {
+    if (this.cameraScanTimer !== null) {
+      window.clearInterval(this.cameraScanTimer);
+      this.cameraScanTimer = null;
+    }
+
+    if (this.cameraStream) {
+      this.cameraStream.getTracks().forEach((track) => track.stop());
+      this.cameraStream = null;
+    }
+
+    const video = this.barcodeVideo?.nativeElement;
+    if (video) {
+      video.pause();
+      video.srcObject = null;
     }
   }
 }

@@ -1,5 +1,5 @@
 ﻿import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -8,6 +8,7 @@ import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -34,6 +35,12 @@ interface BillItem {
 
 type PaymentMode = 'CASH' | 'BANK_QR';
 
+type BarcodeDetectorLike = {
+  detect: (source: ImageBitmapSource) => Promise<Array<{ rawValue?: string }>>;
+};
+
+type BarcodeDetectorCtor = new (options?: { formats?: string[] }) => BarcodeDetectorLike;
+
 @Component({
   selector: 'app-hoa-don',
   standalone: true,
@@ -50,6 +57,7 @@ type PaymentMode = 'CASH' | 'BANK_QR';
     NzIconModule,
     NzInputModule,
     NzInputNumberModule,
+    NzModalModule,
     NzSelectModule,
     NzTableModule,
     NzTreeSelectModule
@@ -57,7 +65,7 @@ type PaymentMode = 'CASH' | 'BANK_QR';
   templateUrl: './hoa-don.component.html',
   styleUrl: './hoa-don.component.scss'
 })
-export class HoaDonComponent implements OnInit {
+export class HoaDonComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly nhapHangService = inject(NhapHangService);
   private readonly thuocService = inject(ThuocService);
@@ -66,7 +74,8 @@ export class HoaDonComponent implements OnInit {
   private readonly notification = inject(NzNotificationService);
 
   readonly saleForm = this.fb.group({
-    selectedImportKey: this.fb.control<string | null>(null)
+    selectedImportKey: this.fb.control<string | null>(null),
+    barcodeScan: this.fb.nonNullable.control('')
   });
 
   readonly customerForm = this.fb.group({
@@ -95,8 +104,19 @@ export class HoaDonComponent implements OnInit {
   currentInvoiceCode = 'Tự động';
   qrCodeUrl: string | null = null;
   qrTransferNote = '';
+  isCameraScannerOpen = false;
+  cameraScannerError = '';
+  cameraScannerStarting = false;
+  scanBatchSelectOpen = false;
+  scanBatchSelectMedicineName = '';
+  scanBatchSelectImports: NhapHang[] = [];
 
   billItems: BillItem[] = [];
+  @ViewChild('barcodeVideo') barcodeVideo?: ElementRef<HTMLVideoElement>;
+  private cameraStream: MediaStream | null = null;
+  private cameraScanTimer: number | null = null;
+  private barcodeDetector: BarcodeDetectorLike | null = null;
+  private cameraScanBusy = false;
 
   async ngOnInit(): Promise<void> {
     this.customerForm.controls.customerId.valueChanges.subscribe((customerId) => {
@@ -116,6 +136,10 @@ export class HoaDonComponent implements OnInit {
     });
 
     await Promise.all([this.loadCustomers(), this.loadMedicineTreeByMedicine()]);
+  }
+
+  ngOnDestroy(): void {
+    this.stopCameraScanner();
   }
 
   get subtotal(): number {
@@ -281,6 +305,74 @@ export class HoaDonComponent implements OnInit {
     this.saleForm.controls.selectedImportKey.setValue(null, { emitEvent: false });
     this.syncAmountPaidWithTotalNeedPay();
     this.medicineTreeOpen = false;
+  }
+
+  async onBarcodeScanSubmit(): Promise<void> {
+    const barcode = this.saleForm.controls.barcodeScan.value.trim();
+    if (!barcode) {
+      this.notification.warning('Cảnh báo', 'Vui lòng nhập mã vạch thuốc để quét');
+      return;
+    }
+
+    try {
+      const medicine = await this.thuocService.findByBarcode(barcode);
+      const imports = await this.nhapHangService.findSaleImportsByMedicineId(medicine.id);
+      if (imports.length === 0) {
+        this.notification.warning('Cảnh báo', `Thuốc ${medicine.name} hiện không còn lô bán khả dụng`);
+        return;
+      }
+
+      imports.forEach((item) => this.importOptionsById.set(item.id, item));
+      this.saleForm.patchValue({ barcodeScan: '' }, { emitEvent: false });
+      if (imports.length === 1) {
+        this.onImportOrderSelected(`import-${imports[0].id}`);
+        return;
+      }
+      this.openScanBatchSelectModal(medicine.name, imports);
+    } catch (error) {
+      const message = getErrorMessage(error, 'Không tìm thấy thuốc theo mã vạch');
+      this.notification.error('Thất bại', message);
+      console.error('Scan barcode ở hóa đơn failed', error);
+    }
+  }
+
+  closeScanBatchSelectModal(): void {
+    this.scanBatchSelectOpen = false;
+    this.scanBatchSelectMedicineName = '';
+    this.scanBatchSelectImports = [];
+  }
+
+  selectImportFromScan(importId: number): void {
+    this.onImportOrderSelected(`import-${importId}`);
+    this.closeScanBatchSelectModal();
+  }
+
+  async openCameraScanner(): Promise<void> {
+    if (!window.isSecureContext) {
+      this.notification.warning(
+        'Cảnh báo',
+        'Trang hiện không bảo mật (HTTP). Hãy dùng HTTPS hoặc localhost để mở camera.'
+      );
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this.notification.warning('Cảnh báo', 'Thiết bị không hỗ trợ truy cập camera');
+      return;
+    }
+
+    this.isCameraScannerOpen = true;
+    this.cameraScannerError = '';
+    this.cameraScannerStarting = true;
+    setTimeout(() => {
+      void this.startCameraScanner();
+    }, 0);
+  }
+
+  closeCameraScanner(): void {
+    this.stopCameraScanner();
+    this.isCameraScannerOpen = false;
+    this.cameraScannerStarting = false;
   }
 
   generatePaymentQr(): void {
@@ -499,6 +591,119 @@ export class HoaDonComponent implements OnInit {
     this.paymentForm.controls.amountPaid.enable({ emitEvent: false });
     this.qrCodeUrl = null;
     this.qrTransferNote = '';
+  }
+
+  private openScanBatchSelectModal(medicineName: string, imports: NhapHang[]): void {
+    const sortedImports = [...imports].sort((a, b) => {
+      const expiryA = a.expiryDate ? new Date(a.expiryDate).getTime() : Number.MAX_SAFE_INTEGER;
+      const expiryB = b.expiryDate ? new Date(b.expiryDate).getTime() : Number.MAX_SAFE_INTEGER;
+      if (expiryA !== expiryB) {
+        return expiryA - expiryB;
+      }
+      return new Date(a.importedAt).getTime() - new Date(b.importedAt).getTime();
+    });
+    this.scanBatchSelectMedicineName = medicineName;
+    this.scanBatchSelectImports = sortedImports;
+    this.scanBatchSelectOpen = true;
+  }
+
+  private async startCameraScanner(): Promise<void> {
+    const video = this.barcodeVideo?.nativeElement;
+    if (!video) {
+      this.cameraScannerError = 'Không mở được camera. Vui lòng thử lại.';
+      this.cameraScannerStarting = false;
+      return;
+    }
+
+    try {
+      this.cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false
+      });
+      video.srcObject = this.cameraStream;
+      video.setAttribute('playsinline', 'true');
+      await video.play();
+      this.initBarcodeDetector();
+      this.startCameraDetectLoop(video);
+    } catch (error) {
+      const errorName = error instanceof DOMException ? error.name : '';
+      if (errorName === 'NotAllowedError') {
+        this.cameraScannerError = 'Bạn đã chặn quyền camera. Hãy cấp quyền camera trong trình duyệt.';
+      } else if (errorName === 'NotFoundError') {
+        this.cameraScannerError = 'Không tìm thấy camera trên thiết bị.';
+      } else if (errorName === 'NotReadableError') {
+        this.cameraScannerError = 'Camera đang được ứng dụng khác sử dụng.';
+      } else {
+        this.cameraScannerError = 'Không thể truy cập camera. Vui lòng cấp quyền camera.';
+      }
+      console.error('Start camera scanner failed', error);
+    } finally {
+      this.cameraScannerStarting = false;
+    }
+  }
+
+  private initBarcodeDetector(): void {
+    if (this.barcodeDetector) {
+      return;
+    }
+    const detectorGlobal = window as unknown as { BarcodeDetector?: BarcodeDetectorCtor };
+    if (!detectorGlobal.BarcodeDetector) {
+      this.cameraScannerError = 'Trình duyệt chưa hỗ trợ BarcodeDetector. Hãy dùng ô nhập mã hoặc máy quét.';
+      return;
+    }
+
+    this.barcodeDetector = new detectorGlobal.BarcodeDetector({
+      formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code']
+    });
+  }
+
+  private startCameraDetectLoop(video: HTMLVideoElement): void {
+    if (!this.barcodeDetector) {
+      return;
+    }
+    this.cameraScanTimer = window.setInterval(() => {
+      void this.detectFromVideoFrame(video);
+    }, 350);
+  }
+
+  private async detectFromVideoFrame(video: HTMLVideoElement): Promise<void> {
+    if (!this.barcodeDetector || this.cameraScanBusy || video.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) {
+      return;
+    }
+
+    this.cameraScanBusy = true;
+    try {
+      const results = await this.barcodeDetector.detect(video);
+      const rawValue = results.find((item) => !!item.rawValue)?.rawValue?.trim();
+      if (!rawValue) {
+        return;
+      }
+
+      this.saleForm.patchValue({ barcodeScan: rawValue }, { emitEvent: false });
+      await this.onBarcodeScanSubmit();
+      this.closeCameraScanner();
+    } catch (error) {
+      console.error('Detect barcode from camera failed', error);
+    } finally {
+      this.cameraScanBusy = false;
+    }
+  }
+
+  private stopCameraScanner(): void {
+    if (this.cameraScanTimer !== null) {
+      window.clearInterval(this.cameraScanTimer);
+      this.cameraScanTimer = null;
+    }
+
+    if (this.cameraStream) {
+      this.cameraStream.getTracks().forEach((track) => track.stop());
+      this.cameraStream = null;
+    }
+    const video = this.barcodeVideo?.nativeElement;
+    if (video) {
+      video.pause();
+      video.srcObject = null;
+    }
   }
 }
 

@@ -12,6 +12,22 @@
     <form nz-form [formGroup]="form" nzLayout="vertical">
       <div class="grid-form">
         <nz-form-item class="full-width">
+          <nz-form-label>Quét mã thuốc</nz-form-label>
+          <nz-form-control>
+            <div class="barcode-row">
+              <input
+                nz-input
+                formControlName="barcodeScan"
+                placeholder="Quét hoặc nhập mã vạch thuốc"
+                (keyup.enter)="onBarcodeScanSubmit()"
+              />
+              <button nz-button nzType="default" type="button" (click)="onBarcodeScanSubmit()">Quét</button>
+              <button nz-button nzType="default" type="button" (click)="openCameraScanner()">Quét camera</button>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="full-width">
           <nz-form-label [nzRequired]="true">Tên thuốc</nz-form-label>
           <nz-form-control [nzValidateStatus]="form.controls.medicineId" [nzErrorTip]="medicineValidError">
             <nz-select formControlName="medicineId" nzShowSearch nzPlaceHolder="Chọn thuốc cần nhập">
@@ -70,6 +86,7 @@
         </nz-form-item>
       </div>
     </form>
+
     <ng-template #medicineValidError let-control>
       <ng-container *ngIf="control.errors?.['required'] || control.errors?.['min']">
         <div>Vui lòng chọn thuốc cần nhập</div>
@@ -105,5 +122,20 @@
         <div>Vui lòng chọn ngày nhập</div>
       </ng-container>
     </ng-template>
+  </ng-container>
+</nz-modal>
+
+<nz-modal
+  [nzVisible]="isCameraScannerOpen"
+  nzTitle="Quét mã bằng camera"
+  [nzFooter]="null"
+  (nzOnCancel)="closeCameraScanner()"
+>
+  <ng-container *nzModalContent>
+    <div class="camera-scan-wrap">
+      <video #barcodeVideo class="camera-video" muted autoplay></video>
+      <div class="subtle" *ngIf="cameraScannerStarting">Đang khởi động camera...</div>
+      <div class="negative" *ngIf="cameraScannerError">{{ cameraScannerError }}</div>
+    </div>
   </ng-container>
 </nz-modal>

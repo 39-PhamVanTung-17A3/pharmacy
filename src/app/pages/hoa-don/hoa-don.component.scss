@@ -57,6 +57,26 @@
   gap: 8px;
 }
 
+.barcode-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+}
+
+.camera-scan-wrap {
+  display: grid;
+  gap: 8px;
+}
+
+.camera-video {
+  width: 100%;
+  min-height: 260px;
+  max-height: 60vh;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #000;
+}
+
 .table-footer {
   margin-top: 12px;
   display: flex;

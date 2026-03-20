@@ -1,5 +1,5 @@
 export const environment = {
-  beDomain: 'http://localhost:8081',
+  beDomain: '',
   paymentQr: {
     bankBin: '970415',
     accountNo: '106002616055',
