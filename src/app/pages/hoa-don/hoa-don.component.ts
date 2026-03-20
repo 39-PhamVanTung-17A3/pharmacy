@@ -15,6 +15,7 @@ import { NzTreeNodeOptions } from 'ng-zorro-antd/core/tree';
 import { NzFormatEmitEvent } from 'ng-zorro-antd/tree';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { MenuComponent } from '../../components/menu/menu.component';
+import { environment } from '../../../environments/environment';
 import { getErrorMessage } from '../../utils/error.util';
 import { KhachHang, KhachHangService } from '../khach-hang/khach-hang.service';
 import { PopupKhachHangComponent } from '../khach-hang/popup-khach-hang/popup-khach-hang.component';
@@ -30,6 +31,8 @@ interface BillItem {
   quantity: number;
   maxQuantity: number;
 }
+
+type PaymentMode = 'CASH' | 'BANK_QR';
 
 @Component({
   selector: 'app-hoa-don',
@@ -72,6 +75,7 @@ export class HoaDonComponent implements OnInit {
   });
 
   readonly paymentForm = this.fb.nonNullable.group({
+    paymentMode: ['CASH' as PaymentMode],
     discount: [0],
     amountPaid: [0]
   });
@@ -89,6 +93,8 @@ export class HoaDonComponent implements OnInit {
   customerPopupOpen = false;
   checkoutLoading = false;
   currentInvoiceCode = 'Tự động';
+  qrCodeUrl: string | null = null;
+  qrTransferNote = '';
 
   billItems: BillItem[] = [];
 
@@ -99,6 +105,10 @@ export class HoaDonComponent implements OnInit {
 
     this.paymentForm.controls.discount.valueChanges.subscribe(() => {
       this.syncAmountPaidWithTotalNeedPay();
+    });
+
+    this.paymentForm.controls.paymentMode.valueChanges.subscribe((mode) => {
+      this.handlePaymentModeChange(mode);
     });
 
     this.saleForm.controls.selectedImportKey.valueChanges.subscribe((selectedKey) => {
@@ -191,9 +201,12 @@ export class HoaDonComponent implements OnInit {
 
       this.currentInvoiceCode = savedInvoice.code;
       this.notification.success('Thành công', `Thanh toán hóa đơn ${savedInvoice.code} thành công`);
+      this.qrCodeUrl = null;
+      this.qrTransferNote = '';
 
       this.clearBill();
       this.paymentForm.patchValue({
+        paymentMode: 'CASH',
         discount: 0,
         amountPaid: 0
       });
@@ -268,6 +281,31 @@ export class HoaDonComponent implements OnInit {
     this.saleForm.controls.selectedImportKey.setValue(null, { emitEvent: false });
     this.syncAmountPaidWithTotalNeedPay();
     this.medicineTreeOpen = false;
+  }
+
+  generatePaymentQr(): void {
+    if (this.billItems.length === 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng thêm sản phẩm trước khi tạo mã QR');
+      return;
+    }
+
+    if (this.totalNeedPay <= 0) {
+      this.notification.warning('Cảnh báo', 'Số tiền cần thanh toán phải lớn hơn 0');
+      return;
+    }
+
+    const qrConfig = environment.paymentQr;
+    const invoiceRef = this.currentInvoiceCode !== 'Tự động'
+      ? this.currentInvoiceCode
+      : `HD-TAM-${Date.now().toString().slice(-6)}`;
+    const amount = Math.round(this.totalNeedPay);
+    const addInfo = `TT ${invoiceRef}`;
+    const accountName = qrConfig.accountName;
+
+    this.qrTransferNote = addInfo;
+    this.qrCodeUrl =
+      `https://img.vietqr.io/image/${qrConfig.bankBin}-${qrConfig.accountNo}-${qrConfig.template}.png` +
+      `?amount=${amount}&addInfo=${encodeURIComponent(addInfo)}&accountName=${encodeURIComponent(accountName)}`;
   }
 
   private async loadCustomers(): Promise<void> {
@@ -426,12 +464,41 @@ export class HoaDonComponent implements OnInit {
   }
 
   private syncAmountPaidWithTotalNeedPay(): void {
+    const paymentMode = this.paymentForm.controls.paymentMode.value;
+    if (paymentMode === 'BANK_QR') {
+      this.paymentForm.patchValue(
+        {
+          amountPaid: this.totalNeedPay
+        },
+        { emitEvent: false }
+      );
+      if (this.billItems.length > 0) {
+        this.generatePaymentQr();
+      } else {
+        this.qrCodeUrl = null;
+        this.qrTransferNote = '';
+      }
+      return;
+    }
+
     this.paymentForm.patchValue(
       {
         amountPaid: this.totalNeedPay
       },
       { emitEvent: false }
     );
+  }
+
+  private handlePaymentModeChange(mode: PaymentMode): void {
+    if (mode === 'BANK_QR') {
+      this.paymentForm.controls.amountPaid.disable({ emitEvent: false });
+      this.syncAmountPaidWithTotalNeedPay();
+      return;
+    }
+
+    this.paymentForm.controls.amountPaid.enable({ emitEvent: false });
+    this.qrCodeUrl = null;
+    this.qrTransferNote = '';
   }
 }
 

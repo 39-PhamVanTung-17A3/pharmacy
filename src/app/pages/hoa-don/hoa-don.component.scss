@@ -106,6 +106,21 @@
   width: 130px;
 }
 
+.qr-box {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.qr-image {
+  width: 220px;
+  max-width: 100%;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+}
+
 @media (max-width: 1200px) {
   .bill-grid {
     grid-template-columns: 1fr;

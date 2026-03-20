@@ -93,6 +93,12 @@
 
         <nz-card nzTitle="Thanh toán">
           <form [formGroup]="paymentForm" class="stack-12" (ngSubmit)="submitCheckout()">
+            <label>Phương thức thanh toán</label>
+            <nz-select formControlName="paymentMode" nzPlaceHolder="Chọn phương thức">
+              <nz-option nzLabel="Tiền mặt" nzValue="CASH"></nz-option>
+              <nz-option nzLabel="Chuyển khoản QR" nzValue="BANK_QR"></nz-option>
+            </nz-select>
+
             <div class="row-between"><span>Tổng tiền hàng</span><strong>{{ subtotal | number }} đ</strong></div>
             <nz-divider></nz-divider>
 
@@ -101,6 +107,12 @@
 
             <label>Tiền khách đưa</label>
             <nz-input-number formControlName="amountPaid" [nzMin]="0" [nzStep]="1000" class="w-full"></nz-input-number>
+
+            <div *ngIf="paymentForm.controls.paymentMode.value === 'BANK_QR'" class="qr-box">
+              <button nz-button nzType="default" type="button" (click)="generatePaymentQr()">Tạo lại mã QR</button>
+              <img *ngIf="qrCodeUrl" [src]="qrCodeUrl" alt="QR thanh toán" class="qr-image" />
+              <div class="subtle" *ngIf="qrTransferNote">Nội dung chuyển khoản: {{ qrTransferNote }}</div>
+            </div>
 
             <div class="row-between"><span>Cần thu</span><strong>{{ totalNeedPay | number }} đ</strong></div>
             <div class="row-between"><span>Tiền thừa</span><strong [class.negative]="returnAmount < 0">{{ returnAmount |
