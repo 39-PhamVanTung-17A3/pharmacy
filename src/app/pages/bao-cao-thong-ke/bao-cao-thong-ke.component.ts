@@ -14,12 +14,16 @@ import { HighchartsChartModule } from 'highcharts-angular';
 import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
 import {
+  BaoCaoCustomerPeriodRevenueApiResponse,
+  BaoCaoCustomerTypeRevenueApiResponse,
   BaoCaoComparisonApiResponse,
   BaoCaoMedicineRankingApiResponse,
   BaoCaoStockAlertApiResponse,
-  BaoCaoThongKeKpiApiResponse
+  BaoCaoThongKeKpiApiResponse,
+  BaoCaoTopCustomerApiResponse
 } from '../../models/bao-cao-thong-ke.model';
 import { getErrorMessage } from '../../utils/error.util';
+import { KhachHangService } from '../khach-hang/khach-hang.service';
 import { BaoCaoReportType, BaoCaoThongKeRow, BaoCaoThongKeService } from './bao-cao-thong-ke.service';
 
 @Component({
@@ -49,11 +53,13 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly fb = inject(FormBuilder);
   private readonly baoCaoThongKeService = inject(BaoCaoThongKeService);
+  private readonly khachHangService = inject(KhachHangService);
   private readonly notification = inject(NzNotificationService);
 
   readonly filterForm = this.fb.group({
     keyword: this.fb.nonNullable.control(''),
     type: this.fb.nonNullable.control<BaoCaoReportType>('MONTH'),
+    customerFilter: this.fb.nonNullable.control('ALL'),
     dateRange: this.fb.control<Date[] | null>(null)
   });
 
@@ -62,6 +68,11 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
     { label: 'Tháng', value: 'MONTH' },
     { label: 'Quý', value: 'QUARTER' },
     { label: 'Năm', value: 'YEAR' }
+  ];
+
+  customerOptions: Array<{ label: string; value: string }> = [
+    { label: 'Tất cả khách hàng', value: 'ALL' },
+    { label: 'Khách lẻ', value: 'RETAIL' }
   ];
 
   reportRows: BaoCaoThongKeRow[] = [];
@@ -83,6 +94,9 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
   slowSellingMedicines: BaoCaoMedicineRankingApiResponse[] = [];
   lowStockMedicines: BaoCaoStockAlertApiResponse[] = [];
   expiringMedicines: BaoCaoStockAlertApiResponse[] = [];
+  topCustomers: BaoCaoTopCustomerApiResponse[] = [];
+  customerTypeRevenue: BaoCaoCustomerTypeRevenueApiResponse[] = [];
+  customerPeriodRevenue: BaoCaoCustomerPeriodRevenueApiResponse[] = [];
   comparison: BaoCaoComparisonApiResponse = {
     currentPeriodLabel: null,
     previousPeriodLabel: null,
@@ -130,8 +144,38 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
     credits: { enabled: false }
   };
 
+  topCustomerChartOptions: Highcharts.Options = {
+    chart: { type: 'bar' },
+    title: { text: 'Top khách hàng theo doanh thu' },
+    xAxis: { categories: [] },
+    yAxis: { title: { text: 'VNĐ' } },
+    legend: { enabled: false },
+    series: [{ type: 'bar', name: 'Doanh thu', data: [] }],
+    credits: { enabled: false }
+  };
+
+  customerTypeChartOptions: Highcharts.Options = {
+    chart: { type: 'pie' },
+    title: { text: 'Cơ cấu số lượng hóa đơn theo loại khách hàng' },
+    series: [{ type: 'pie', name: 'Số hóa đơn', data: [] }],
+    credits: { enabled: false }
+  };
+
+  customerPeriodChartOptions: Highcharts.Options = {
+    chart: { type: 'column' },
+    title: { text: 'Doanh thu khách lẻ/khách quen theo kỳ' },
+    xAxis: { categories: [] },
+    yAxis: { title: { text: 'VNĐ' } },
+    series: [
+      { type: 'column', name: 'Khách lẻ', data: [] },
+      { type: 'column', name: 'Khách quen', data: [] }
+    ],
+    credits: { enabled: false }
+  };
+
   async ngOnInit(): Promise<void> {
     this.bindFilters();
+    await this.loadCustomerOptions();
     await this.loadSummary();
   }
 
@@ -162,6 +206,11 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
       await this.loadSummary();
     });
 
+    this.filterForm.controls.customerFilter.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(async () => {
+      this.pageIndex = 1;
+      await this.loadSummary();
+    });
+
     this.filterForm.controls.dateRange.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(async () => {
       this.pageIndex = 1;
       await this.loadSummary();
@@ -173,24 +222,52 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
     try {
       const type = this.filterForm.controls.type.value;
       const keyword = this.filterForm.controls.keyword.value;
+      const customerFilter = this.filterForm.controls.customerFilter.value;
       const dateRange = this.filterForm.controls.dateRange.value;
 
-      const data = await this.baoCaoThongKeService.getSummary(type, keyword, dateRange);
+      const data = await this.baoCaoThongKeService.getSummary(type, keyword, dateRange, customerFilter);
       this.reportRows = data.rows;
       this.kpiTongHop = data.kpi;
       this.topSellingMedicines = data.topSellingMedicines;
       this.slowSellingMedicines = data.slowSellingMedicines;
       this.lowStockMedicines = data.lowStockMedicines;
       this.expiringMedicines = data.expiringMedicines;
+      this.topCustomers = data.topCustomers;
+      this.customerTypeRevenue = data.customerTypeRevenue;
+      this.customerPeriodRevenue = data.customerPeriodRevenue;
       this.comparison = data.comparison;
       this.buildReportChart(this.reportRows, type);
       this.buildCategoryChart(data.categoryRevenue);
       this.buildHourlyChart(data.hourlyRevenue);
+      this.buildTopCustomerChart(this.topCustomers);
+      this.buildCustomerTypeChart(this.customerTypeRevenue);
+      this.buildCustomerPeriodChart(this.customerPeriodRevenue);
     } catch (error) {
       const message = getErrorMessage(error, 'Không tải được dữ liệu báo cáo thống kê');
       this.notification.error('Thất bại', message);
     } finally {
       this.loading = false;
+    }
+  }
+
+  private async loadCustomerOptions(): Promise<void> {
+    try {
+      const pageData = await this.khachHangService.findAll(1, 1000);
+      const options = pageData.items.map((item) => ({
+        label: `${item.name} - ${item.phone}`,
+        value: `ID:${item.id}`
+      }));
+      this.customerOptions = [
+        { label: 'Tất cả khách hàng', value: 'ALL' },
+        { label: 'Khách lẻ', value: 'RETAIL' },
+        ...options
+      ];
+    } catch (error) {
+      console.error('Load customer filter failed', error);
+      this.customerOptions = [
+        { label: 'Tất cả khách hàng', value: 'ALL' },
+        { label: 'Khách lẻ', value: 'RETAIL' }
+      ];
     }
   }
 
@@ -221,6 +298,38 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
       ...this.hourlyChartOptions,
       xAxis: { categories: hourlyRevenue.map((item) => item.hourLabel) },
       series: [{ type: 'line', name: 'Doanh thu', data: hourlyRevenue.map((item) => item.revenue) }]
+    };
+  }
+
+  private buildTopCustomerChart(topCustomers: BaoCaoTopCustomerApiResponse[]): void {
+    this.topCustomerChartOptions = {
+      ...this.topCustomerChartOptions,
+      xAxis: { categories: topCustomers.map((item) => item.customerLabel) },
+      series: [{ type: 'bar', name: 'Doanh thu', data: topCustomers.map((item) => item.revenue) }]
+    };
+  }
+
+  private buildCustomerTypeChart(customerTypeRevenue: BaoCaoCustomerTypeRevenueApiResponse[]): void {
+    this.customerTypeChartOptions = {
+      ...this.customerTypeChartOptions,
+      series: [
+        {
+          type: 'pie',
+          name: 'Số hóa đơn',
+          data: customerTypeRevenue.map((item) => ({ name: item.customerType, y: item.invoiceCount }))
+        }
+      ]
+    };
+  }
+
+  private buildCustomerPeriodChart(customerPeriodRevenue: BaoCaoCustomerPeriodRevenueApiResponse[]): void {
+    this.customerPeriodChartOptions = {
+      ...this.customerPeriodChartOptions,
+      xAxis: { categories: customerPeriodRevenue.map((item) => item.periodLabel) },
+      series: [
+        { type: 'column', name: 'Khách lẻ', data: customerPeriodRevenue.map((item) => item.retailRevenue) },
+        { type: 'column', name: 'Khách quen', data: customerPeriodRevenue.map((item) => item.knownRevenue) }
+      ]
     };
   }
 }

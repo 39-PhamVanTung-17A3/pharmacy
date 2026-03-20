@@ -11,6 +11,9 @@ import {
   BaoCaoStockAlertApiResponse,
   BaoCaoCategoryRevenueApiResponse,
   BaoCaoHourRevenueApiResponse,
+  BaoCaoTopCustomerApiResponse,
+  BaoCaoCustomerTypeRevenueApiResponse,
+  BaoCaoCustomerPeriodRevenueApiResponse,
   BaoCaoThongKeRowApiResponse,
   BaoCaoThongKeRow,
   BaoCaoThongKeSummary
@@ -26,7 +29,12 @@ export class BaoCaoThongKeService {
   private readonly apiUrl = environment.beDomain + '/api/bao-cao-thong-ke';
   private readonly http = inject(HttpClient);
 
-  async getSummary(type: BaoCaoReportType, keyword?: string, dateRange?: Date[] | null): Promise<BaoCaoThongKeSummary> {
+  async getSummary(
+    type: BaoCaoReportType,
+    keyword?: string,
+    dateRange?: Date[] | null,
+    customerFilter?: string
+  ): Promise<BaoCaoThongKeSummary> {
     let params = new HttpParams().set('type', type);
 
     if (keyword?.trim()) {
@@ -37,6 +45,15 @@ export class BaoCaoThongKeService {
       params = params
         .set('fromDate', this.formatDate(dateRange[0]))
         .set('toDate', this.formatDate(dateRange[1]));
+    }
+
+    if (customerFilter === 'RETAIL') {
+      params = params.set('retailOnly', 'true');
+    } else if (customerFilter?.startsWith('ID:')) {
+      const customerId = Number(customerFilter.slice(3));
+      if (Number.isFinite(customerId) && customerId > 0) {
+        params = params.set('customerId', customerId.toString());
+      }
     }
 
     const response = await firstValueFrom(
@@ -54,6 +71,9 @@ export class BaoCaoThongKeService {
       expiringMedicines: (data.expiringMedicines ?? []).map((item) => this.mapStockAlertFromApi(item)),
       categoryRevenue: (data.categoryRevenue ?? []).map((item) => this.mapCategoryRevenueFromApi(item)),
       hourlyRevenue: (data.hourlyRevenue ?? []).map((item) => this.mapHourRevenueFromApi(item)),
+      topCustomers: (data.topCustomers ?? []).map((item) => this.mapTopCustomerFromApi(item)),
+      customerTypeRevenue: (data.customerTypeRevenue ?? []).map((item) => this.mapCustomerTypeRevenueFromApi(item)),
+      customerPeriodRevenue: (data.customerPeriodRevenue ?? []).map((item) => this.mapCustomerPeriodRevenueFromApi(item)),
       comparison: this.mapComparisonFromApi(data.comparison)
     };
   }
@@ -127,6 +147,34 @@ export class BaoCaoThongKeService {
       hourLabel: item?.hourLabel ?? '',
       invoiceCount: item?.invoiceCount ?? 0,
       revenue: item?.revenue ?? 0
+    };
+  }
+
+  private mapTopCustomerFromApi(item: BaoCaoTopCustomerApiResponse): BaoCaoTopCustomerApiResponse {
+    return {
+      customerLabel: item?.customerLabel ?? '',
+      phone: item?.phone ?? null,
+      invoiceCount: item?.invoiceCount ?? 0,
+      revenue: item?.revenue ?? 0,
+      profit: item?.profit ?? 0
+    };
+  }
+
+  private mapCustomerTypeRevenueFromApi(item: BaoCaoCustomerTypeRevenueApiResponse): BaoCaoCustomerTypeRevenueApiResponse {
+    return {
+      customerType: item?.customerType ?? '',
+      invoiceCount: item?.invoiceCount ?? 0,
+      revenue: item?.revenue ?? 0
+    };
+  }
+
+  private mapCustomerPeriodRevenueFromApi(item: BaoCaoCustomerPeriodRevenueApiResponse): BaoCaoCustomerPeriodRevenueApiResponse {
+    return {
+      periodLabel: item?.periodLabel ?? '',
+      retailInvoiceCount: item?.retailInvoiceCount ?? 0,
+      retailRevenue: item?.retailRevenue ?? 0,
+      knownInvoiceCount: item?.knownInvoiceCount ?? 0,
+      knownRevenue: item?.knownRevenue ?? 0
     };
   }
 

@@ -53,6 +53,28 @@ export interface BaoCaoHourRevenueApiResponse {
   revenue: number;
 }
 
+export interface BaoCaoTopCustomerApiResponse {
+  customerLabel: string;
+  phone: string | null;
+  invoiceCount: number;
+  revenue: number;
+  profit: number;
+}
+
+export interface BaoCaoCustomerTypeRevenueApiResponse {
+  customerType: string;
+  invoiceCount: number;
+  revenue: number;
+}
+
+export interface BaoCaoCustomerPeriodRevenueApiResponse {
+  periodLabel: string;
+  retailInvoiceCount: number;
+  retailRevenue: number;
+  knownInvoiceCount: number;
+  knownRevenue: number;
+}
+
 export interface BaoCaoComparisonApiResponse {
   currentPeriodLabel: string | null;
   previousPeriodLabel: string | null;
@@ -76,6 +98,9 @@ export interface BaoCaoThongKeApiResponse {
   expiringMedicines: BaoCaoStockAlertApiResponse[];
   categoryRevenue: BaoCaoCategoryRevenueApiResponse[];
   hourlyRevenue: BaoCaoHourRevenueApiResponse[];
+  topCustomers: BaoCaoTopCustomerApiResponse[];
+  customerTypeRevenue: BaoCaoCustomerTypeRevenueApiResponse[];
+  customerPeriodRevenue: BaoCaoCustomerPeriodRevenueApiResponse[];
   comparison: BaoCaoComparisonApiResponse;
 }
 
@@ -97,5 +122,8 @@ export interface BaoCaoThongKeSummary {
   expiringMedicines: BaoCaoStockAlertApiResponse[];
   categoryRevenue: BaoCaoCategoryRevenueApiResponse[];
   hourlyRevenue: BaoCaoHourRevenueApiResponse[];
+  topCustomers: BaoCaoTopCustomerApiResponse[];
+  customerTypeRevenue: BaoCaoCustomerTypeRevenueApiResponse[];
+  customerPeriodRevenue: BaoCaoCustomerPeriodRevenueApiResponse[];
   comparison: BaoCaoComparisonApiResponse;
 }

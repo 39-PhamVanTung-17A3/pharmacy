@@ -17,6 +17,10 @@
           <nz-option *ngFor="let item of reportTypeOptions" [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
         </nz-select>
 
+        <nz-select formControlName="customerFilter" nzPlaceHolder="Đối tượng khách hàng">
+          <nz-option *ngFor="let item of customerOptions" [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
+        </nz-select>
+
         <nz-range-picker
           formControlName="dateRange"
           nzFormat="dd/MM/yyyy"
@@ -94,6 +98,41 @@
         <highcharts-chart [Highcharts]="highcharts" [options]="hourlyChartOptions" class="chart-wrap"></highcharts-chart>
       </nz-card>
     </div>
+
+    <div class="content-grid mt-16">
+      <nz-card nzTitle="Top khách hàng theo doanh thu" [nzLoading]="loading">
+        <highcharts-chart [Highcharts]="highcharts" [options]="topCustomerChartOptions" class="chart-wrap"></highcharts-chart>
+      </nz-card>
+      <nz-card nzTitle="Cơ cấu số lượng hóa đơn theo loại khách hàng" [nzLoading]="loading">
+        <highcharts-chart [Highcharts]="highcharts" [options]="customerTypeChartOptions" class="chart-wrap"></highcharts-chart>
+      </nz-card>
+      <nz-card nzTitle="Doanh thu khách lẻ/khách quen theo kỳ" [nzLoading]="loading">
+        <highcharts-chart [Highcharts]="highcharts" [options]="customerPeriodChartOptions" class="chart-wrap"></highcharts-chart>
+      </nz-card>
+    </div>
+
+    <nz-card nzTitle="Top khách hàng" class="mt-16" [nzLoading]="loading">
+      <nz-table [nzData]="topCustomers" [nzShowPagination]="false" nzSize="small">
+        <thead>
+          <tr>
+            <th>Khách hàng</th>
+            <th>Số điện thoại</th>
+            <th class="text-right">Số hóa đơn</th>
+            <th class="text-right">Doanh thu</th>
+            <th class="text-right">Lợi nhuận</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of topCustomers">
+            <td>{{ item.customerLabel }}</td>
+            <td>{{ item.phone || '-' }}</td>
+            <td class="text-right">{{ item.invoiceCount | number }}</td>
+            <td class="text-right">{{ item.revenue | number }} đ</td>
+            <td class="text-right">{{ item.profit | number }} đ</td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </nz-card>
 
     <div class="content-grid mt-16">
       <nz-card nzTitle="Top thuốc bán chạy" [nzLoading]="loading">
@@ -185,7 +224,7 @@
       <nz-table [nzData]="pagedRows" [nzShowPagination]="false" nzSize="middle">
         <thead>
           <tr>
-            <th>Kỳ báo cáo</th>
+            <th>Mốc thống kê</th>
             <th class="text-right">Số hóa đơn</th>
             <th class="text-right">Doanh thu</th>
             <th class="text-right">Chi phí</th>
