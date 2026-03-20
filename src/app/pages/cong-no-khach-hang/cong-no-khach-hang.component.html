@@ -1,0 +1,95 @@
+<div class="page-wrap">
+  <app-menu></app-menu>
+
+  <main class="main-content">
+    <header class="page-header">
+      <nz-breadcrumb>
+        <nz-breadcrumb-item>Trang chủ</nz-breadcrumb-item>
+        <nz-breadcrumb-item>Công nợ khách hàng</nz-breadcrumb-item>
+      </nz-breadcrumb>
+    </header>
+
+    <nz-card nzTitle="Quản lý công nợ khách hàng" [nzExtra]="extraTpl">
+      <ng-template #extraTpl>
+        <input
+          nz-input
+          [formControl]="filterForm.controls.keyword"
+          placeholder="Tìm theo tên khách hàng hoặc số điện thoại"
+        />
+      </ng-template>
+
+      <nz-table [nzData]="debtList" [nzShowPagination]="false" nzSize="middle" [nzLoading]="loading">
+        <thead>
+          <tr>
+            <th>Khách hàng</th>
+            <th>Số điện thoại</th>
+            <th class="text-right">Số hóa đơn nợ</th>
+            <th class="text-right">Tổng phải thu</th>
+            <th class="text-right">Đã thu</th>
+            <th class="text-right">Còn nợ</th>
+            <th>Lần mua gần nhất</th>
+            <th class="text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of debtList">
+            <td>{{ item.customerName }}</td>
+            <td>{{ item.customerPhone }}</td>
+            <td class="text-right">{{ item.invoiceCount }}</td>
+            <td class="text-right">{{ item.totalNeedPay | number }} đ</td>
+            <td class="text-right">{{ item.totalPaid | number }} đ</td>
+            <td class="text-right debt-value">{{ item.totalDebt | number }} đ</td>
+            <td>{{ item.lastSaleAt ? (item.lastSaleAt | date: 'dd/MM/yyyy HH:mm') : '-' }}</td>
+            <td class="text-right">
+              <button nz-button nzType="primary" nzSize="small" (click)="openCollectPopup(item)">Thu nợ</button>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+
+      <app-pagging
+        [total]="totalItems"
+        [pageIndex]="pageIndex"
+        [pageSize]="pageSize"
+        (pageIndexChange)="onPageChange($event)"
+      ></app-pagging>
+    </nz-card>
+  </main>
+
+  <nz-modal
+    [nzVisible]="isCollectPopupOpen"
+    nzTitle="Thu nợ khách hàng"
+    nzOkText="Xác nhận thu nợ"
+    nzCancelText="Hủy"
+    [nzOkLoading]="collecting"
+    [nzOkDisabled]="collecting"
+    (nzOnCancel)="closeCollectPopup()"
+    (nzOnOk)="submitCollectDebt()"
+  >
+    <ng-container *nzModalContent>
+      <form nz-form [formGroup]="collectForm" nzLayout="vertical">
+        <nz-form-item>
+          <nz-form-label>Khách hàng</nz-form-label>
+          <nz-form-control>
+            <strong>{{ selectedDebt?.customerName || '-' }}</strong>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label>Công nợ hiện tại</nz-form-label>
+          <nz-form-control>
+            <strong class="debt-value">{{ selectedDebt?.totalDebt || 0 | number }} đ</strong>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Số tiền thu</nz-form-label>
+          <nz-form-control [nzValidateStatus]="collectForm.controls.amount">
+            <nz-input-number formControlName="amount" [nzMin]="1" [nzStep]="1000" class="w-full"></nz-input-number>
+          </nz-form-control>
+          <div class="field-error" *ngIf="collectForm.controls.amount.invalid && collectForm.controls.amount.touched">
+            Số tiền thu phải lớn hơn 0
+          </div>
+        </nz-form-item>
+      </form>
+    </ng-container>
+  </nz-modal>
+</div>

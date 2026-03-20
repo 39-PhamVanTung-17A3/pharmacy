@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 import { BaoCaoThongKeComponent } from './pages/bao-cao-thong-ke/bao-cao-thong-ke.component';
+import { CanhBaoTonKhoComponent } from './pages/canh-bao-ton-kho/canh-bao-ton-kho.component';
+import { CongNoKhachHangComponent } from './pages/cong-no-khach-hang/cong-no-khach-hang.component';
 import { DanhMucThuocComponent } from './pages/danh-muc-thuoc/danh-muc-thuoc.component';
 import { DanhSachHoaDonComponent } from './pages/danh-sach-hoa-don/danh-sach-hoa-don.component';
 import { DoiMatKhauComponent } from './pages/doi-mat-khau/doi-mat-khau.component';
@@ -40,6 +42,12 @@ export const routes: Routes = [
     data: { permission: 'PERM_IMPORT_MANAGE' }
   },
   {
+    path: 'canh-bao-ton-kho',
+    component: CanhBaoTonKhoComponent,
+    canActivate: [authGuard, permissionGuard],
+    data: { permission: 'PERM_IMPORT_MANAGE' }
+  },
+  {
     path: 'khach-hang',
     component: KhachHangComponent,
     canActivate: [authGuard, permissionGuard],
@@ -54,6 +62,12 @@ export const routes: Routes = [
   {
     path: 'danh-sach-hoa-don',
     component: DanhSachHoaDonComponent,
+    canActivate: [authGuard, permissionGuard],
+    data: { permission: 'PERM_INVOICE_MANAGE' }
+  },
+  {
+    path: 'cong-no-khach-hang',
+    component: CongNoKhachHangComponent,
     canActivate: [authGuard, permissionGuard],
     data: { permission: 'PERM_INVOICE_MANAGE' }
   },

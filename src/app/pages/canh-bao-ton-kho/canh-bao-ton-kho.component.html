@@ -1,0 +1,63 @@
+<div class="page-wrap">
+  <app-menu></app-menu>
+
+  <main class="main-content">
+    <header class="page-header">
+      <nz-breadcrumb>
+        <nz-breadcrumb-item>Trang chủ</nz-breadcrumb-item>
+        <nz-breadcrumb-item>Cảnh báo tồn kho</nz-breadcrumb-item>
+      </nz-breadcrumb>
+    </header>
+
+    <nz-card nzTitle="Cảnh báo tồn kho theo lô">
+      <form [formGroup]="filterForm" class="filters">
+        <input nz-input formControlName="keyword" placeholder="Tìm theo thuốc, mã lô hoặc nhà cung cấp" />
+        <nz-select formControlName="alertType" nzPlaceHolder="Loại cảnh báo">
+          <nz-option *ngFor="let option of alertTypeOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+        </nz-select>
+      </form>
+
+      <nz-table [nzData]="alertList" [nzShowPagination]="false" nzSize="middle" [nzLoading]="loading">
+        <thead>
+          <tr>
+            <th>Thuốc</th>
+            <th>Mã lô</th>
+            <th class="text-right">Tồn kho</th>
+            <th>Hạn dùng</th>
+            <th class="text-right">Số ngày còn lại</th>
+            <th>Nhà cung cấp</th>
+            <th>Cảnh báo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of alertList">
+            <td>
+              <div>{{ item.medicineName }}</div>
+              <small class="subtle">{{ item.categoryName }}</small>
+            </td>
+            <td>{{ item.batchCode }}</td>
+            <td class="text-right">{{ item.quantity }}</td>
+            <td>{{ item.expiryDate ? (item.expiryDate | date: 'dd/MM/yyyy') : 'Không có' }}</td>
+            <td class="text-right">
+              <span *ngIf="item.daysToExpiry !== null">{{ item.daysToExpiry }}</span>
+              <span *ngIf="item.daysToExpiry === null">-</span>
+            </td>
+            <td>{{ item.supplier || '-' }}</td>
+            <td>
+              <nz-tag [nzColor]="item.alertType === 'EXPIRED' ? 'red' : item.alertType === 'NEAR_EXPIRY' ? 'orange' : 'gold'">
+                {{ getAlertTypeLabel(item.alertType) }}
+              </nz-tag>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+
+      <app-pagging
+        [total]="totalItems"
+        [pageIndex]="pageIndex"
+        [pageSize]="pageSize"
+        (pageIndexChange)="onPageChange($event)"
+      ></app-pagging>
+    </nz-card>
+  </main>
+</div>

@@ -42,7 +42,8 @@ export class MenuComponent implements OnInit {
       items: [
         { label: 'Danh mục thuốc', route: '/danh-muc-thuoc', icon: 'appstore', permission: 'PERM_MEDICINE_MANAGE' },
         { label: 'Kho thuốc', route: '/thuoc', icon: 'medicine-box', permission: 'PERM_MEDICINE_MANAGE' },
-        { label: 'Nhập hàng', route: '/nhap-hang', icon: 'inbox', permission: 'PERM_IMPORT_MANAGE' }
+        { label: 'Nhập hàng', route: '/nhap-hang', icon: 'inbox', permission: 'PERM_IMPORT_MANAGE' },
+        { label: 'Cảnh báo tồn kho', route: '/canh-bao-ton-kho', icon: 'alert', permission: 'PERM_IMPORT_MANAGE' }
       ]
     },
     {
@@ -50,7 +51,8 @@ export class MenuComponent implements OnInit {
       items: [
         { label: 'Khách hàng', route: '/khach-hang', icon: 'team', permission: 'PERM_CUSTOMER_MANAGE' },
         { label: 'Tạo hóa đơn', route: '/hoa-don', icon: 'file-add', permission: 'PERM_INVOICE_MANAGE' },
-        { label: 'Danh sách hóa đơn', route: '/danh-sach-hoa-don', icon: 'file-text', permission: 'PERM_INVOICE_MANAGE' }
+        { label: 'Danh sách hóa đơn', route: '/danh-sach-hoa-don', icon: 'file-text', permission: 'PERM_INVOICE_MANAGE' },
+        { label: 'Công nợ khách hàng', route: '/cong-no-khach-hang', icon: 'wallet', permission: 'PERM_INVOICE_MANAGE' }
       ]
     },
     {

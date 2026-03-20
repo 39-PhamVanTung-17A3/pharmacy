@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+
+.page-wrap {
+  min-height: 100vh;
+  background: #f5f7fb;
+}
+
+.main-content {
+  margin-left: var(--app-sider-width);
+  width: calc(100% - var(--app-sider-width));
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.subtle {
+  color: #8c8c8c;
+}
+
+@media (max-width: 992px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding: 16px;
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+  }
+}
