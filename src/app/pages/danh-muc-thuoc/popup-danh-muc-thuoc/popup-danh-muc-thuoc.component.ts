@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -46,25 +46,6 @@ export class PopupDanhMucThuocComponent implements OnChanges {
     return this.editingCategory !== null;
   }
 
-  get showNameError(): boolean {
-    const control = this.form.controls.name;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get nameErrorMessage(): string {
-    const control = this.form.controls.name;
-    if (control.hasError('required')) {
-      return 'Vui lòng nhập tên danh mục';
-    }
-    if (control.hasError('maxlength')) {
-      return 'Tên danh mục tối đa 100 ký tự';
-    }
-    if (control.hasError('duplicated')) {
-      return 'Tên danh mục đã tồn tại';
-    }
-    return '';
-  }
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['open'] && this.open) {
       this.syncFormWithMode();
@@ -79,18 +60,20 @@ export class PopupDanhMucThuocComponent implements OnChanges {
   }
 
   async save(): Promise<void> {
-
-    if (this.form.invalid) {
+    if (this.form.invalid || this.isSubmitting) {
       this.form.markAllAsTouched();
-      this.form.markAsDirty();
-      this.form.updateValueAndValidity({ onlySelf: false, emitEvent: true });
+      Object.values(this.form.controls).forEach(control => {
+        control.markAsDirty();
+        control.updateValueAndValidity();
+      });
       return;
     }
-    this.isSubmitting = true;
 
+    this.isSubmitting = true;
     const value = this.form.getRawValue();
     const name = value.name.trim();
     const description = value.description.trim();
+
     try {
       const saved = this.isEditMode
         ? await this.danhMucThuocService.update(this.editingCategory!.id, name, description)

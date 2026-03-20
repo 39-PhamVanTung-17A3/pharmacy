@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { getErrorMessage } from '../../../utils/error.util';
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -52,43 +52,6 @@ export class PopupThuocComponent implements OnInit, OnChanges {
     return this.editingMedicine !== null;
   }
 
-  get showNameError(): boolean {
-    const control = this.form.controls.name;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get showCategoryError(): boolean {
-    const control = this.form.controls.category;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get showUnitError(): boolean {
-    const control = this.form.controls.unit;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get nameErrorMessage(): string {
-    const control = this.form.controls.name;
-    if (control.hasError('required')) {
-      return 'Vui lòng nhập tên thuốc';
-    }
-    if (control.hasError('maxlength')) {
-      return 'Tên thuốc tối đa 120 ký tự';
-    }
-    return '';
-  }
-
-  get unitErrorMessage(): string {
-    const control = this.form.controls.unit;
-    if (control.hasError('required')) {
-      return 'Vui lòng nhập đơn vị';
-    }
-    if (control.hasError('maxlength')) {
-      return 'Đơn vị tối đa 100 ký tự';
-    }
-    return '';
-  }
-
   async ngOnInit(): Promise<void> {
     await this.loadCategoryOptions();
   }
@@ -109,6 +72,10 @@ export class PopupThuocComponent implements OnInit, OnChanges {
   async save(): Promise<void> {
     if (this.form.invalid || this.isSubmitting) {
       this.form.markAllAsTouched();
+      Object.values(this.form.controls).forEach(control => {
+        control.markAsDirty();
+        control.updateValueAndValidity();
+      });
       return;
     }
 
@@ -121,6 +88,8 @@ export class PopupThuocComponent implements OnInit, OnChanges {
 
       if (!category) {
         this.form.controls.category.markAsTouched();
+        this.form.controls.category.markAsDirty();
+        this.form.controls.category.updateValueAndValidity();
         return;
       }
 

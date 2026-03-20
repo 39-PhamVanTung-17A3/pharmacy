@@ -1,46 +1,68 @@
-<nz-modal [nzVisible]="open" [nzTitle]="isEditMode ? 'Cập nhật nhân viên' : 'Thêm nhân viên'" nzWidth="760"
+﻿<nz-modal [nzVisible]="open" [nzTitle]="isEditMode ? 'Cập nhật nhân viên' : 'Thêm nhân viên'" nzWidth="760"
   nzOkText="Lưu" nzCancelText="Hủy" [nzOkLoading]="isSubmitting" (nzOnCancel)="close()" (nzOnOk)="save()">
   <ng-container *nzModalContent>
     <form nz-form [formGroup]="form" nzLayout="vertical">
       <div class="grid-form">
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Tên nhân viên</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.name">
+          <nz-form-control [nzValidateStatus]="form.controls.name" [nzErrorTip]="nameValidError">
             <input nz-input formControlName="name" placeholder="Nhập tên nhân viên" />
-            <div class="field-error" *ngIf="showNameError">{{ nameErrorMessage }}</div>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Số điện thoại</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.phone">
+          <nz-form-control [nzValidateStatus]="form.controls.phone" [nzErrorTip]="phoneValidError">
             <input nz-input formControlName="phone" placeholder="Nhập số điện thoại" />
-            <div class="field-error" *ngIf="showPhoneError">{{ phoneErrorMessage }}</div>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Vai trò</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.role">
+          <nz-form-control [nzValidateStatus]="form.controls.role" [nzErrorTip]="roleValidError">
             <nz-select formControlName="role" nzPlaceHolder="Chọn vai trò">
               <nz-option *ngFor="let item of roleOptions" [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
             </nz-select>
-            <div class="field-error" *ngIf="showRoleError">Vui lòng chọn vai trò</div>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Ca làm</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.shift">
+          <nz-form-control [nzValidateStatus]="form.controls.shift" [nzErrorTip]="shiftValidError">
             <nz-select formControlName="shift" nzPlaceHolder="Chọn ca làm">
               <nz-option *ngFor="let item of shiftOptions" [nzLabel]="item" [nzValue]="item"></nz-option>
             </nz-select>
-            <div class="field-error" *ngIf="showShiftError">Vui lòng chọn ca làm</div>
           </nz-form-control>
         </nz-form-item>
       </div>
       <p *ngIf="!isEditMode" class="default-password-note">Mật khẩu mặc định khi tạo mới: <strong>123aA&#64;</strong>
       </p>
     </form>
+    <ng-template #nameValidError let-control>
+      <ng-container *ngIf="control.errors?.['required']">
+        <div>Vui lòng nhập tên nhân viên</div>
+      </ng-container>
+      <ng-container *ngIf="control.errors?.['maxlength']">
+        <div>Tên nhân viên tối đa 120 ký tự</div>
+      </ng-container>
+    </ng-template>
+    <ng-template #phoneValidError let-control>
+      <ng-container *ngIf="control.errors?.['required']">
+        <div>Vui lòng nhập số điện thoại</div>
+      </ng-container>
+      <ng-container *ngIf="control.errors?.['maxlength']">
+        <div>Số điện thoại tối đa 20 ký tự</div>
+      </ng-container>
+    </ng-template>
+    <ng-template #roleValidError let-control>
+      <ng-container *ngIf="control.errors?.['required']">
+        <div>Vui lòng chọn vai trò</div>
+      </ng-container>
+    </ng-template>
+    <ng-template #shiftValidError let-control>
+      <ng-container *ngIf="control.errors?.['required']">
+        <div>Vui lòng chọn ca làm</div>
+      </ng-container>
+    </ng-template>
   </ng-container>
 </nz-modal>

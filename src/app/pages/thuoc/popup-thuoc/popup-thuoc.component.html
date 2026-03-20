@@ -1,4 +1,4 @@
-<nz-modal
+﻿<nz-modal
   [nzVisible]="open"
   [nzTitle]="isEditMode ? 'Cập nhật thuốc' : 'Thêm thuốc mới'"
   nzWidth="760"
@@ -13,30 +13,48 @@
       <div class="grid-form">
         <nz-form-item class="full-width">
           <nz-form-label [nzRequired]="true">Tên thuốc</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.name">
+          <nz-form-control [nzValidateStatus]="form.controls.name" [nzErrorTip]="nameValidError">
             <input nz-input formControlName="name" placeholder="Nhập tên thuốc" />
-            <div class="field-error" *ngIf="showNameError">{{ nameErrorMessage }}</div>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Danh mục</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.category">
+          <nz-form-control [nzValidateStatus]="form.controls.category" [nzErrorTip]="categoryValidError">
             <nz-select formControlName="category" nzPlaceHolder="Chọn danh mục">
               <nz-option *ngFor="let item of categoryOptions" [nzLabel]="item.name" [nzValue]="item"></nz-option>
             </nz-select>
-            <div class="field-error" *ngIf="showCategoryError">Vui lòng chọn danh mục</div>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Đơn vị</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.unit">
+          <nz-form-control [nzValidateStatus]="form.controls.unit" [nzErrorTip]="unitValidError">
             <input nz-input formControlName="unit" placeholder="Nhập đơn vị" />
-            <div class="field-error" *ngIf="showUnitError">{{ unitErrorMessage }}</div>
           </nz-form-control>
         </nz-form-item>
       </div>
     </form>
+    <ng-template #nameValidError let-control>
+      <ng-container *ngIf="control.errors?.['required']">
+        <div>Vui lòng nhập tên thuốc</div>
+      </ng-container>
+      <ng-container *ngIf="control.errors?.['maxlength']">
+        <div>Tên thuốc tối đa 120 ký tự</div>
+      </ng-container>
+    </ng-template>
+    <ng-template #categoryValidError let-control>
+      <ng-container *ngIf="control.errors?.['required']">
+        <div>Vui lòng chọn danh mục</div>
+      </ng-container>
+    </ng-template>
+    <ng-template #unitValidError let-control>
+      <ng-container *ngIf="control.errors?.['required']">
+        <div>Vui lòng nhập đơn vị</div>
+      </ng-container>
+      <ng-container *ngIf="control.errors?.['maxlength']">
+        <div>Đơn vị tối đa 100 ký tự</div>
+      </ng-container>
+    </ng-template>
   </ng-container>
 </nz-modal>

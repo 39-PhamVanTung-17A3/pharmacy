@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { getErrorMessage } from '../../../utils/error.util';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -39,54 +39,6 @@ export class PopupKhachHangComponent implements OnChanges {
     return this.editingCustomer !== null;
   }
 
-  get showNameError(): boolean {
-    const control = this.form.controls.name;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get showPhoneError(): boolean {
-    const control = this.form.controls.phone;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get showAddressError(): boolean {
-    const control = this.form.controls.address;
-    return control.invalid && (control.touched || control.dirty);
-  }
-
-  get nameErrorMessage(): string {
-    const control = this.form.controls.name;
-    if (control.hasError('required')) {
-      return 'Vui lòng nhập tên khách hàng';
-    }
-    if (control.hasError('maxlength')) {
-      return 'Tên khách hàng tối đa 120 ký tự';
-    }
-    return '';
-  }
-
-  get phoneErrorMessage(): string {
-    const control = this.form.controls.phone;
-    if (control.hasError('required')) {
-      return 'Vui lòng nhập số điện thoại';
-    }
-    if (control.hasError('maxlength')) {
-      return 'Số điện thoại tối đa 20 ký tự';
-    }
-    return '';
-  }
-
-  get addressErrorMessage(): string {
-    const control = this.form.controls.address;
-    if (control.hasError('required')) {
-      return 'Vui lòng nhập địa chỉ khách hàng';
-    }
-    if (control.hasError('maxlength')) {
-      return 'Địa chỉ tối đa 1000 ký tự';
-    }
-    return '';
-  }
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['open'] && this.open) {
       this.syncFormWithMode();
@@ -103,6 +55,10 @@ export class PopupKhachHangComponent implements OnChanges {
   async save(): Promise<void> {
     if (this.form.invalid || this.isSubmitting) {
       this.form.markAllAsTouched();
+      Object.values(this.form.controls).forEach(control => {
+        control.markAsDirty();
+        control.updateValueAndValidity();
+      });
       return;
     }
 

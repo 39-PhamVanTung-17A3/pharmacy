@@ -1,32 +1,53 @@
-<nz-modal [nzVisible]="open" [nzTitle]="isEditMode ? 'Cập nhật khách hàng' : 'Thêm khách hàng'" nzWidth="760"
+﻿<nz-modal [nzVisible]="open" [nzTitle]="isEditMode ? 'Cập nhật khách hàng' : 'Thêm khách hàng'" nzWidth="760"
   nzOkText="Lưu" nzCancelText="Hủy" [nzOkLoading]="isSubmitting" (nzOnCancel)="close()" (nzOnOk)="save()">
   <ng-container *nzModalContent>
     <form nz-form [formGroup]="form" nzLayout="vertical">
       <div class="grid-form">
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Tên khách hàng</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.name">
+          <nz-form-control [nzValidateStatus]="form.controls.name" [nzErrorTip]="nameValidError">
             <input nz-input formControlName="name" placeholder="Nhập tên khách hàng" />
-            <div class="field-error" *ngIf="showNameError">{{ nameErrorMessage }}</div>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-label [nzRequired]="true">Số điện thoại</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.phone">
+          <nz-form-control [nzValidateStatus]="form.controls.phone" [nzErrorTip]="phoneValidError">
             <input nz-input formControlName="phone" placeholder="Nhập số điện thoại" />
-            <div class="field-error" *ngIf="showPhoneError">{{ phoneErrorMessage }}</div>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="full-width">
           <nz-form-label [nzRequired]="true">Địa chỉ</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.address">
+          <nz-form-control [nzValidateStatus]="form.controls.address" [nzErrorTip]="addressValidError">
             <input nz-input formControlName="address" placeholder="Nhập địa chỉ khách hàng" />
-            <div class="field-error" *ngIf="showAddressError">{{ addressErrorMessage }}</div>
           </nz-form-control>
         </nz-form-item>
       </div>
     </form>
+    <ng-template #nameValidError let-control>
+      <ng-container *ngIf="control.errors?.['required']">
+        <div>Vui lòng nhập tên khách hàng</div>
+      </ng-container>
+      <ng-container *ngIf="control.errors?.['maxlength']">
+        <div>Tên khách hàng tối đa 120 ký tự</div>
+      </ng-container>
+    </ng-template>
+    <ng-template #phoneValidError let-control>
+      <ng-container *ngIf="control.errors?.['required']">
+        <div>Vui lòng nhập số điện thoại</div>
+      </ng-container>
+      <ng-container *ngIf="control.errors?.['maxlength']">
+        <div>Số điện thoại tối đa 20 ký tự</div>
+      </ng-container>
+    </ng-template>
+    <ng-template #addressValidError let-control>
+      <ng-container *ngIf="control.errors?.['required']">
+        <div>Vui lòng nhập địa chỉ khách hàng</div>
+      </ng-container>
+      <ng-container *ngIf="control.errors?.['maxlength']">
+        <div>Địa chỉ tối đa 1000 ký tự</div>
+      </ng-container>
+    </ng-template>
   </ng-container>
 </nz-modal>
