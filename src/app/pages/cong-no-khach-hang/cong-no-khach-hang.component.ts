@@ -8,6 +8,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -27,6 +28,7 @@ import { CongNoKhachHang, CongNoKhachHangService } from './cong-no-khach-hang.se
     NzBreadCrumbModule,
     NzButtonModule,
     NzCardModule,
+    NzFormModule,
     NzIconModule,
     NzInputModule,
     NzInputNumberModule,
@@ -130,3 +132,5 @@ export class CongNoKhachHangComponent implements OnInit {
     }
   }
 }
+
+

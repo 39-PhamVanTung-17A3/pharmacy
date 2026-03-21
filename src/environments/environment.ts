@@ -1,4 +1,4 @@
-export const environment = {
+﻿export const environment = {
   beDomain: '',
   paymentQr: {
     bankBin: '970415',
@@ -7,3 +7,4 @@ export const environment = {
     template: 'compact2'
   }
 };
+

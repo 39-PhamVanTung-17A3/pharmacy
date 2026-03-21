@@ -1,4 +1,4 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
@@ -203,8 +203,9 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       this.notification.warning('Cảnh báo', 'Vui lòng thêm ít nhất một sản phẩm để thanh toán');
       return;
     }
-    if (this.amountPaid < this.totalNeedPay) {
-      this.notification.warning('Cảnh báo', 'Tiền khách đưa chưa đủ để thanh toán');
+    const customerId = this.customerForm.controls.customerId.value;
+    if (!customerId && this.amountPaid < this.totalNeedPay) {
+      this.notification.warning('Cảnh báo', 'Khách lẻ phải thanh toán đủ, không được ghi nợ');
       return;
     }
 
@@ -217,7 +218,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.checkoutLoading = true;
     try {
       const savedInvoice = await this.hoaDonService.checkout(
-        this.customerForm.controls.customerId.value ?? null,
+        customerId ?? null,
         items,
         this.discount,
         this.amountPaid
