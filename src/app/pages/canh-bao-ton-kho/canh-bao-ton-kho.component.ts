@@ -3,6 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
+import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -11,6 +12,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
+import { AiTonKhoGoiY } from '../../models/ai-ton-kho.model';
 import { getErrorMessage } from '../../utils/error.util';
 import { CanhBaoTonKho, CanhBaoTonKhoLoai, CanhBaoTonKhoService } from './canh-bao-ton-kho.service';
 
@@ -23,6 +25,7 @@ import { CanhBaoTonKho, CanhBaoTonKhoLoai, CanhBaoTonKhoService } from './canh-b
     MenuComponent,
     PaggingComponent,
     NzBreadCrumbModule,
+    NzButtonModule,
     NzCardModule,
     NzInputModule,
     NzSelectModule,
@@ -37,7 +40,9 @@ export class CanhBaoTonKhoComponent implements OnInit {
   readonly pageSize = 10;
   totalItems = 0;
   loading = false;
+  aiLoading = false;
   alertList: CanhBaoTonKho[] = [];
+  aiSuggestion: AiTonKhoGoiY | null = null;
 
   readonly alertTypeOptions: Array<{ value: CanhBaoTonKhoLoai; label: string }> = [
     { value: 'ALL', label: 'Tất cả' },
@@ -53,6 +58,10 @@ export class CanhBaoTonKhoComponent implements OnInit {
   readonly filterForm = this.fb.nonNullable.group({
     keyword: [''],
     alertType: ['ALL' as CanhBaoTonKhoLoai]
+  });
+
+  readonly aiForm = this.fb.nonNullable.group({
+    note: ['']
   });
 
   async ngOnInit(): Promise<void> {
@@ -72,6 +81,21 @@ export class CanhBaoTonKhoComponent implements OnInit {
   onPageChange(page: number): void {
     this.pageIndex = page;
     void this.loadAlerts();
+  }
+
+  async onGenerateAiSuggestion(): Promise<void> {
+    this.aiLoading = true;
+    try {
+      const note = this.aiForm.controls.note.value.trim();
+      this.aiSuggestion = await this.canhBaoTonKhoService.generateAiSuggestion(note);
+      this.notification.success('Thành công', 'Đã tạo gợi ý AI tồn kho');
+    } catch (error) {
+      const message = getErrorMessage(error, 'Không tạo được gợi ý AI tồn kho');
+      this.notification.error('Thất bại', message);
+      console.error('Generate AI stock suggestion failed', error);
+    } finally {
+      this.aiLoading = false;
+    }
   }
 
   getAlertTypeLabel(type: CanhBaoTonKhoLoai): string {

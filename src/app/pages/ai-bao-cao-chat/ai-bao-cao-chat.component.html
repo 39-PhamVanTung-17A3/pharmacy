@@ -1,0 +1,63 @@
+<div class="page-wrap">
+  <app-menu></app-menu>
+
+  <main class="main-content">
+    <header class="page-header">
+      <nz-breadcrumb>
+        <nz-breadcrumb-item>Trang chủ</nz-breadcrumb-item>
+        <nz-breadcrumb-item>Trợ lý báo cáo AI</nz-breadcrumb-item>
+      </nz-breadcrumb>
+    </header>
+
+    <nz-card nzTitle="Chatbot báo cáo nội bộ">
+      <form [formGroup]="form" class="query-form" (ngSubmit)="submitQuestion()">
+        <div class="query-row">
+          <textarea
+            nz-input
+            rows="2"
+            formControlName="question"
+            placeholder="Ví dụ: So sánh doanh thu kỳ này với kỳ trước và nêu 3 điểm nổi bật"
+          ></textarea>
+          <button nz-button nzType="primary" [nzLoading]="loading" type="submit">Gửi câu hỏi</button>
+        </div>
+
+        <div class="filter-row">
+          <nz-select formControlName="reportType" nzPlaceHolder="Kỳ báo cáo">
+            <nz-option *ngFor="let option of reportTypeOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+          </nz-select>
+
+          <nz-range-picker formControlName="dateRange"></nz-range-picker>
+        </div>
+      </form>
+
+      <div class="prompt-list">
+        <button nz-button nzType="default" *ngFor="let prompt of quickPrompts" (click)="usePrompt(prompt)" type="button">
+          {{ prompt }}
+        </button>
+      </div>
+
+      <section class="chat-box">
+        <article *ngFor="let message of messages" class="message-item" [class.user]="message.role === 'user'">
+          <div class="bubble">
+            <p>{{ message.text }}</p>
+
+            <ul *ngIf="message.highlights?.length" class="highlight-list">
+              <li *ngFor="let item of message.highlights">{{ item }}</li>
+            </ul>
+
+            <div *ngIf="message.suggestedQuestions?.length" class="suggested-block">
+              <small>Gợi ý hỏi tiếp:</small>
+              <div class="suggested-list">
+                <button nz-button nzType="link" *ngFor="let q of message.suggestedQuestions" (click)="usePrompt(q)" type="button">
+                  {{ q }}
+                </button>
+              </div>
+            </div>
+
+            <nz-tag *ngIf="message.meta" nzColor="blue">{{ message.meta }}</nz-tag>
+          </div>
+        </article>
+      </section>
+    </nz-card>
+  </main>
+</div>

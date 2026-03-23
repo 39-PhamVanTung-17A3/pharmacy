@@ -17,6 +17,40 @@
         </nz-select>
       </form>
 
+      <section class="ai-assistant-box">
+        <h4>Trợ lý AI cho quản lý tồn kho</h4>
+        <p class="subtle">Hệ thống tổng hợp cảnh báo tồn kho và đề xuất hành động ưu tiên cho nhân viên kho.</p>
+
+        <form [formGroup]="aiForm" class="ai-form">
+          <textarea
+            nz-input
+            rows="2"
+            formControlName="note"
+            placeholder="Ghi chú bổ sung cho AI (ví dụ: ưu tiên nhóm giảm đau trong tuần này)"
+          ></textarea>
+          <button nz-button nzType="primary" [nzLoading]="aiLoading" (click)="onGenerateAiSuggestion()" type="button">
+            Tạo gợi ý AI
+          </button>
+        </form>
+
+        <div class="ai-result" *ngIf="aiSuggestion">
+          <div class="ai-kpi-row">
+            <span>Tổng cảnh báo: <b>{{ aiSuggestion.tongSoCanhBao }}</b></span>
+            <span>Sắp hết hàng: <b>{{ aiSuggestion.soLuongSapHetHang }}</b></span>
+            <span>Sắp hết hạn: <b>{{ aiSuggestion.soLuongSapHetHan }}</b></span>
+            <span>Đã hết hạn: <b>{{ aiSuggestion.soLuongDaHetHan }}</b></span>
+          </div>
+
+          <p>{{ aiSuggestion.tomTat }}</p>
+
+          <ul>
+            <li *ngFor="let action of aiSuggestion.hanhDongUuTien">{{ action }}</li>
+          </ul>
+
+          <small class="subtle">Nguồn: {{ aiSuggestion.nguonSinhNoiDung }} | Model: {{ aiSuggestion.moHinhSuDung }}</small>
+        </div>
+      </section>
+
       <nz-table [nzData]="alertList" [nzShowPagination]="false" nzSize="middle" [nzLoading]="loading">
         <thead>
           <tr>

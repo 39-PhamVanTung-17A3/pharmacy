@@ -28,6 +28,38 @@
   margin-bottom: 12px;
 }
 
+.ai-assistant-box {
+  border: 1px solid #e5e8ef;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #fafcff;
+}
+
+.ai-assistant-box h4 {
+  margin: 0 0 6px;
+}
+
+.ai-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 8px;
+}
+
+.ai-result {
+  border-top: 1px dashed #d9deea;
+  padding-top: 10px;
+}
+
+.ai-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
 .text-right {
   text-align: right;
 }
@@ -45,5 +77,13 @@
 
   .filters {
     grid-template-columns: 1fr;
+  }
+
+  .ai-form {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-kpi-row {
+    grid-template-columns: 1fr 1fr;
   }
 }

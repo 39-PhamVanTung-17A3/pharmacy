@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { BaoCaoThongKeComponent } from './pages/bao-cao-thong-ke/bao-cao-thong-ke.component';
+import { AiBaoCaoChatComponent } from './pages/ai-bao-cao-chat/ai-bao-cao-chat.component';
 import { CanhBaoTonKhoComponent } from './pages/canh-bao-ton-kho/canh-bao-ton-kho.component';
 import { CongNoKhachHangComponent } from './pages/cong-no-khach-hang/cong-no-khach-hang.component';
 import { DanhMucThuocComponent } from './pages/danh-muc-thuoc/danh-muc-thuoc.component';
@@ -20,6 +21,12 @@ export const routes: Routes = [
   {
     path: 'bao-cao-thong-ke',
     component: BaoCaoThongKeComponent,
+    canActivate: [authGuard, permissionGuard],
+    data: { permission: 'PERM_REPORT_VIEW' }
+  },
+  {
+    path: 'tro-ly-bao-cao-ai',
+    component: AiBaoCaoChatComponent,
     canActivate: [authGuard, permissionGuard],
     data: { permission: 'PERM_REPORT_VIEW' }
   },

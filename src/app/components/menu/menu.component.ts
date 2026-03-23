@@ -35,7 +35,10 @@ export class MenuComponent implements OnInit {
   readonly sections: MenuSection[] = [
     {
       title: 'Tổng quan',
-      items: [{ label: 'Báo cáo thống kê', route: '/bao-cao-thong-ke', icon: 'line-chart', permission: 'PERM_REPORT_VIEW' }]
+      items: [
+        { label: 'Báo cáo thống kê', route: '/bao-cao-thong-ke', icon: 'line-chart', permission: 'PERM_REPORT_VIEW' },
+        { label: 'Trợ lý báo cáo AI', route: '/tro-ly-bao-cao-ai', icon: 'robot', permission: 'PERM_REPORT_VIEW' }
+      ]
     },
     {
       title: 'Kho thuốc',
