@@ -62,6 +62,9 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
   isCameraScannerOpen = false;
   cameraScannerError = '';
   cameraScannerStarting = false;
+  selectedImageFile: File | null = null;
+  imagePreviewUrl: string | null = null;
+  private localImagePreviewObjectUrl: string | null = null;
 
   @ViewChild('barcodeVideo') barcodeVideo?: ElementRef<HTMLVideoElement>;
   private cameraStream: MediaStream | null = null;
@@ -90,11 +93,13 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
     }
     if (changes['open'] && !this.open) {
       this.closeCameraScanner();
+      this.clearImageSelection();
     }
   }
 
   ngOnDestroy(): void {
     this.stopCameraScanner();
+    this.clearImageSelection();
   }
 
   close(): void {
@@ -102,6 +107,7 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
     this.closeCameraScanner();
+    this.clearImageSelection();
     this.closePopup.emit();
   }
 
@@ -133,6 +139,36 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
     this.cameraScannerStarting = false;
   }
 
+  onImageFileSelected(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    const file = target?.files?.[0] ?? null;
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn file ảnh hợp lệ');
+      if (target) {
+        target.value = '';
+      }
+      return;
+    }
+
+    const maxSizeInBytes = 5 * 1024 * 1024;
+    if (file.size > maxSizeInBytes) {
+      this.notification.warning('Cảnh báo', 'Kích thước ảnh tối đa 5MB');
+      if (target) {
+        target.value = '';
+      }
+      return;
+    }
+
+    this.selectedImageFile = file;
+    this.revokeLocalImagePreviewObjectUrl();
+    this.localImagePreviewObjectUrl = URL.createObjectURL(file);
+    this.imagePreviewUrl = this.localImagePreviewObjectUrl;
+  }
+
   async save(): Promise<void> {
     if (this.form.invalid || this.isSubmitting) {
       this.form.markAllAsTouched();
@@ -159,20 +195,27 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
       }
 
       const saved = this.isEditMode
-        ? await this.thuocService.update(this.editingMedicine!.id, name, category.id, barcode, unit)
-        : await this.thuocService.create(name, category.id, barcode, unit);
+        ? await this.thuocService.update(this.editingMedicine!.id, name, category.id, barcode, unit, this.selectedImageFile)
+        : await this.thuocService.create(name, category.id, barcode, unit, this.selectedImageFile);
 
       this.medicineSaved.emit(saved);
       this.notification.success('Thành công', this.isEditMode ? 'Cập nhật thuốc thành công' : 'Thêm thuốc thành công');
       this.form.reset();
+      this.clearImageSelection();
       this.closePopup.emit();
     } catch (error) {
       const message = getErrorMessage(error);
       this.notification.error('Thất bại', message);
-      console.error('Save thuốc failed', error);
+      console.error('Save thuoc failed', error);
     } finally {
       this.isSubmitting = false;
     }
+  }
+
+  clearImageSelection(): void {
+    this.selectedImageFile = null;
+    this.revokeLocalImagePreviewObjectUrl();
+    this.imagePreviewUrl = this.editingMedicine?.imageUrl ?? null;
   }
 
   private async loadCategoryOptions(): Promise<void> {
@@ -183,11 +226,12 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
       this.categoryOptions = [];
       const message = getErrorMessage(error);
       this.notification.error('Thất bại', message);
-      console.error('Load danh mục trong popup thuốc failed', error);
+      console.error('Load danh muc trong popup thuoc failed', error);
     }
   }
 
   private syncFormWithMode(): void {
+    this.clearImageSelection();
     if (this.editingMedicine) {
       const selectedCategory =
         this.categoryOptions.find((item) => item.id === this.editingMedicine!.category.id) ??
@@ -203,6 +247,7 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
         barcode: this.editingMedicine.barcode ?? '',
         unit: this.editingMedicine.unit
       });
+      this.imagePreviewUrl = this.editingMedicine.imageUrl;
       return;
     }
 
@@ -212,6 +257,7 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
       barcode: '',
       unit: ''
     });
+    this.imagePreviewUrl = null;
   }
 
   private async startCameraScanner(): Promise<void> {
@@ -243,7 +289,7 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
       } else {
         this.cameraScannerError = 'Không thể truy cập camera. Vui lòng cấp quyền camera.';
       }
-      console.error('Start camera scanner ở popup thuốc failed', error);
+      console.error('Start camera scanner o popup thuoc failed', error);
     } finally {
       this.cameraScannerStarting = false;
     }
@@ -290,7 +336,7 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
       this.form.controls.barcode.markAsDirty();
       this.closeCameraScanner();
     } catch (error) {
-      console.error('Detect barcode from camera ở popup thuốc failed', error);
+      console.error('Detect barcode from camera o popup thuoc failed', error);
     } finally {
       this.cameraScanBusy = false;
     }
@@ -311,6 +357,13 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
     if (video) {
       video.pause();
       video.srcObject = null;
+    }
+  }
+
+  private revokeLocalImagePreviewObjectUrl(): void {
+    if (this.localImagePreviewObjectUrl) {
+      URL.revokeObjectURL(this.localImagePreviewObjectUrl);
+      this.localImagePreviewObjectUrl = null;
     }
   }
 }

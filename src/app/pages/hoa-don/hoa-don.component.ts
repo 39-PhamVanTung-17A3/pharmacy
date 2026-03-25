@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
@@ -26,7 +26,9 @@ import { HoaDonItemRequest, HoaDonService } from './hoa-don.service';
 
 interface BillItem {
   importId: number;
+  medicineId: number;
   name: string;
+  imageUrl: string | null;
   stockLabel: string;
   price: number;
   quantity: number;
@@ -93,6 +95,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   expandedMedicineKeys: string[] = [];
   medicineTreeOpen = false;
   importOptionsById = new Map<number, NhapHang>();
+  medicineImageById = new Map<number, string | null>();
   loadedMedicineNodeKeys = new Set<string>();
   loadingMedicineNodeKeys = new Set<string>();
   loadingMedicineTree = false;
@@ -295,7 +298,9 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     const defaultPrice = selectedImport.sellPrice > 0 ? selectedImport.sellPrice : selectedImport.importPrice;
     const newItem: BillItem = {
       importId: selectedImport.id,
+      medicineId: selectedImport.medicineId,
       name: selectedImport.medicineName,
+      imageUrl: this.medicineImageById.get(selectedImport.medicineId) ?? null,
       stockLabel: `Lô: ${selectedImport.batchCode} (Tồn kho: ${selectedImport.quantity})`,
       price: defaultPrice,
       quantity: 1,
@@ -346,6 +351,10 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   selectImportFromScan(importId: number): void {
     this.onImportOrderSelected(`import-${importId}`);
     this.closeScanBatchSelectModal();
+  }
+
+  getMedicineImageUrl(medicineId: number): string | null {
+    return this.medicineImageById.get(medicineId) ?? null;
   }
 
   async openCameraScanner(): Promise<void> {
@@ -526,6 +535,10 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     try {
       const pageData = await this.thuocService.findAll(1, 1000);
       const medicines = pageData.items;
+      this.medicineImageById.clear();
+      medicines.forEach((medicine) => {
+        this.medicineImageById.set(medicine.id, medicine.imageUrl ?? null);
+      });
 
       this.medicineImportTreeNodes = medicines.map((medicine: Thuoc) => {
         const hasStock = medicine.totalQuantity > 0;
@@ -548,6 +561,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       this.notification.error('Thất bại', message);
       this.medicineImportTreeNodes = [];
       this.importOptionsById.clear();
+      this.medicineImageById.clear();
       this.loadedMedicineNodeKeys.clear();
       this.loadingMedicineNodeKeys.clear();
       this.expandedMedicineKeys = [];
@@ -707,5 +721,6 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     }
   }
 }
+
 
 

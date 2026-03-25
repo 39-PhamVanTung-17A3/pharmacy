@@ -6,6 +6,7 @@ export interface ThuocApiResponse {
   category: DanhMucThuocApiResponse;
   barcode: string | null;
   unit: string;
+  imageUrl: string | null;
   totalQuantity: number;
 }
 
@@ -19,5 +20,6 @@ export interface Thuoc {
   };
   barcode: string | null;
   unit: string;
+  imageUrl: string | null;
   totalQuantity: number;
 }

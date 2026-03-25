@@ -41,14 +41,23 @@ export class ThuocService {
     return this.mapFromApi(this.unwrapData(result));
   }
 
-  async create(name: string, categoryId: number, barcode: string | null, unit: string): Promise<Thuoc> {
-    const result = await firstValueFrom(this.http.post<BaseResponse<ThuocApiResponse>>(this.apiUrl, { name, categoryId, barcode, unit }));
+  async create(name: string, categoryId: number, barcode: string | null, unit: string, imageFile?: File | null): Promise<Thuoc> {
+    const payload = this.buildMedicineFormData(name, categoryId, barcode, unit, imageFile);
+    const result = await firstValueFrom(this.http.post<BaseResponse<ThuocApiResponse>>(this.apiUrl, payload));
     return this.mapFromApi(this.unwrapData(result));
   }
 
-  async update(id: number, name: string, categoryId: number, barcode: string | null, unit: string): Promise<Thuoc> {
+  async update(
+    id: number,
+    name: string,
+    categoryId: number,
+    barcode: string | null,
+    unit: string,
+    imageFile?: File | null
+  ): Promise<Thuoc> {
+    const payload = this.buildMedicineFormData(name, categoryId, barcode, unit, imageFile);
     const result = await firstValueFrom(
-      this.http.put<BaseResponse<ThuocApiResponse>>(`${this.apiUrl}/${id}`, { name, categoryId, barcode, unit })
+      this.http.put<BaseResponse<ThuocApiResponse>>(`${this.apiUrl}/${id}`, payload)
     );
     return this.mapFromApi(this.unwrapData(result));
   }
@@ -76,7 +85,40 @@ export class ThuocService {
       },
       barcode: item.barcode ?? null,
       unit: item.unit,
+      imageUrl: this.resolveImageUrl(item.imageUrl),
       totalQuantity: item.totalQuantity ?? 0
     };
+  }
+
+  private buildMedicineFormData(
+    name: string,
+    categoryId: number,
+    barcode: string | null,
+    unit: string,
+    imageFile?: File | null
+  ): FormData {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('categoryId', String(categoryId));
+    formData.append('barcode', barcode ?? '');
+    formData.append('unit', unit);
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+    return formData;
+  }
+
+  private resolveImageUrl(imageUrl: string | null | undefined): string | null {
+    if (!imageUrl?.trim()) {
+      return null;
+    }
+    const normalized = imageUrl.trim();
+    if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+      return normalized;
+    }
+    if (normalized.startsWith('/')) {
+      return `${environment.beDomain}${normalized}`;
+    }
+    return `${environment.beDomain}/${normalized}`;
   }
 }

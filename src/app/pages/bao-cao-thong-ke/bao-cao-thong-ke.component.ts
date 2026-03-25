@@ -24,6 +24,7 @@ import {
 } from '../../models/bao-cao-thong-ke.model';
 import { getErrorMessage } from '../../utils/error.util';
 import { KhachHangService } from '../khach-hang/khach-hang.service';
+import { ThuocService } from '../thuoc/thuoc.service';
 import { BaoCaoReportType, BaoCaoThongKeRow, BaoCaoThongKeService } from './bao-cao-thong-ke.service';
 
 @Component({
@@ -54,6 +55,7 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly baoCaoThongKeService = inject(BaoCaoThongKeService);
   private readonly khachHangService = inject(KhachHangService);
+  private readonly thuocService = inject(ThuocService);
   private readonly notification = inject(NzNotificationService);
 
   readonly filterForm = this.fb.group({
@@ -74,6 +76,7 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
     { label: 'Tất cả khách hàng', value: 'ALL' },
     { label: 'Khách lẻ', value: 'RETAIL' }
   ];
+  medicineImageByName = new Map<string, string>();
 
   reportRows: BaoCaoThongKeRow[] = [];
   kpiTongHop: BaoCaoThongKeKpiApiResponse = {
@@ -175,7 +178,7 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.bindFilters();
-    await this.loadCustomerOptions();
+    await Promise.all([this.loadCustomerOptions(), this.loadMedicineImageLookup()]);
     await this.loadSummary();
   }
 
@@ -191,6 +194,14 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
 
   onPageChange(page: number): void {
     this.pageIndex = page;
+  }
+
+  getMedicineImageUrl(medicineName: string): string | null {
+    const key = this.normalizeMedicineName(medicineName);
+    if (!key) {
+      return null;
+    }
+    return this.medicineImageByName.get(key) ?? null;
   }
 
   private bindFilters(): void {
@@ -269,6 +280,27 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
         { label: 'Khách lẻ', value: 'RETAIL' }
       ];
     }
+  }
+
+  private async loadMedicineImageLookup(): Promise<void> {
+    try {
+      const pageData = await this.thuocService.findAll(1, 1000);
+      this.medicineImageByName.clear();
+      pageData.items.forEach((medicine) => {
+        const key = this.normalizeMedicineName(medicine.name);
+        if (!key || !medicine.imageUrl) {
+          return;
+        }
+        this.medicineImageByName.set(key, medicine.imageUrl);
+      });
+    } catch (error) {
+      this.medicineImageByName.clear();
+      console.error('Load medicine image lookup failed', error);
+    }
+  }
+
+  private normalizeMedicineName(name: string | null | undefined): string {
+    return (name ?? '').trim().toLowerCase();
   }
 
   private buildReportChart(rows: BaoCaoThongKeRow[], type: BaoCaoReportType): void {

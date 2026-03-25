@@ -34,3 +34,16 @@
   align-items: center;
   gap: 4px;
 }
+
+.medicine-thumbnail {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #e8e8e8;
+}
+
+.subtle {
+  color: #8c8c8c;
+  font-size: 12px;
+}

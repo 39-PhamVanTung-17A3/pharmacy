@@ -43,8 +43,20 @@
             </div>
           </nz-form-control>
         </nz-form-item>
+
+        <nz-form-item class="full-width">
+          <nz-form-label>Ảnh thuốc</nz-form-label>
+          <nz-form-control>
+            <div class="image-upload-row">
+              <input type="file" accept="image/*" (change)="onImageFileSelected($event)" />
+              <span class="subtle">Hỗ trợ JPG, PNG, WEBP, GIF (tối đa 5MB)</span>
+            </div>
+            <img *ngIf="imagePreviewUrl" [src]="imagePreviewUrl" alt="Ảnh thuốc" class="medicine-preview-image" />
+          </nz-form-control>
+        </nz-form-item>
       </div>
     </form>
+
     <ng-template #nameValidError let-control>
       <ng-container *ngIf="control.errors?.['required']">
         <div>Vui lòng nhập tên thuốc</div>
@@ -53,11 +65,13 @@
         <div>Tên thuốc tối đa 120 ký tự</div>
       </ng-container>
     </ng-template>
+
     <ng-template #categoryValidError let-control>
       <ng-container *ngIf="control.errors?.['required']">
         <div>Vui lòng chọn danh mục</div>
       </ng-container>
     </ng-template>
+
     <ng-template #unitValidError let-control>
       <ng-container *ngIf="control.errors?.['required']">
         <div>Vui lòng nhập đơn vị</div>
@@ -66,6 +80,7 @@
         <div>Đơn vị tối đa 100 ký tự</div>
       </ng-container>
     </ng-template>
+
     <ng-template #barcodeValidError let-control>
       <ng-container *ngIf="control.errors?.['maxlength']">
         <div>Mã vạch tối đa 100 ký tự</div>
@@ -74,12 +89,7 @@
   </ng-container>
 </nz-modal>
 
-<nz-modal
-  [nzVisible]="isCameraScannerOpen"
-  nzTitle="Quét mã vạch thuốc"
-  [nzFooter]="null"
-  (nzOnCancel)="closeCameraScanner()"
->
+<nz-modal [nzVisible]="isCameraScannerOpen" nzTitle="Quét mã vạch thuốc" [nzFooter]="null" (nzOnCancel)="closeCameraScanner()">
   <ng-container *nzModalContent>
     <div class="camera-scan-wrap">
       <video #barcodeVideo class="camera-video" muted autoplay></video>
