@@ -1,0 +1,107 @@
+<div class="customer-landing">
+  <header class="hero">
+    <nav class="topbar">
+      <div class="brand">PHARMACY WHOLESALE</div>
+      <span class="sub-brand">Nhà phân phối thuốc B2B</span>
+    </nav>
+
+    <div class="hero-grid">
+      <div>
+        <p class="kicker">Kênh phân phối sỉ</p>
+        <h1>Cung cấp thuốc cho nhà thuốc, phòng khám và bệnh viện trên cùng một nền tảng</h1>
+        <p class="subtitle">
+          Tối ưu chuỗi cung ứng dược phẩm với danh mục hàng hóa lớn, chính sách giá sỉ theo cấp và vận hành giao hàng
+          theo tuyến.
+        </p>
+
+        <div class="hero-actions">
+          <a class="solid-btn" href="tel:0842526960">Liên hệ kinh doanh: 0842 526 960</a>
+          <a class="outline-btn" href="mailto:sales@pharmacy.local">Nhận báo giá sỉ</a>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <h3>Giải pháp cho khách hàng doanh nghiệp</h3>
+        <ul>
+          <li>Nhà thuốc: đặt hàng định kỳ, đối soát công nợ theo kỳ</li>
+          <li>Phòng khám: ưu tiên danh mục điều trị theo nhu cầu</li>
+          <li>Bệnh viện: hỗ trợ báo giá lô lớn và lịch giao theo kế hoạch</li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="value-grid">
+      <article class="value-card" *ngFor="let item of values">
+        <h2>{{ item.title }}</h2>
+        <p>{{ item.description }}</p>
+      </article>
+    </section>
+
+    <section class="catalog">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Danh mục phân phối</p>
+          <h2>Tìm kiếm sản phẩm B2B theo nhóm điều trị</h2>
+        </div>
+        <span class="summary-badge">{{ totalShownText }}</span>
+      </div>
+
+      <div class="catalog-tools">
+        <input
+          class="search-input"
+          type="text"
+          [value]="searchKeyword"
+          (input)="onSearch($event)"
+          placeholder="Tìm theo tên thuốc, nhóm thuốc, mã vạch, đơn vị..."
+        />
+        <div class="chip-row">
+          <button
+            type="button"
+            class="category-chip"
+            *ngFor="let category of categoryOptions"
+            [class.active]="selectedCategory === category"
+            (click)="selectCategory(category)"
+          >
+            {{ category === 'ALL' ? 'Tất cả' : category }}
+          </button>
+        </div>
+      </div>
+
+      <div class="loading-state" *ngIf="loadingProducts">Đang tải danh sách sản phẩm...</div>
+
+      <div class="product-grid" *ngIf="!loadingProducts">
+        <article class="product-card" *ngFor="let item of pagedProducts">
+          <div class="product-top">
+            <div class="thumb-wrap">
+              <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.name" class="product-thumb" />
+              <div *ngIf="!item.imageUrl" class="thumb-placeholder">Không ảnh</div>
+            </div>
+            <div class="product-head">
+              <p class="product-category">{{ item.category.name }}</p>
+              <h3>{{ item.name }}</h3>
+            </div>
+          </div>
+
+          <p class="product-pack">Đơn vị: {{ item.unit }}</p>
+          <p class="product-stock">Tồn khả dụng: {{ item.totalQuantity | number }} đơn vị</p>
+          <p class="product-min-order">Mã vạch: {{ item.barcode || 'Chưa có' }}</p>
+          <strong>Giá theo chính sách sỉ và hợp đồng</strong>
+        </article>
+      </div>
+
+      <p class="empty-state" *ngIf="!loadingProducts && !filteredProducts.length">
+        Không có sản phẩm phù hợp bộ lọc. Vui lòng đổi từ khóa hoặc nhóm thuốc.
+      </p>
+
+      <app-pagging
+        *ngIf="!loadingProducts && filteredProducts.length"
+        [total]="filteredProducts.length"
+        [pageIndex]="pageIndex"
+        [pageSize]="pageSize"
+        (pageIndexChange)="onPageChange($event)"
+      ></app-pagging>
+    </section>
+  </main>
+</div>

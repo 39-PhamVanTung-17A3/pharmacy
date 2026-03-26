@@ -1,0 +1,52 @@
+<div class="landing-page">
+  <header class="hero">
+    <nav class="topbar">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span class="brand-name">Pharmacy ERP</span>
+      </div>
+      <div class="top-actions">
+        <a routerLink="/landing-khach-hang" class="ghost-link">Landing khách mua hàng</a>
+        <a routerLink="/login" class="ghost-link">Đăng nhập</a>
+      </div>
+    </nav>
+
+    <div class="hero-content">
+      <p class="hero-kicker">Nền tảng vận hành nhà thuốc</p>
+      <h1>Quản lý kho, bán hàng và báo cáo trong một hệ thống duy nhất</h1>
+      <p class="hero-subtitle">
+        Tối ưu quy trình từ nhập hàng đến doanh thu với dữ liệu cập nhật theo thời gian thực và dashboard trực quan.
+      </p>
+
+      <div class="hero-actions">
+        <button type="button" class="btn btn-primary" (click)="goPrimary()">{{ primaryLabel }}</button>
+        <a routerLink="/bao-cao-thong-ke" class="btn btn-secondary">Xem dashboard</a>
+      </div>
+
+      <div class="highlight-row">
+        <span class="chip" *ngFor="let item of highlights">{{ item }}</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="feature-grid">
+      <article class="feature-card" *ngFor="let item of features">
+        <p class="feature-tag">{{ item.tag }}</p>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.description }}</p>
+      </article>
+    </section>
+
+    <section class="cta-panel">
+      <div>
+        <p class="cta-kicker">Sẵn sàng vận hành</p>
+        <h2>Triển khai hệ thống Pharmacy cho đội ngũ trong vài phút</h2>
+        <p>
+          Sử dụng ngay để quản lý kho thuốc, khách hàng và phân tích hiệu suất kinh doanh theo từng ngày, tháng, quý.
+        </p>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="goPrimary()">Bắt đầu ngay</button>
+    </section>
+  </main>
+</div>

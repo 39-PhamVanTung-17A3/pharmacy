@@ -8,6 +8,8 @@ import { DanhSachHoaDonComponent } from './pages/danh-sach-hoa-don/danh-sach-hoa
 import { DoiMatKhauComponent } from './pages/doi-mat-khau/doi-mat-khau.component';
 import { HoaDonComponent } from './pages/hoa-don/hoa-don.component';
 import { KhachHangComponent } from './pages/khach-hang/khach-hang.component';
+import { LandingKhachHangComponent } from './pages/landing-khach-hang/landing-khach-hang.component';
+import { LandingComponent } from './pages/landing/landing.component';
 import { LoginComponent } from './pages/login/login.component';
 import { NhanVienComponent } from './pages/nhan-vien/nhan-vien.component';
 import { NhapHangComponent } from './pages/nhap-hang/nhap-hang.component';
@@ -15,8 +17,10 @@ import { ThuocComponent } from './pages/thuoc/thuoc.component';
 import { authGuard, permissionGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
+  { path: 'landing', component: LandingComponent },
+  { path: 'landing-khach-hang', component: LandingKhachHangComponent },
   { path: 'login', component: LoginComponent },
-  { path: '', pathMatch: 'full', redirectTo: 'bao-cao-thong-ke' },
+  { path: '', pathMatch: 'full', component: LandingComponent },
   { path: 'dashboard-thong-ke', pathMatch: 'full', redirectTo: 'bao-cao-thong-ke' },
   {
     path: 'bao-cao-thong-ke',
