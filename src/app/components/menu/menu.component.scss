@@ -169,8 +169,14 @@
 }
 
 .sider-footer span {
+  display: block;
   color: #64748b;
   font-size: 11px;
+  line-height: 1.4;
+}
+
+.sider-footer span + span {
+  margin-top: 2px;
 }
 
 .floating-toggle {

@@ -1,4 +1,4 @@
-<button *ngIf="showFloatingToggle" class="floating-toggle" type="button" (click)="toggleMenu()">
+﻿<button *ngIf="showFloatingToggle" class="floating-toggle" type="button" (click)="toggleMenu()">
   <span nz-icon [nzType]="isMenuOpen ? 'menu-fold' : 'menu-unfold'"></span>
 </button>
 
@@ -58,6 +58,7 @@
   </nav>
 
   <div class="sider-footer" [class.hidden]="!isMenuOpen && !isMobile">
-    <span>Cơ sở dữ liệu thuốc, lô và hạn dùng</span>
+    <span>&copy; 2026 Pharma Pro. Bản quyền thuộc về phamvanlong.</span>
+    <span>Liên hệ: phamvanlong - 0842526960</span>
   </div>
 </nz-sider>
