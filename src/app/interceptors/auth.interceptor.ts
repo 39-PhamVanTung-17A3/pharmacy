@@ -46,11 +46,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         );
       }
 
-      if (error.status === 0 && !isAuthApi) {
-        authService.clearSession();
-        void router.navigateByUrl('/login');
-      }
-
       return throwError(() => error);
     })
   );
