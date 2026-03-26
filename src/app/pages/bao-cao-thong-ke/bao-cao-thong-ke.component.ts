@@ -237,6 +237,19 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
       const dateRange = this.filterForm.controls.dateRange.value;
 
       const data = await this.baoCaoThongKeService.getSummary(type, keyword, dateRange, customerFilter);
+      let chartRows = data.rows;
+      let customerPeriodChartData = data.customerPeriodRevenue;
+      if (type === 'DAY' && !this.hasDateRange(dateRange)) {
+        const dayChartData = await this.baoCaoThongKeService.getSummary(
+          'DAY',
+          keyword,
+          this.getLast30DaysRange(),
+          customerFilter
+        );
+        chartRows = dayChartData.rows;
+        customerPeriodChartData = dayChartData.customerPeriodRevenue;
+      }
+
       this.reportRows = data.rows;
       this.kpiTongHop = data.kpi;
       this.topSellingMedicines = data.topSellingMedicines;
@@ -247,12 +260,12 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
       this.customerTypeRevenue = data.customerTypeRevenue;
       this.customerPeriodRevenue = data.customerPeriodRevenue;
       this.comparison = data.comparison;
-      this.buildReportChart(this.reportRows, type);
+      this.buildReportChart(chartRows, type);
       this.buildCategoryChart(data.categoryRevenue);
       this.buildHourlyChart(data.hourlyRevenue);
       this.buildTopCustomerChart(this.topCustomers);
       this.buildCustomerTypeChart(this.customerTypeRevenue);
-      this.buildCustomerPeriodChart(this.customerPeriodRevenue);
+      this.buildCustomerPeriodChart(customerPeriodChartData);
     } catch (error) {
       const message = getErrorMessage(error, 'Không tải được dữ liệu báo cáo thống kê');
       this.notification.error('Thất bại', message);
@@ -301,6 +314,17 @@ export class BaoCaoThongKeComponent implements OnInit, OnDestroy {
 
   private normalizeMedicineName(name: string | null | undefined): string {
     return (name ?? '').trim().toLowerCase();
+  }
+
+  private hasDateRange(dateRange: Date[] | null): boolean {
+    return Boolean(dateRange && dateRange.length === 2 && dateRange[0] && dateRange[1]);
+  }
+
+  private getLast30DaysRange(): [Date, Date] {
+    const toDate = new Date();
+    const fromDate = new Date();
+    fromDate.setDate(toDate.getDate() - 29);
+    return [fromDate, toDate];
   }
 
   private buildReportChart(rows: BaoCaoThongKeRow[], type: BaoCaoReportType): void {
