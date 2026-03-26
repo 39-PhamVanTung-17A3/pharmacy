@@ -25,3 +25,27 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+
+## Backend via ngrok
+
+Default backend is `http://127.0.0.1:8081`.
+
+1. Start backend locally on port `8081`.
+2. Start ngrok tunnel:
+
+```powershell
+ngrok http 8081
+```
+
+3. Copy HTTPS forwarding URL (example: `https://abc123.ngrok-free.app`).
+4. Run frontend with backend URL from env var:
+
+```powershell
+$env:BACKEND_URL='https://abc123.ngrok-free.app'; npm start
+```
+
+For normal local backend (without ngrok), just run:
+
+```powershell
+npm start
+```
