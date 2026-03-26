@@ -11,16 +11,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isLoginApi = req.url.endsWith('/api/auth/login');
   const isRefreshApi = req.url.endsWith('/api/auth/refresh');
   const isAuthApi = req.url.includes('/api/auth/');
+  const isNgrokApi = req.url.includes('.ngrok-free.app') || req.url.includes('.ngrok-free.dev');
 
   const accessToken = authService.accessToken;
-  const authReq =
-    !accessToken || isLoginApi || isRefreshApi
-      ? req
-      : req.clone({
-          setHeaders: {
-            Authorization: `Bearer ${accessToken}`
-          }
-        });
+  const baseHeaders: Record<string, string> = {};
+  if (isNgrokApi) {
+    baseHeaders['ngrok-skip-browser-warning'] = 'true';
+  }
+  if (accessToken && !isLoginApi && !isRefreshApi) {
+    baseHeaders['Authorization'] = `Bearer ${accessToken}`;
+  }
+
+  const authReq = Object.keys(baseHeaders).length ? req.clone({ setHeaders: baseHeaders }) : req;
 
   return next(authReq).pipe(
     catchError((error: unknown) => {
@@ -38,6 +40,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             }
             const retryReq = req.clone({
               setHeaders: {
+                ...(isNgrokApi ? { 'ngrok-skip-browser-warning': 'true' } : {}),
                 Authorization: `Bearer ${newAccessToken}`
               }
             });
