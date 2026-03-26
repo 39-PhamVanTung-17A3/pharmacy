@@ -28,6 +28,9 @@ jobs:
       - name: Build
         run: npm run build -- --configuration production --base-href /pharmacy/
 
+      - name: Add SPA fallback for deep links
+        run: cp dist/pharma/browser/index.html dist/pharma/browser/404.html
+
       - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
