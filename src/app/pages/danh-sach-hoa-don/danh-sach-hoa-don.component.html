@@ -31,9 +31,10 @@
             <td>{{ item.code }}</td>
             <td>{{ item.customerName }}</td>
             <td>{{ item.saleAt | date: 'dd/MM/yyyy HH:mm' }}</td>
-            <td class="text-right">{{ item.totalNeedPay | number }} đ</td>
+            <td class="text-right">{{ item.totalNeedPay | number }} ₫</td>
             <td>
-              <nz-tag nzColor="success">Đã thanh toán</nz-tag>
+              <nz-tag *ngIf="item.amountPaid >= item.totalNeedPay && item.totalNeedPay > 0" nzColor="success">Đã thanh toán</nz-tag>
+              <nz-tag *ngIf="item.amountPaid < item.totalNeedPay || item.totalNeedPay === 0" nzColor="orange">Chờ thanh toán</nz-tag>
             </td>
             <td class="text-right">
               <div class="action-buttons">
@@ -79,3 +80,5 @@
 
 <app-popup-chi-tiet-hoa-don [open]="viewDetailOpen" [invoiceId]="viewingInvoiceId"
   (closePopup)="closeViewDetail()"></app-popup-chi-tiet-hoa-don>
+
+

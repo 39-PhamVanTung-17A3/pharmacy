@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+﻿import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -63,13 +63,22 @@ export class HoaDonService {
     return this.mapFromApi(this.unwrapData(result));
   }
 
-  async create(customerId: number | null, items: HoaDonItemRequest[], discount: number, amountPaid: number): Promise<HoaDon> {
+  async create(
+    customerId: number | null,
+    items: HoaDonItemRequest[],
+    discount: number,
+    amountPaid: number,
+    customerInfo?: { phone: string; name: string; address: string }
+  ): Promise<HoaDon> {
     const result = await firstValueFrom(
       this.http.post<BaseResponse<HoaDonApiResponse>>(this.apiUrl, {
         customerId,
         items,
         discount,
-        amountPaid
+        amountPaid,
+        customerPhone: customerInfo?.phone?.trim() || undefined,
+        customerName: customerInfo?.name?.trim() || undefined,
+        customerAddress: customerInfo?.address?.trim() || undefined
       })
     );
     return this.mapFromApi(this.unwrapData(result));
@@ -135,3 +144,5 @@ export class HoaDonService {
     };
   }
 }
+
+

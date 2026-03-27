@@ -2,12 +2,22 @@
   <header class="hero">
     <nav class="topbar">
       <div class="brand">PHARMACY WHOLESALE</div>
-      <span class="sub-brand">Nhà phân phối thuốc B2B</span>
+      <div class="topbar-actions">
+        <span class="sub-brand">Nhà phân phối thuốc B2B</span>
+        <button type="button" class="cart-badge-btn" (click)="scrollToCart()">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L22 7H7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="10" cy="20" r="1.8" fill="currentColor" stroke="none"/>
+            <circle cx="18" cy="20" r="1.8" fill="currentColor" stroke="none"/>
+          </svg>
+          <span>Giỏ hàng: {{ cartTotalQuantity }}</span>
+        </button>
+      </div>
     </nav>
 
     <div class="hero-grid">
       <div>
-        <p class="kicker">Kênh phân phối sỉ</p>
+        <p class="kicker">Kênh phân phối số</p>
         <h1>Cung cấp thuốc cho nhà thuốc, phòng khám và bệnh viện trên cùng một nền tảng</h1>
         <p class="subtitle">
           Tối ưu chuỗi cung ứng dược phẩm với danh mục hàng hóa lớn, chính sách giá sỉ theo cấp và vận hành giao hàng
@@ -69,6 +79,10 @@
         </div>
       </div>
 
+      <p class="action-message" *ngIf="actionMessage" [class.error]="actionMessageType === 'error'" [class.warning]="actionMessageType === 'warning'">
+        {{ actionMessage }}
+      </p>
+
       <div class="loading-state" *ngIf="loadingProducts">Đang tải danh sách sản phẩm...</div>
 
       <div class="product-grid" *ngIf="!loadingProducts">
@@ -88,6 +102,12 @@
           <p class="product-stock">Tồn khả dụng: {{ item.totalQuantity | number }} đơn vị</p>
           <p class="product-min-order">Mã vạch: {{ item.barcode || 'Chưa có' }}</p>
           <strong>Giá theo chính sách sỉ và hợp đồng</strong>
+          <button type="button" class="add-cart-btn" (click)="addToCart(item)" [disabled]="addingMedicineId === item.id">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span>{{ addingMedicineId === item.id ? 'Đang thêm...' : 'Thêm vào giỏ' }}</span>
+          </button>
         </article>
       </div>
 
@@ -103,5 +123,87 @@
         (pageIndexChange)="onPageChange($event)"
       ></app-pagging>
     </section>
+
   </main>
+
+  <div class="cart-popup-backdrop" *ngIf="isCartPopupOpen" (click)="closeCartPopup()"></div>
+  <section class="cart-popup" *ngIf="isCartPopupOpen">
+    <header class="cart-popup-header">
+      <div>
+        <p class="kicker">Giỏ hàng yêu cầu</p>
+        <h2>Yêu cầu nhân viên xử lý thanh toán</h2>
+      </div>
+      <button type="button" class="close-popup-btn" (click)="closeCartPopup()" aria-label="Đóng">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </header>
+
+    <p class="request-note" *ngIf="lastRequestedInvoiceCode">
+      Đã gửi yêu cầu thành công. Mã hóa đơn chờ xử lý: <strong>{{ lastRequestedInvoiceCode }}</strong>
+    </p>
+
+    <div class="cart-empty" *ngIf="!cartItems.length">
+      Chưa có sản phẩm trong giỏ. Vui lòng thêm sản phẩm từ danh mục.
+    </div>
+
+    <div class="cart-list" *ngIf="cartItems.length">
+      <article class="cart-item" *ngFor="let item of cartItems; index as i">
+        <div class="cart-item-top">
+          <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.medicineName" class="product-thumb" />
+          <div *ngIf="!item.imageUrl" class="thumb-placeholder">Không ảnh</div>
+          <div class="cart-item-meta">
+            <h3>{{ item.medicineName }}</h3>
+            <p>{{ item.categoryName }} • {{ item.unit }}</p>
+            <p>Lô: Tự động chọn theo tồn kho</p>
+          </div>
+        </div>
+        <div class="cart-item-actions">
+          <div class="qty-control">
+            <button type="button" (click)="decreaseCartQty(i)">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <span>{{ item.quantity }}</span>
+            <button type="button" (click)="increaseCartQty(i)">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <strong>Giá sẽ xác nhận khi xử lý</strong>
+          <button type="button" class="remove-btn" (click)="removeCartItem(i)">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 7h12M9 7V5h6v2m-7 3v7m4-7v7m4-7v7M5 7l1 13h12l1-13" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Xóa</span>
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <div class="checkout-form" *ngIf="cartItems.length">
+      <label class="field-label">Số điện thoại <span class="required">*</span></label>
+      <input class="search-input" [(ngModel)]="customerPhone" placeholder="Nhập số điện thoại khách hàng" />
+      <label class="field-label">Họ tên <span class="required">*</span></label>
+      <input class="search-input" [(ngModel)]="customerName" placeholder="Nhập họ tên khách hàng" />
+      <label class="field-label">Địa chỉ <span class="required">*</span></label>
+      <input class="search-input" [(ngModel)]="customerAddress" placeholder="Nhập địa chỉ" />
+    </div>
+
+    <div class="cart-footer" *ngIf="cartItems.length">
+      <div class="cart-total">
+        <span>Tạm tính</span>
+        <strong>Sẽ được xác nhận khi xử lý</strong>
+      </div>
+      <div class="cart-buttons">
+        <button type="button" class="outline-btn" (click)="clearCart()" [disabled]="creatingInvoice">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 7h12M9 7V5h6v2m-7 3v7m4-7v7m4-7v7M5 7l1 13h12l1-13" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Xóa giỏ</span>
+        </button>
+        <button type="button" class="solid-btn" (click)="requestCheckout()" [disabled]="creatingInvoice">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 12h16M14 6l6 6-6 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>{{ creatingInvoice ? 'Đang gửi yêu cầu...' : 'Gửi yêu cầu thanh toán' }}</span>
+        </button>
+      </div>
+    </div>
+  </section>
 </div>
+
+

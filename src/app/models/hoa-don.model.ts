@@ -49,7 +49,8 @@ export interface HoaDon {
 }
 
 export interface HoaDonItemRequest {
-  importId: number;
+  importId?: number;
+  medicineId?: number;
   quantity: number;
   unitPrice: number;
 }

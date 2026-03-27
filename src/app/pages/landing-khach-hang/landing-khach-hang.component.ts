@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
 import { DanhMucThuocService } from '../danh-muc-thuoc/danh-muc-thuoc.service';
 import { Thuoc, ThuocService } from '../thuoc/thuoc.service';
+import { HoaDonService } from '../hoa-don/hoa-don.service';
 import { getErrorMessage } from '../../utils/error.util';
 
 interface ValueItem {
@@ -11,26 +13,49 @@ interface ValueItem {
   description: string;
 }
 
+interface CartItem {
+  medicineId: number;
+  medicineName: string;
+  categoryName: string;
+  unit: string;
+  imageUrl: string | null;
+  quantity: number;
+  maxQuantity: number;
+}
+
+const CART_STORAGE_KEY = 'pharmacy_customer_cart_v1';
+
 @Component({
   selector: 'app-landing-khach-hang',
   standalone: true,
-  imports: [CommonModule, PaggingComponent],
+  imports: [CommonModule, FormsModule, PaggingComponent],
   templateUrl: './landing-khach-hang.component.html',
   styleUrl: './landing-khach-hang.component.scss'
 })
 export class LandingKhachHangComponent implements OnInit {
   private readonly danhMucThuocService = inject(DanhMucThuocService);
   private readonly thuocService = inject(ThuocService);
+  private readonly hoaDonService = inject(HoaDonService);
   private readonly notification = inject(NzNotificationService);
 
   loadingProducts = false;
+  creatingInvoice = false;
+  addingMedicineId: number | null = null;
   searchKeyword = '';
   selectedCategory = 'ALL';
   pageIndex = 1;
   readonly pageSize = 8;
+  lastRequestedInvoiceCode: string | null = null;
+  isCartPopupOpen = false;
+  customerPhone = '';
+  customerName = '';
+  customerAddress = '';
 
   medicines: Thuoc[] = [];
   categories: string[] = [];
+  cartItems: CartItem[] = [];
+  actionMessage = '';
+  actionMessageType: 'success' | 'warning' | 'error' = 'success';
 
   readonly values: ValueItem[] = [
     {
@@ -51,6 +76,7 @@ export class LandingKhachHangComponent implements OnInit {
   ];
 
   async ngOnInit(): Promise<void> {
+    this.restoreCartFromStorage();
     await Promise.all([this.loadCategories(), this.loadAllMedicines()]);
   }
 
@@ -82,6 +108,10 @@ export class LandingKhachHangComponent implements OnInit {
     return `${this.filteredProducts.length}/${this.medicines.length} sản phẩm`;
   }
 
+  get cartTotalQuantity(): number {
+    return this.cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  }
+
   onSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.searchKeyword = input.value;
@@ -95,6 +125,142 @@ export class LandingKhachHangComponent implements OnInit {
 
   onPageChange(page: number): void {
     this.pageIndex = page;
+  }
+
+  openCartPopup(): void {
+    this.isCartPopupOpen = true;
+  }
+
+  closeCartPopup(): void {
+    this.isCartPopupOpen = false;
+  }
+
+  addToCart(medicine: Thuoc): void {
+    this.addingMedicineId = medicine.id;
+    try {
+      if (medicine.totalQuantity <= 0) {
+        this.setActionMessage(`Thuốc ${medicine.name} hiện đã hết hàng`, 'warning');
+        this.notification.warning('Không thể thêm', `Thuốc ${medicine.name} hiện không còn hàng khả dụng`);
+        return;
+      }
+
+      const existedIndex = this.cartItems.findIndex((item) => item.medicineId === medicine.id);
+      if (existedIndex >= 0) {
+        this.increaseCartQty(existedIndex);
+        this.setActionMessage(`Đã tăng số lượng ${medicine.name} trong giỏ`, 'success');
+        this.notification.success('Đã cập nhật giỏ hàng', `Đã tăng số lượng ${medicine.name}`);
+        return;
+      }
+
+      this.cartItems = [
+        {
+          medicineId: medicine.id,
+          medicineName: medicine.name,
+          categoryName: medicine.category.name,
+          unit: medicine.unit,
+          imageUrl: medicine.imageUrl,
+          quantity: 1,
+          maxQuantity: medicine.totalQuantity
+        },
+        ...this.cartItems
+      ];
+      this.setActionMessage(`Đã thêm ${medicine.name} vào giỏ hàng`, 'success');
+      this.notification.success('Đã thêm vào giỏ', `${medicine.name} đã được thêm vào giỏ hàng`);
+      this.persistCartToStorage();
+    } catch (error) {
+      const message = getErrorMessage(error, 'Không thể thêm sản phẩm vào giỏ');
+      this.setActionMessage(message, 'error');
+      this.notification.error('Thất bại', message);
+    } finally {
+      this.addingMedicineId = null;
+    }
+  }
+
+  increaseCartQty(index: number): void {
+    const item = this.cartItems[index];
+    if (!item) {
+      return;
+    }
+    if (item.quantity >= item.maxQuantity) {
+      this.notification.warning('Cảnh báo', 'Số lượng yêu cầu đã đạt tối đa theo lô hàng hiện có');
+      return;
+    }
+    this.cartItems[index] = { ...item, quantity: item.quantity + 1 };
+    this.cartItems = [...this.cartItems];
+    this.persistCartToStorage();
+  }
+
+  decreaseCartQty(index: number): void {
+    const item = this.cartItems[index];
+    if (!item) {
+      return;
+    }
+    if (item.quantity <= 1) {
+      return;
+    }
+    this.cartItems[index] = { ...item, quantity: item.quantity - 1 };
+    this.cartItems = [...this.cartItems];
+    this.persistCartToStorage();
+  }
+
+  removeCartItem(index: number): void {
+    this.cartItems = this.cartItems.filter((_, itemIndex) => itemIndex !== index);
+    this.persistCartToStorage();
+  }
+
+  clearCart(): void {
+    this.cartItems = [];
+    this.setActionMessage('Đã xóa toàn bộ sản phẩm trong giỏ', 'warning');
+    this.persistCartToStorage();
+  }
+
+  async requestCheckout(): Promise<void> {
+    if (this.cartItems.length === 0) {
+      this.notification.warning('Giỏ hàng trống', 'Vui lòng thêm sản phẩm trước khi gửi yêu cầu thanh toán');
+      return;
+    }
+    const customerInfo = this.validateCustomerInfoForCheckout();
+    if (!customerInfo) {
+      return;
+    }
+
+    this.creatingInvoice = true;
+    try {
+      const invoice = await this.hoaDonService.create(
+        null,
+        this.cartItems.map((item) => ({
+          medicineId: item.medicineId,
+          quantity: item.quantity,
+          unitPrice: 0
+        })),
+        0,
+        0,
+        customerInfo
+      );
+      this.lastRequestedInvoiceCode = invoice.code;
+      this.setActionMessage(`Đã tạo hóa đơn ${invoice.code} chờ nhân viên xử lý`, 'success');
+      this.notification.success(
+        'Đã gửi yêu cầu',
+        `Yêu cầu thanh toán đã tạo hóa đơn ${invoice.code}. Nhân viên sẽ xử lý thanh toán cho bạn.`
+      );
+      this.cartItems = [];
+      this.persistCartToStorage();
+      await this.loadAllMedicines();
+      this.customerPhone = '';
+      this.customerName = '';
+      this.customerAddress = '';
+      this.closeCartPopup();
+    } catch (error) {
+      const message = getErrorMessage(error, 'Không thể gửi yêu cầu thanh toán');
+      this.setActionMessage(message, 'error');
+      this.notification.error('Thất bại', message);
+    } finally {
+      this.creatingInvoice = false;
+    }
+  }
+
+  scrollToCart(): void {
+    this.openCartPopup();
   }
 
   private async loadAllMedicines(): Promise<void> {
@@ -156,4 +322,70 @@ export class LandingKhachHangComponent implements OnInit {
       .replace(/[\u0300-\u036f]/g, '')
       .trim();
   }
+
+  private setActionMessage(message: string, type: 'success' | 'warning' | 'error'): void {
+    this.actionMessage = message;
+    this.actionMessageType = type;
+  }
+
+  private validateCustomerInfoForCheckout(): { phone: string; name: string; address: string } | null {
+    const normalizedPhone = this.normalizePhone(this.customerPhone);
+    if (!normalizedPhone) {
+      this.notification.warning('Thiếu thông tin', 'Vui lòng nhập số điện thoại trước khi gửi yêu cầu thanh toán');
+      return null;
+    }
+    const name = this.customerName.trim();
+    const address = this.customerAddress.trim();
+    if (!name || !address) {
+      this.notification.warning('Thiếu thông tin', 'Vui lòng nhập đầy đủ họ tên và địa chỉ');
+      return null;
+    }
+    return {
+      phone: this.customerPhone.trim(),
+      name,
+      address
+    };
+  }
+
+  private normalizePhone(value: string): string {
+    return value.replace(/\D/g, '');
+  }
+
+  private persistCartToStorage(): void {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(this.cartItems));
+    } catch {
+      // Ignore storage errors in private mode/quota exceeded.
+    }
+  }
+
+  private restoreCartFromStorage(): void {
+    try {
+      const raw = localStorage.getItem(CART_STORAGE_KEY);
+      if (!raw) {
+        this.cartItems = [];
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        this.cartItems = [];
+        return;
+      }
+      this.cartItems = parsed
+        .filter((item) => item && typeof item.medicineId === 'number' && typeof item.quantity === 'number')
+        .map((item) => ({
+          medicineId: Number(item.medicineId),
+          medicineName: String(item.medicineName ?? ''),
+          categoryName: String(item.categoryName ?? ''),
+          unit: String(item.unit ?? ''),
+          imageUrl: item.imageUrl ? String(item.imageUrl) : null,
+          quantity: Math.max(1, Number(item.quantity) || 1),
+          maxQuantity: Math.max(1, Number(item.maxQuantity) || 1)
+        }));
+    } catch {
+      this.cartItems = [];
+    }
+  }
 }
+
+
