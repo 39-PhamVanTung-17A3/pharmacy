@@ -34,6 +34,7 @@
             <td class="text-right">{{ item.totalNeedPay | number }} ₫</td>
             <td>
               <nz-tag *ngIf="item.status === 'PAID'" nzColor="success">Đã thanh toán</nz-tag>
+              <nz-tag *ngIf="item.status === 'DEBT'" nzColor="volcano">Khách nợ</nz-tag>
               <nz-tag *ngIf="item.status === 'PENDING_PAYMENT'" nzColor="orange">Chờ thanh toán</nz-tag>
               <nz-tag *ngIf="item.status === 'CANCELLED'" nzColor="default">Đã hủy</nz-tag>
             </td>

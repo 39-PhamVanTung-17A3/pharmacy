@@ -9,6 +9,7 @@
         <p>
           <strong>Trạng thái:</strong>
           <span *ngIf="invoice.status === 'PAID'">Đã thanh toán</span>
+          <span *ngIf="invoice.status === 'DEBT'">Khách nợ</span>
           <span *ngIf="invoice.status === 'PENDING_PAYMENT'">Chờ thanh toán</span>
           <span *ngIf="invoice.status === 'CANCELLED'">Đã hủy</span>
         </p>

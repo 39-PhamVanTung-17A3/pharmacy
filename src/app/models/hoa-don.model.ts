@@ -1,4 +1,4 @@
-export type HoaDonStatus = 'PENDING_PAYMENT' | 'PAID' | 'CANCELLED';
+export type HoaDonStatus = 'PENDING_PAYMENT' | 'DEBT' | 'PAID' | 'CANCELLED';
 
 export interface HoaDonItemApiResponse {
   id: number;
