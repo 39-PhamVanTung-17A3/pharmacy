@@ -10,6 +10,8 @@
 .main-content {
   margin-left: var(--app-sider-width);
   padding: 24px;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .page-header {
@@ -61,6 +63,10 @@
   gap: 16px;
 }
 
+.content-grid > * {
+  min-width: 0;
+}
+
 .card-full-width {
   grid-column: 1 / -1;
 }
@@ -89,6 +95,23 @@
   font-size: 12px;
 }
 
+:host ::ng-deep {
+  .filter-row .ant-picker,
+  .filter-row .ant-select,
+  .filter-row .ant-input-affix-wrapper,
+  .filter-row .ant-input {
+    width: 100%;
+  }
+
+  .ant-card {
+    border-radius: 12px;
+  }
+
+  .ant-table-wrapper {
+    width: 100%;
+  }
+}
+
 @media (max-width: 1200px) {
   .filter-row {
     grid-template-columns: 1fr 1fr;
@@ -97,17 +120,130 @@
   .kpi-grid {
     grid-template-columns: 1fr 1fr;
   }
+
+  .chart-wrap {
+    height: 300px;
+  }
+}
+
+@media (max-width: 992px) {
+  .main-content {
+    margin-left: 0;
+    padding: 16px;
+  }
+
+  .page-header {
+    margin-bottom: 12px;
+  }
+
+  .filter-row,
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-wrap {
+    height: 280px;
+  }
 }
 
 @media (max-width: 768px) {
   .main-content {
     margin-left: 0;
-    padding: 16px;
+    padding: 12px;
   }
 
   .filter-row,
   .kpi-grid,
   .content-grid {
     grid-template-columns: 1fr;
+  }
+
+  .kpi-item {
+    padding: 10px;
+  }
+
+  .kpi-label {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .kpi-value {
+    font-size: 18px;
+    line-height: 1.25;
+    word-break: break-word;
+  }
+
+  .chart-wrap {
+    height: 250px;
+  }
+
+  .medicine-thumb {
+    width: 36px;
+    height: 36px;
+  }
+
+  :host ::ng-deep {
+    .ant-card-head-title {
+      white-space: normal;
+      line-height: 1.4;
+      font-size: 14px;
+    }
+
+    .ant-card-head {
+      min-height: 44px;
+      padding: 0 12px;
+    }
+
+    .ant-card-body {
+      padding: 12px;
+    }
+
+    .ant-breadcrumb {
+      font-size: 12px;
+      line-height: 1.4;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding-bottom: 2px;
+    }
+
+    .ant-table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .ant-table {
+      min-width: 640px;
+    }
+
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td {
+      padding: 8px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 10px;
+  }
+
+  .kpi-value {
+    font-size: 16px;
+  }
+
+  .chart-wrap {
+    height: 220px;
+  }
+
+  :host ::ng-deep {
+    .ant-card-head {
+      padding: 0 10px;
+    }
+
+    .ant-card-body {
+      padding: 10px;
+    }
   }
 }

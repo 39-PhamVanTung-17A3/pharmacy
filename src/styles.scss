@@ -20,3 +20,27 @@ body {
   background: #fcfdfe;
   color: #1e293b;
 }
+
+/* Global mobile table responsiveness for ng-zorro tables */
+@media (max-width: 768px) {
+  .ant-table-wrapper {
+    max-width: 100%;
+  }
+
+  .ant-table-content,
+  .ant-table-body {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ant-table-content table,
+  .ant-table-body table {
+    min-width: 640px;
+  }
+
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td,
+  .ant-table-tbody > tr > th {
+    white-space: nowrap;
+  }
+}

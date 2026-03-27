@@ -112,7 +112,7 @@
     </div>
 
     <nz-card nzTitle="Top khách hàng" class="mt-16" [nzLoading]="loading">
-      <nz-table [nzData]="topCustomers" [nzShowPagination]="false" nzSize="small">
+      <nz-table [nzData]="topCustomers" [nzShowPagination]="false" nzSize="small" [nzScroll]="{ x: '900px' }">
         <thead>
           <tr>
             <th>Khách hàng</th>
@@ -136,7 +136,7 @@
 
     <div class="content-grid mt-16">
       <nz-card nzTitle="Top thuốc bán chạy" [nzLoading]="loading">
-        <nz-table [nzData]="topSellingMedicines" [nzShowPagination]="false" nzSize="small">
+        <nz-table [nzData]="topSellingMedicines" [nzShowPagination]="false" nzSize="small" [nzScroll]="{ x: '900px' }">
           <thead>
             <tr>
               <th>Ảnh</th>
@@ -146,28 +146,28 @@
               <th class="text-right">Doanh thu</th>
             </tr>
           </thead>
-          <tbody>
-            <tr *ngFor="let item of topSellingMedicines">
-              <td>
-                <img
-                  *ngIf="getMedicineImageUrl(item.medicineName)"
-                  [src]="getMedicineImageUrl(item.medicineName)!"
-                  alt="Ảnh thuốc"
-                  class="medicine-thumb"
-                />
-                <span *ngIf="!getMedicineImageUrl(item.medicineName)" class="subtle">Chưa có</span>
-              </td>
-              <td>{{ item.medicineName }}</td>
-              <td>{{ item.categoryName }}</td>
-              <td class="text-right">{{ item.soldQuantity | number }}</td>
-              <td class="text-right">{{ item.revenue | number }} đ</td>
-            </tr>
-          </tbody>
+            <tbody>
+              <tr *ngFor="let item of topSellingMedicines">
+                <td>
+                  <img
+                    *ngIf="getMedicineImageUrl(item.medicineName)"
+                    [src]="getMedicineImageUrl(item.medicineName)!"
+                    alt="Ảnh thuốc"
+                    class="medicine-thumb"
+                  />
+                  <span *ngIf="!getMedicineImageUrl(item.medicineName)" class="subtle">Chưa có</span>
+                </td>
+                <td>{{ item.medicineName }}</td>
+                <td>{{ item.categoryName }}</td>
+                <td class="text-right">{{ item.soldQuantity | number }}</td>
+                <td class="text-right">{{ item.revenue | number }} đ</td>
+              </tr>
+            </tbody>
         </nz-table>
       </nz-card>
 
       <nz-card nzTitle="Thuốc bán chậm" [nzLoading]="loading">
-        <nz-table [nzData]="slowSellingMedicines" [nzShowPagination]="false" nzSize="small">
+        <nz-table [nzData]="slowSellingMedicines" [nzShowPagination]="false" nzSize="small" [nzScroll]="{ x: '900px' }">
           <thead>
             <tr>
               <th>Ảnh</th>
@@ -176,29 +176,29 @@
               <th class="text-right">Số lượng bán</th>
             </tr>
           </thead>
-          <tbody>
-            <tr *ngFor="let item of slowSellingMedicines">
-              <td>
-                <img
-                  *ngIf="getMedicineImageUrl(item.medicineName)"
-                  [src]="getMedicineImageUrl(item.medicineName)!"
-                  alt="Ảnh thuốc"
-                  class="medicine-thumb"
-                />
-                <span *ngIf="!getMedicineImageUrl(item.medicineName)" class="subtle">Chưa có</span>
-              </td>
-              <td>{{ item.medicineName }}</td>
-              <td>{{ item.categoryName }}</td>
-              <td class="text-right">{{ item.soldQuantity | number }}</td>
-            </tr>
-          </tbody>
+            <tbody>
+              <tr *ngFor="let item of slowSellingMedicines">
+                <td>
+                  <img
+                    *ngIf="getMedicineImageUrl(item.medicineName)"
+                    [src]="getMedicineImageUrl(item.medicineName)!"
+                    alt="Ảnh thuốc"
+                    class="medicine-thumb"
+                  />
+                  <span *ngIf="!getMedicineImageUrl(item.medicineName)" class="subtle">Chưa có</span>
+                </td>
+                <td>{{ item.medicineName }}</td>
+                <td>{{ item.categoryName }}</td>
+                <td class="text-right">{{ item.soldQuantity | number }}</td>
+              </tr>
+            </tbody>
         </nz-table>
       </nz-card>
     </div>
 
     <div class="content-grid mt-16">
       <nz-card nzTitle="Thuốc sắp hết hàng" [nzLoading]="loading">
-        <nz-table [nzData]="lowStockMedicines" [nzShowPagination]="false" nzSize="small">
+        <nz-table [nzData]="lowStockMedicines" [nzShowPagination]="false" nzSize="small" [nzScroll]="{ x: '900px' }">
           <thead>
             <tr>
               <th>Ảnh</th>
@@ -208,28 +208,28 @@
               <th class="text-right">Tồn</th>
             </tr>
           </thead>
-          <tbody>
-            <tr *ngFor="let item of lowStockMedicines">
-              <td>
-                <img
-                  *ngIf="getMedicineImageUrl(item.medicineName)"
-                  [src]="getMedicineImageUrl(item.medicineName)!"
-                  alt="Ảnh thuốc"
-                  class="medicine-thumb"
-                />
-                <span *ngIf="!getMedicineImageUrl(item.medicineName)" class="subtle">Chưa có</span>
-              </td>
-              <td>{{ item.medicineName }}</td>
-              <td>{{ item.categoryName }}</td>
-              <td>{{ item.batchCode }}</td>
-              <td class="text-right">{{ item.quantity | number }}</td>
-            </tr>
-          </tbody>
+            <tbody>
+              <tr *ngFor="let item of lowStockMedicines">
+                <td>
+                  <img
+                    *ngIf="getMedicineImageUrl(item.medicineName)"
+                    [src]="getMedicineImageUrl(item.medicineName)!"
+                    alt="Ảnh thuốc"
+                    class="medicine-thumb"
+                  />
+                  <span *ngIf="!getMedicineImageUrl(item.medicineName)" class="subtle">Chưa có</span>
+                </td>
+                <td>{{ item.medicineName }}</td>
+                <td>{{ item.categoryName }}</td>
+                <td>{{ item.batchCode }}</td>
+                <td class="text-right">{{ item.quantity | number }}</td>
+              </tr>
+            </tbody>
         </nz-table>
       </nz-card>
 
       <nz-card nzTitle="Thuốc sắp hết hạn" [nzLoading]="loading">
-        <nz-table [nzData]="expiringMedicines" [nzShowPagination]="false" nzSize="small">
+        <nz-table [nzData]="expiringMedicines" [nzShowPagination]="false" nzSize="small" [nzScroll]="{ x: '900px' }">
           <thead>
             <tr>
               <th>Ảnh</th>
@@ -239,29 +239,29 @@
               <th class="text-right">Số ngày còn lại</th>
             </tr>
           </thead>
-          <tbody>
-            <tr *ngFor="let item of expiringMedicines">
-              <td>
-                <img
-                  *ngIf="getMedicineImageUrl(item.medicineName)"
-                  [src]="getMedicineImageUrl(item.medicineName)!"
-                  alt="Ảnh thuốc"
-                  class="medicine-thumb"
-                />
-                <span *ngIf="!getMedicineImageUrl(item.medicineName)" class="subtle">Chưa có</span>
-              </td>
-              <td>{{ item.medicineName }}</td>
-              <td>{{ item.batchCode }}</td>
-              <td>{{ item.expiryDate }}</td>
-              <td class="text-right">{{ item.daysToExpiry ?? '-' }}</td>
-            </tr>
-          </tbody>
+            <tbody>
+              <tr *ngFor="let item of expiringMedicines">
+                <td>
+                  <img
+                    *ngIf="getMedicineImageUrl(item.medicineName)"
+                    [src]="getMedicineImageUrl(item.medicineName)!"
+                    alt="Ảnh thuốc"
+                    class="medicine-thumb"
+                  />
+                  <span *ngIf="!getMedicineImageUrl(item.medicineName)" class="subtle">Chưa có</span>
+                </td>
+                <td>{{ item.medicineName }}</td>
+                <td>{{ item.batchCode }}</td>
+                <td>{{ item.expiryDate }}</td>
+                <td class="text-right">{{ item.daysToExpiry ?? '-' }}</td>
+              </tr>
+            </tbody>
         </nz-table>
       </nz-card>
     </div>
 
     <nz-card nzTitle="Bảng doanh thu theo kỳ" class="mt-16" [nzLoading]="loading">
-      <nz-table [nzData]="pagedRows" [nzShowPagination]="false" nzSize="middle">
+      <nz-table [nzData]="pagedRows" [nzShowPagination]="false" nzSize="middle" [nzScroll]="{ x: '900px' }">
         <thead>
           <tr>
             <th>Mốc thống kê</th>
