@@ -1,3 +1,5 @@
+export type HoaDonStatus = 'PENDING_PAYMENT' | 'PAID' | 'CANCELLED';
+
 export interface HoaDonItemApiResponse {
   id: number;
   importId: number;
@@ -20,6 +22,7 @@ export interface HoaDonApiResponse {
   totalNeedPay: number;
   amountPaid: number;
   returnAmount: number;
+  status: HoaDonStatus;
   items: HoaDonItemApiResponse[];
 }
 
@@ -45,6 +48,7 @@ export interface HoaDon {
   totalNeedPay: number;
   amountPaid: number;
   returnAmount: number;
+  status: HoaDonStatus;
   items: HoaDonItem[];
 }
 

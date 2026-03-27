@@ -6,6 +6,8 @@ import { IconDefinition } from '@ant-design/icons-angular';
 import {
   AlertOutline,
   AppstoreOutline,
+  DeleteOutline,
+  EyeOutline,
   FileAddOutline,
   FileTextOutline,
   IdcardOutline,
@@ -16,6 +18,7 @@ import {
   MedicineBoxOutline,
   MenuFoldOutline,
   MenuUnfoldOutline,
+  PrinterOutline,
   RobotOutline,
   TeamOutline,
   WalletOutline
@@ -35,6 +38,9 @@ const icons: IconDefinition[] = [
   InboxOutline,
   AlertOutline,
   TeamOutline,
+  EyeOutline,
+  PrinterOutline,
+  DeleteOutline,
   FileAddOutline,
   FileTextOutline,
   WalletOutline,

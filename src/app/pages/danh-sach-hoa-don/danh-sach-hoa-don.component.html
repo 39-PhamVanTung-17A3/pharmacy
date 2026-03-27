@@ -33,8 +33,9 @@
             <td>{{ item.saleAt | date: 'dd/MM/yyyy HH:mm' }}</td>
             <td class="text-right">{{ item.totalNeedPay | number }} ₫</td>
             <td>
-              <nz-tag *ngIf="item.amountPaid >= item.totalNeedPay && item.totalNeedPay > 0" nzColor="success">Đã thanh toán</nz-tag>
-              <nz-tag *ngIf="item.amountPaid < item.totalNeedPay || item.totalNeedPay === 0" nzColor="orange">Chờ thanh toán</nz-tag>
+              <nz-tag *ngIf="item.status === 'PAID'" nzColor="success">Đã thanh toán</nz-tag>
+              <nz-tag *ngIf="item.status === 'PENDING_PAYMENT'" nzColor="orange">Chờ thanh toán</nz-tag>
+              <nz-tag *ngIf="item.status === 'CANCELLED'" nzColor="default">Đã hủy</nz-tag>
             </td>
             <td class="text-right">
               <div class="action-buttons">
@@ -45,6 +46,30 @@
                 <button nz-button nzType="text" nzSize="small" aria-label="In">
                   <span nz-icon nzType="printer"></span>
                   <span>In</span>
+                </button>
+                <button
+                  nz-button
+                  nzType="text"
+                  nzSize="small"
+                  aria-label="Xử lý"
+                  *ngIf="item.status === 'PENDING_PAYMENT'"
+                  (click)="openProcessModal(item)"
+                >
+                  <span nz-icon nzType="file-text"></span>
+                  <span>Xử lý</span>
+                </button>
+                <button
+                  nz-button
+                  nzType="text"
+                  nzSize="small"
+                  nzDanger
+                  aria-label="Hủy hóa đơn"
+                  *ngIf="item.status === 'PENDING_PAYMENT'"
+                  [disabled]="cancelingId === item.id"
+                  (click)="cancelInvoice(item)"
+                >
+                  <span nz-icon nzType="delete"></span>
+                  <span>Hủy</span>
                 </button>
                 <button nz-button nzType="text" nzSize="small" nzDanger aria-label="Xóa"
                   [disabled]="deletingId === item.id" (click)="openDeleteConfirm(item)">
@@ -80,5 +105,114 @@
 
 <app-popup-chi-tiet-hoa-don [open]="viewDetailOpen" [invoiceId]="viewingInvoiceId"
   (closePopup)="closeViewDetail()"></app-popup-chi-tiet-hoa-don>
+
+<nz-modal
+  [nzVisible]="processingModalOpen"
+  [nzTitle]="'Xử lý hóa đơn ' + processingInvoiceCode"
+  [nzClosable]="false"
+  [nzMaskClosable]="false"
+  [nzWidth]="900"
+  [nzFooter]="processFooterTpl"
+  (nzOnCancel)="closeProcessModal()"
+>
+  <ng-container *nzModalContent>
+    <ng-container *ngIf="!processingLoading; else processingLoadingTpl">
+      <p class="process-note">
+        <strong>Khách hàng:</strong> {{ processingCustomerName || 'Khách lẻ' }}
+      </p>
+      <nz-table [nzData]="processingItems" [nzShowPagination]="false" nzSize="small">
+        <thead>
+          <tr>
+            <th>Thuốc</th>
+            <th>Lô</th>
+            <th class="text-right">Số lượng</th>
+            <th class="text-right">Đơn giá</th>
+            <th class="text-right">Thành tiền</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of processingItems; index as i">
+            <td>{{ item.medicineName }}</td>
+            <td>
+              <nz-select
+                [ngModel]="item.importId"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="onProcessingImportChange(i, $event)"
+                nzSize="small"
+                class="process-import-select"
+              >
+                <nz-option
+                  *ngFor="let importItem of getProcessImportOptions(item.medicineId)"
+                  [nzLabel]="'Lô ' + importItem.batchCode + ' (Tồn: ' + importItem.quantity + ')'"
+                  [nzValue]="importItem.id"
+                ></nz-option>
+              </nz-select>
+            </td>
+            <td class="text-right">
+              <div class="qty-actions">
+                <button nz-button nzType="default" nzSize="small" (click)="decreaseProcessingQty(i)">-</button>
+                <nz-input-number
+                  [ngModel]="item.quantity"
+                  [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="updateProcessingQty(i, $event)"
+                  [nzMin]="1"
+                ></nz-input-number>
+                <button nz-button nzType="default" nzSize="small" (click)="increaseProcessingQty(i)">+</button>
+              </div>
+            </td>
+            <td class="text-right">{{ item.unitPrice | number }} ₫</td>
+            <td class="text-right">{{ item.unitPrice * item.quantity | number }} ₫</td>
+            <td class="text-right">
+              <button nz-button nzType="text" nzDanger (click)="removeProcessingItem(i)">
+                <span nz-icon nzType="delete"></span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+
+      <div class="process-summary">
+        <div class="process-summary-row">
+          <span>Tạm tính</span>
+          <strong>{{ processingSubtotal | number }} ₫</strong>
+        </div>
+        <div class="process-summary-row">
+          <span>Giảm giá</span>
+          <nz-input-number
+            [ngModel]="processingDiscount"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onProcessingDiscountChange($event)"
+            [nzMin]="0"
+          ></nz-input-number>
+        </div>
+        <div class="process-summary-row">
+          <span>Khách đưa</span>
+          <nz-input-number
+            [ngModel]="processingAmountPaid"
+            [ngModelOptions]="{ standalone: true }"
+            [nzMin]="0"
+            [nzDisabled]="true"
+          ></nz-input-number>
+        </div>
+        <div class="process-summary-row total">
+          <span>Cần thu</span>
+          <strong>{{ processingTotalNeedPay | number }} ₫</strong>
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
+
+  <ng-template #processingLoadingTpl>
+    <p>Đang tải dữ liệu hóa đơn...</p>
+  </ng-template>
+
+  <ng-template #processFooterTpl>
+    <button nz-button (click)="closeProcessModal()" [disabled]="processingSaving">Đóng</button>
+    <button nz-button nzType="primary" [nzLoading]="processingSaving" (click)="submitProcessing()">
+      Lưu xử lý
+    </button>
+  </ng-template>
+</nz-modal>
 
 

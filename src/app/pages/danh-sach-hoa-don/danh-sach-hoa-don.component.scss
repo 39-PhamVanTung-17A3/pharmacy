@@ -41,3 +41,35 @@
   align-items: center;
   gap: 4px;
 }
+
+.process-note {
+  margin-bottom: 12px;
+}
+
+.qty-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.process-import-select {
+  min-width: 220px;
+}
+
+.process-summary {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #d1d5db;
+  display: grid;
+  gap: 8px;
+}
+
+.process-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.process-summary-row.total {
+  color: #14532d;
+}

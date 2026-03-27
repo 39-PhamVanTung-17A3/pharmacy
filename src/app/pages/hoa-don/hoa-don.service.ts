@@ -1,4 +1,4 @@
-﻿import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -102,6 +102,13 @@ export class HoaDonService {
     return this.mapFromApi(this.unwrapData(result));
   }
 
+  async cancel(id: number): Promise<HoaDon> {
+    const result = await firstValueFrom(
+      this.http.post<BaseResponse<HoaDonApiResponse>>(`${this.apiUrl}/${id}/huy`, {})
+    );
+    return this.mapFromApi(this.unwrapData(result));
+  }
+
   async delete(id: number, rollbackStock = true): Promise<void> {
     const params = new HttpParams().set('rollbackStock', rollbackStock);
     const result = await firstValueFrom(this.http.delete<BaseResponse<null>>(`${this.apiUrl}/${id}`, { params }));
@@ -127,6 +134,7 @@ export class HoaDonService {
       totalNeedPay: item.totalNeedPay,
       amountPaid: item.amountPaid,
       returnAmount: item.returnAmount,
+      status: item.status,
       items: item.items.map((child) => this.mapItemFromApi(child))
     };
   }
