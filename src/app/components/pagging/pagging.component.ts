@@ -23,6 +23,15 @@ export class PaggingComponent {
     return Math.ceil(this.total / this.pageSize);
   }
 
+  get showingRecords(): number {
+    if (this.total <= 0) {
+      return 0;
+    }
+    const startIndex = (this.pageIndex - 1) * this.pageSize;
+    const remaining = this.total - startIndex;
+    return Math.max(Math.min(this.pageSize, remaining), 0);
+  }
+
   onPageIndexChange(value: number): void {
     this.pageIndexChange.emit(value);
   }

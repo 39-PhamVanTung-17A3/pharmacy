@@ -44,7 +44,14 @@
                   <span nz-icon nzType="eye"></span>
                   <span>Xem</span>
                 </button>
-                <button nz-button nzType="text" nzSize="small" aria-label="In">
+                <button
+                  nz-button
+                  nzType="text"
+                  nzSize="small"
+                  aria-label="In"
+                  [disabled]="printingId === item.id"
+                  (click)="printInvoice(item)"
+                >
                   <span nz-icon nzType="printer"></span>
                   <span>In</span>
                 </button>
