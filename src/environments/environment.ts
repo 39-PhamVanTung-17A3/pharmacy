@@ -1,5 +1,5 @@
 ﻿export const environment = {
-  beDomain: 'http://localhost:8081',
+  beDomain: 'https://api.pharmacypro.me',
   paymentQr: {
     bankBin: '970415',
     accountNo: '106002616055',
@@ -7,4 +7,3 @@
     template: 'compact2'
   }
 };
-
