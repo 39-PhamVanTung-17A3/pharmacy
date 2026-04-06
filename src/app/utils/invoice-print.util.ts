@@ -69,12 +69,13 @@ export function buildInvoiceReceiptHtml(invoice: HoaDon): string {
     <html lang="vi">
     <head>
       <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width,initial-scale=1" />
       <title>Hóa đơn ${escapeHtml(invoice.code)}</title>
       <style>
-        @page { size: 80mm auto; margin: 4mm; }
+        @page { margin: 8mm; }
         * { box-sizing: border-box; }
-        body { margin: 0; font-family: Arial, sans-serif; color: #111827; }
-        .receipt { width: 72mm; margin: 0 auto; font-size: 12px; }
+        body { margin: 0; font-family: Arial, sans-serif; color: #111827; background: #ffffff; }
+        .receipt { width: 100%; max-width: 76mm; margin: 0 auto; font-size: 12px; }
         .center { text-align: center; }
         .left { text-align: left; }
         .right { text-align: right; }
@@ -134,10 +135,29 @@ export function printInvoiceViaPopup(invoice: HoaDon): boolean {
   printWindow.document.write(html);
   printWindow.document.close();
   printWindow.focus();
-  setTimeout(() => {
-    printWindow.print();
-    printWindow.close();
-  }, 250);
+
+  let hasTriggeredPrint = false;
+  const triggerPrint = () => {
+    if (hasTriggeredPrint) {
+      return;
+    }
+    hasTriggeredPrint = true;
+    setTimeout(() => {
+      printWindow.print();
+    }, 350);
+  };
+
+  printWindow.addEventListener('load', triggerPrint, { once: true });
+  printWindow.addEventListener(
+    'afterprint',
+    () => {
+      printWindow.close();
+    },
+    { once: true }
+  );
+
+  // Fallback for browsers that do not emit load on document.write/popups.
+  setTimeout(triggerPrint, 700);
 
   return true;
 }
