@@ -22,6 +22,7 @@
     "@angular/router": "^17.1.0",
     "@ant-design/icons-angular": "^17.0.0",
     "@ctrl/tinycolor": "^4.2.0",
+    "@zxing/browser": "^0.1.5",
     "highcharts": "^12.5.0",
     "highcharts-angular": "^4.0.1",
     "ng-zorro-antd": "^17.3.0",
