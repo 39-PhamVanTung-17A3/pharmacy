@@ -59,7 +59,18 @@
               <td class="text-right">
                 <div class="qty-actions">
                   <button nz-button nzType="default" nzSize="small" (click)="decreaseQty(i)">-</button>
-                  <span>{{ item.quantity }}</span>
+                  <input
+                    #qtyInput
+                    nz-input
+                    type="number"
+                    [ngModel]="item.quantity"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="onQtyInput(i, $event, qtyInput)"
+                    min="1"
+                    [max]="item.maxQuantity"
+                    step="1"
+                    class="qty-input"
+                  />
                   <button nz-button nzType="default" nzSize="small" (click)="increaseQty(i)">+</button>
                 </div>
               </td>

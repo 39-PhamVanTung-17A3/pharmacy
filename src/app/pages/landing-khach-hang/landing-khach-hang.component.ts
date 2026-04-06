@@ -127,6 +127,10 @@ export class LandingKhachHangComponent implements OnInit {
     this.pageIndex = page;
   }
 
+  trackByCartItem(_: number, item: CartItem): number {
+    return item.medicineId;
+  }
+
   openCartPopup(): void {
     this.isCartPopupOpen = true;
   }
@@ -203,6 +207,50 @@ export class LandingKhachHangComponent implements OnInit {
     this.persistCartToStorage();
   }
 
+  onCartQtyTyping(index: number, inputEl: HTMLInputElement): void {
+    const item = this.cartItems[index];
+    if (!item) {
+      return;
+    }
+
+    const rawValue = inputEl.value;
+    const parsedValue = Number(rawValue);
+    const nextValue = Math.floor(Number.isFinite(parsedValue) ? parsedValue : 1);
+    const safeValue = Math.min(Math.max(nextValue, 1), item.maxQuantity);
+
+    if (nextValue > item.maxQuantity) {
+      this.notification.warning('Cảnh báo', `Số lượng ${item.medicineName} vượt tồn kho khả dụng`);
+    }
+
+    if (Number(inputEl.value) !== safeValue) {
+      inputEl.value = String(safeValue);
+    }
+
+    this.cartItems[index].quantity = safeValue;
+    this.persistCartToStorage();
+  }
+
+  onCartQtyBlur(index: number, inputEl: HTMLInputElement): void {
+    const item = this.cartItems[index];
+    if (!item) {
+      return;
+    }
+
+    const parsedValue = Number(inputEl.value);
+    const normalizedQty = Math.min(
+      Math.max(Math.floor(Number.isFinite(parsedValue) ? parsedValue : 1), 1),
+      item.maxQuantity
+    );
+
+    if (parsedValue > item.maxQuantity) {
+      this.notification.warning('Cảnh báo', `Số lượng ${item.medicineName} vượt tồn kho khả dụng`);
+    }
+
+    inputEl.value = String(normalizedQty);
+    this.cartItems[index].quantity = normalizedQty;
+    this.persistCartToStorage();
+  }
+
   removeCartItem(index: number): void {
     this.cartItems = this.cartItems.filter((_, itemIndex) => itemIndex !== index);
     this.persistCartToStorage();
@@ -219,6 +267,15 @@ export class LandingKhachHangComponent implements OnInit {
       this.notification.warning('Giỏ hàng trống', 'Vui lòng thêm sản phẩm trước khi gửi yêu cầu thanh toán');
       return;
     }
+
+    if (this.normalizeCartItemQuantities()) {
+      this.notification.warning(
+        'Cảnh báo',
+        'Có sản phẩm vượt tồn kho nên hệ thống đã tự điều chỉnh số lượng. Vui lòng kiểm tra lại trước khi gửi yêu cầu.'
+      );
+      return;
+    }
+
     const customerInfo = this.validateCustomerInfoForCheckout();
     if (!customerInfo) {
       return;
@@ -349,6 +406,28 @@ export class LandingKhachHangComponent implements OnInit {
 
   private normalizePhone(value: string): string {
     return value.replace(/\D/g, '');
+  }
+
+  private normalizeCartItemQuantities(): boolean {
+    let hasAdjusted = false;
+
+    this.cartItems = this.cartItems.map((item) => {
+      const normalizedQty = Math.min(Math.max(Math.floor(Number(item.quantity) || 1), 1), item.maxQuantity);
+      if (normalizedQty !== item.quantity) {
+        hasAdjusted = true;
+        return {
+          ...item,
+          quantity: normalizedQty
+        };
+      }
+      return item;
+    });
+
+    if (hasAdjusted) {
+      this.persistCartToStorage();
+    }
+
+    return hasAdjusted;
   }
 
   private persistCartToStorage(): void {

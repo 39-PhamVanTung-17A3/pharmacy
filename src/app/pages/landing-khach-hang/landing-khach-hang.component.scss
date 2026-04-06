@@ -509,6 +509,22 @@ h1 {
   font-weight: 600;
 }
 
+.cart-qty-input {
+  width: 72px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 4px 8px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.cart-qty-input:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+}
+
 .remove-btn {
   display: inline-flex;
   align-items: center;

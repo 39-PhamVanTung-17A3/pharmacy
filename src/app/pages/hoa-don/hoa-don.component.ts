@@ -184,6 +184,25 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.syncAmountPaidWithTotalNeedPay();
   }
 
+  onQtyInput(index: number, value: number | string | null, inputEl?: HTMLInputElement): void {
+    const currentItem = this.billItems[index];
+    const parsedValue = Number(value);
+    const nextValue = Math.floor(Number.isFinite(parsedValue) ? parsedValue : 1);
+    const safeValue = Math.min(Math.max(nextValue, 1), currentItem.maxQuantity);
+
+    if (nextValue > currentItem.maxQuantity) {
+      this.notification.warning('Cảnh báo', 'Số lượng bán vượt quá tồn kho của lô nhập');
+    }
+
+    if (inputEl && Number(inputEl.value) !== safeValue) {
+      inputEl.value = String(safeValue);
+    }
+
+    currentItem.quantity = safeValue;
+    this.billItems = [...this.billItems];
+    this.syncAmountPaidWithTotalNeedPay();
+  }
+
   updatePrice(index: number, value: number | null): void {
     const nextValue = Math.max(Number(value) || 0, 0);
     this.billItems[index].price = nextValue;
@@ -206,6 +225,15 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       this.notification.warning('Cảnh báo', 'Vui lòng thêm ít nhất một sản phẩm để thanh toán');
       return;
     }
+
+    if (this.normalizeBillItemQuantities()) {
+      this.notification.warning(
+        'Cảnh báo',
+        'Có sản phẩm vượt tồn kho nên hệ thống đã tự điều chỉnh số lượng. Vui lòng kiểm tra lại trước khi thanh toán.'
+      );
+      return;
+    }
+
     const customerId = this.customerForm.controls.customerId.value;
     if (!customerId && this.amountPaid < this.totalNeedPay) {
       this.notification.warning('Cảnh báo', 'Khách lẻ phải thanh toán đủ, không được ghi nợ');
@@ -408,6 +436,25 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.qrCodeUrl =
       `https://img.vietqr.io/image/${qrConfig.bankBin}-${qrConfig.accountNo}-${qrConfig.template}.png` +
       `?amount=${amount}&addInfo=${encodeURIComponent(addInfo)}&accountName=${encodeURIComponent(accountName)}`;
+  }
+
+  private normalizeBillItemQuantities(): boolean {
+    let hasAdjusted = false;
+
+    this.billItems.forEach((item) => {
+      const normalizedQty = Math.min(Math.max(Math.floor(Number(item.quantity) || 1), 1), item.maxQuantity);
+      if (normalizedQty !== item.quantity) {
+        item.quantity = normalizedQty;
+        hasAdjusted = true;
+      }
+    });
+
+    if (hasAdjusted) {
+      this.billItems = [...this.billItems];
+      this.syncAmountPaidWithTotalNeedPay();
+    }
+
+    return hasAdjusted;
   }
 
   private async loadCustomers(): Promise<void> {

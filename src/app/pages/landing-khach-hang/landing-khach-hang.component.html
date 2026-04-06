@@ -149,7 +149,7 @@
     </div>
 
     <div class="cart-list" *ngIf="cartItems.length">
-      <article class="cart-item" *ngFor="let item of cartItems; index as i">
+      <article class="cart-item" *ngFor="let item of cartItems; index as i; trackBy: trackByCartItem">
         <div class="cart-item-top">
           <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.medicineName" class="product-thumb" />
           <div *ngIf="!item.imageUrl" class="thumb-placeholder">Không ảnh</div>
@@ -164,7 +164,18 @@
             <button type="button" (click)="decreaseCartQty(i)">
               <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14" stroke-width="2" stroke-linecap="round"/></svg>
             </button>
-            <span>{{ item.quantity }}</span>
+            <input
+              #cartQtyInput
+              class="cart-qty-input"
+              type="number"
+              [ngModel]="item.quantity"
+              [ngModelOptions]="{ standalone: true }"
+              (input)="onCartQtyTyping(i, cartQtyInput)"
+              (blur)="onCartQtyBlur(i, cartQtyInput)"
+              min="1"
+              [max]="item.maxQuantity"
+              step="1"
+            />
             <button type="button" (click)="increaseCartQty(i)">
               <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/></svg>
             </button>

@@ -66,6 +66,10 @@
   gap: 8px;
 }
 
+.qty-input {
+  width: 72px;
+}
+
 .barcode-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
