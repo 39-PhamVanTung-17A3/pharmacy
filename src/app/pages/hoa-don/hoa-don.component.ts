@@ -1,4 +1,4 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
@@ -8,7 +8,7 @@ import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -17,12 +17,19 @@ import { NzFormatEmitEvent } from 'ng-zorro-antd/tree';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { MenuComponent } from '../../components/menu/menu.component';
 import { environment } from '../../../environments/environment';
+import {
+  CameraScannerSession,
+  createBarcodeDetector,
+  getCameraAccessErrorMessage,
+  startCameraBarcodeScanner
+} from '../../utils/barcode-scanner.util';
 import { getErrorMessage } from '../../utils/error.util';
+import { printInvoiceViaPopup } from '../../utils/invoice-print.util';
 import { KhachHang, KhachHangService } from '../khach-hang/khach-hang.service';
 import { PopupKhachHangComponent } from '../khach-hang/popup-khach-hang/popup-khach-hang.component';
 import { NhapHang, NhapHangService } from '../nhap-hang/nhap-hang.service';
 import { Thuoc, ThuocService } from '../thuoc/thuoc.service';
-import { HoaDonItemRequest, HoaDonService } from './hoa-don.service';
+import { HoaDon, HoaDonItemRequest, HoaDonService } from './hoa-don.service';
 
 interface BillItem {
   importId: number;
@@ -36,12 +43,6 @@ interface BillItem {
 }
 
 type PaymentMode = 'CASH' | 'BANK_QR';
-
-type BarcodeDetectorLike = {
-  detect: (source: ImageBitmapSource) => Promise<Array<{ rawValue?: string }>>;
-};
-
-type BarcodeDetectorCtor = new (options?: { formats?: string[] }) => BarcodeDetectorLike;
 
 @Component({
   selector: 'app-hoa-don',
@@ -74,6 +75,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   private readonly khachHangService = inject(KhachHangService);
   private readonly hoaDonService = inject(HoaDonService);
   private readonly notification = inject(NzNotificationService);
+  private readonly modal = inject(NzModalService);
 
   readonly saleForm = this.fb.group({
     selectedImportKey: this.fb.control<string | null>(null),
@@ -113,15 +115,12 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   scanBatchSelectOpen = false;
   scanBatchSelectMedicineName = '';
   scanBatchSelectImports: NhapHang[] = [];
+  lastPrintedInvoice: HoaDon | null = null;
 
   billItems: BillItem[] = [];
   @ViewChild('barcodeVideo') barcodeVideo?: ElementRef<HTMLVideoElement>;
   private cameraStream: MediaStream | null = null;
-  private cameraScanTimer: number | null = null;
-  private barcodeDetector: BarcodeDetectorLike | null = null;
-  private zxingScannerControls: { stop: () => void } | null = null;
-  private cameraScanBusy = false;
-  private cameraSubmitBusy = false;
+  private cameraScannerSession: CameraScannerSession | null = null;
 
   async ngOnInit(): Promise<void> {
     this.customerForm.controls.customerId.valueChanges.subscribe((customerId) => {
@@ -219,6 +218,9 @@ export class HoaDonComponent implements OnInit, OnDestroy {
 
   clearBill(): void {
     this.billItems = [];
+    this.qrCodeUrl = null;
+    this.qrTransferNote = '';
+    this.currentInvoiceCode = 'Tự động';
     this.syncAmountPaidWithTotalNeedPay();
   }
 
@@ -258,21 +260,10 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       );
 
       this.currentInvoiceCode = savedInvoice.code;
+      this.lastPrintedInvoice = savedInvoice;
       this.notification.success('Thành công', `Thanh toán hóa đơn ${savedInvoice.code} thành công`);
-      this.qrCodeUrl = null;
-      this.qrTransferNote = '';
 
-      this.clearBill();
-      this.paymentForm.patchValue({
-        paymentMode: 'CASH',
-        discount: 0,
-        amountPaid: 0
-      });
-      this.saleForm.patchValue({
-        selectedImportKey: null
-      });
-
-      await this.loadMedicineTreeByMedicine();
+      this.showPrintConfirmDialog();
     } catch (error) {
       const message = getErrorMessage(error, 'Không thể thanh toán hóa đơn');
       this.notification.error('Thất bại', message);
@@ -320,6 +311,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     const existedIndex = this.billItems.findIndex((item) => item.importId === selectedImport.id);
     if (existedIndex >= 0) {
       this.increaseQty(existedIndex);
+      this.notification.success('Thành công', `Đã cộng thêm: ${selectedImport.medicineName} (Tổng: ${this.billItems[existedIndex].quantity})`);
       this.saleForm.controls.selectedImportKey.setValue(null, { emitEvent: false });
       this.medicineTreeOpen = false;
       return;
@@ -341,6 +333,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.saleForm.controls.selectedImportKey.setValue(null, { emitEvent: false });
     this.syncAmountPaidWithTotalNeedPay();
     this.medicineTreeOpen = false;
+    this.notification.success('Thành công', `Đã thêm: ${selectedImport.medicineName} (SL: 1)`);
   }
 
   async onBarcodeScanSubmit(): Promise<void> {
@@ -427,9 +420,9 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     }
 
     const qrConfig = environment.paymentQr;
-    const invoiceRef = this.currentInvoiceCode !== 'Tự động'
-      ? this.currentInvoiceCode
-      : `HD-TAM-${Date.now().toString().slice(-6)}`;
+    const invoiceRef = this.currentInvoiceCode === 'Tự động'
+      ? `HD-TAM-${Date.now().toString().slice(-6)}`
+      : this.currentInvoiceCode;
     const amount = Math.round(this.totalNeedPay);
     const addInfo = `TT ${invoiceRef}`;
     const accountName = qrConfig.accountName;
@@ -657,6 +650,49 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.qrTransferNote = '';
   }
 
+  private showPrintConfirmDialog(): void {
+    this.modal.create({
+      nzTitle: 'In hóa đơn',
+      nzContent: `Bạn có muốn in hóa đơn ${this.currentInvoiceCode} không?`,
+      nzOkText: 'In hóa đơn',
+      nzCancelText: 'Không in',
+      nzOnOk: () => {
+        this.printInvoice();
+        this.resetAfterCheckout();
+      },
+      nzOnCancel: () => {
+        this.resetAfterCheckout();
+      }
+    });
+  }
+
+  private printInvoice(): void {
+    if (!this.lastPrintedInvoice) {
+      return;
+    }
+
+    const printed = printInvoiceViaPopup(this.lastPrintedInvoice);
+    if (!printed) {
+      this.notification.warning('Cảnh báo', 'Trình duyệt đang chặn cửa sổ in. Hãy cho phép popup để in hóa đơn.');
+      return;
+    }
+  }
+
+  private async resetAfterCheckout(): Promise<void> {
+    this.clearBill();
+    this.lastPrintedInvoice = null;
+    this.paymentForm.patchValue({
+      paymentMode: 'CASH',
+      discount: 0,
+      amountPaid: 0
+    });
+    this.saleForm.patchValue({
+      selectedImportKey: null
+    });
+
+    await this.loadMedicineTreeByMedicine();
+  }
+
   private openScanBatchSelectModal(medicineName: string, imports: NhapHang[]): void {
     const sortedImports = [...imports].sort((a, b) => {
       const expiryA = a.expiryDate ? new Date(a.expiryDate).getTime() : Number.MAX_SAFE_INTEGER;
@@ -684,119 +720,28 @@ export class HoaDonComponent implements OnInit, OnDestroy {
         video: { facingMode: { ideal: 'environment' } },
         audio: false
       });
+
       video.srcObject = this.cameraStream;
       video.setAttribute('playsinline', 'true');
       await video.play();
-      this.initBarcodeDetector();
-      if (this.barcodeDetector) {
-        this.startCameraDetectLoop(video);
-      } else {
-        await this.startCameraDetectLoopWithZxing(video);
-      }
+      const barcodeDetector = createBarcodeDetector();
+      this.cameraScannerSession = await startCameraBarcodeScanner(video, barcodeDetector, async (rawValue) => {
+        this.saleForm.patchValue({ barcodeScan: rawValue }, { emitEvent: false });
+        await this.onBarcodeScanSubmit();
+      });
+      this.cameraScannerError = '';
     } catch (error) {
-      const errorName = error instanceof DOMException ? error.name : '';
-      if (errorName === 'NotAllowedError') {
-        this.cameraScannerError = 'Bạn đã chặn quyền camera. Hãy cấp quyền camera trong trình duyệt.';
-      } else if (errorName === 'NotFoundError') {
-        this.cameraScannerError = 'Không tìm thấy camera trên thiết bị.';
-      } else if (errorName === 'NotReadableError') {
-        this.cameraScannerError = 'Camera đang được ứng dụng khác sử dụng.';
-      } else {
-        this.cameraScannerError = 'Không thể truy cập camera. Vui lòng cấp quyền camera.';
-      }
+      this.cameraScannerError = getCameraAccessErrorMessage(error);
       console.error('Start camera scanner failed', error);
     } finally {
       this.cameraScannerStarting = false;
     }
   }
 
-  private initBarcodeDetector(): void {
-    if (this.barcodeDetector) {
-      return;
-    }
-    const detectorGlobal = window as unknown as { BarcodeDetector?: BarcodeDetectorCtor };
-    if (!detectorGlobal.BarcodeDetector) {
-      this.cameraScannerError = '';
-      return;
-    }
-
-    this.cameraScannerError = '';
-    this.barcodeDetector = new detectorGlobal.BarcodeDetector({
-      formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code']
-    });
-  }
-
-  private async startCameraDetectLoopWithZxing(video: HTMLVideoElement): Promise<void> {
-    try {
-      const { BrowserMultiFormatReader } = await import('@zxing/browser');
-      const reader = new BrowserMultiFormatReader();
-      this.zxingScannerControls = await reader.decodeFromVideoElement(video, (result) => {
-        const rawValue = result?.getText?.()?.trim();
-        if (!rawValue) {
-          return;
-        }
-        void this.handleCameraDetectedCode(rawValue);
-      });
-    } catch (error) {
-      this.cameraScannerError = 'Thiết bị/trình duyệt chưa hỗ trợ quét camera. Hãy dùng Chrome hoặc máy quét mã vạch.';
-      console.error('Start ZXing camera scanner failed', error);
-    }
-  }
-
-  private startCameraDetectLoop(video: HTMLVideoElement): void {
-    if (!this.barcodeDetector) {
-      return;
-    }
-    this.cameraScanTimer = window.setInterval(() => {
-      void this.detectFromVideoFrame(video);
-    }, 350);
-  }
-
-  private async detectFromVideoFrame(video: HTMLVideoElement): Promise<void> {
-    if (!this.barcodeDetector || this.cameraScanBusy || video.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) {
-      return;
-    }
-
-    this.cameraScanBusy = true;
-    try {
-      const results = await this.barcodeDetector.detect(video);
-      const rawValue = results.find((item) => !!item.rawValue)?.rawValue?.trim();
-      if (!rawValue) {
-        return;
-      }
-
-      await this.handleCameraDetectedCode(rawValue);
-    } catch (error) {
-      console.error('Detect barcode from camera failed', error);
-    } finally {
-      this.cameraScanBusy = false;
-    }
-  }
-
-  private async handleCameraDetectedCode(rawValue: string): Promise<void> {
-    if (this.cameraSubmitBusy) {
-      return;
-    }
-
-    this.cameraSubmitBusy = true;
-    try {
-      this.saleForm.patchValue({ barcodeScan: rawValue }, { emitEvent: false });
-      await this.onBarcodeScanSubmit();
-      this.closeCameraScanner();
-    } finally {
-      this.cameraSubmitBusy = false;
-    }
-  }
-
   private stopCameraScanner(): void {
-    if (this.cameraScanTimer !== null) {
-      window.clearInterval(this.cameraScanTimer);
-      this.cameraScanTimer = null;
-    }
-
-    if (this.zxingScannerControls) {
-      this.zxingScannerControls.stop();
-      this.zxingScannerControls = null;
+    if (this.cameraScannerSession) {
+      this.cameraScannerSession.stop();
+      this.cameraScannerSession = null;
     }
 
     if (this.cameraStream) {
@@ -808,10 +753,8 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       video.pause();
       video.srcObject = null;
     }
-
-    this.cameraScanBusy = false;
-    this.cameraSubmitBusy = false;
   }
+
 }
 
 

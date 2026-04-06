@@ -6,6 +6,8 @@ import { IconDefinition } from '@ant-design/icons-angular';
 import {
   AlertOutline,
   AppstoreOutline,
+  CameraOutline,
+  CheckCircleOutline,
   DeleteOutline,
   EyeOutline,
   FileAddOutline,
@@ -19,8 +21,11 @@ import {
   MenuFoldOutline,
   MenuUnfoldOutline,
   PrinterOutline,
+  QrcodeOutline,
   RobotOutline,
+  ScanOutline,
   TeamOutline,
+  UserAddOutline,
   WalletOutline
 } from '@ant-design/icons-angular/icons';
 import { NZ_ICONS } from 'ng-zorro-antd/icon';
@@ -46,7 +51,12 @@ const icons: IconDefinition[] = [
   WalletOutline,
   IdcardOutline,
   LockOutline,
-  LogoutOutline
+  LogoutOutline,
+  ScanOutline,
+  CameraOutline,
+  UserAddOutline,
+  QrcodeOutline,
+  CheckCircleOutline
 ];
 
 export const appConfig: ApplicationConfig = {

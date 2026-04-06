@@ -7,6 +7,7 @@ import { DanhMucThuocService } from '../danh-muc-thuoc/danh-muc-thuoc.service';
 import { Thuoc, ThuocService } from '../thuoc/thuoc.service';
 import { HoaDonService } from '../hoa-don/hoa-don.service';
 import { getErrorMessage } from '../../utils/error.util';
+import { environment } from '../../../environments/environment';
 
 interface ValueItem {
   title: string;
@@ -56,6 +57,7 @@ export class LandingKhachHangComponent implements OnInit {
   cartItems: CartItem[] = [];
   actionMessage = '';
   actionMessageType: 'success' | 'warning' | 'error' = 'success';
+  readonly zaloUrl = environment.contact.zaloUrl;
 
   readonly values: ValueItem[] = [
     {

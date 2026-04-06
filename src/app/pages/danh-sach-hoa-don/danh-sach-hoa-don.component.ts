@@ -18,6 +18,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
 import { getErrorMessage } from '../../utils/error.util';
+import { printInvoiceViaPopup } from '../../utils/invoice-print.util';
 import { HoaDon, HoaDonService } from '../hoa-don/hoa-don.service';
 import { NhapHang, NhapHangService } from '../nhap-hang/nhap-hang.service';
 import { PopupChiTietHoaDonComponent } from './popup-chi-tiet-hoa-don/popup-chi-tiet-hoa-don.component';
@@ -302,20 +303,11 @@ export class DanhSachHoaDonComponent implements OnInit {
     this.printingId = invoice.id;
     try {
       const detail = await this.hoaDonService.findById(invoice.id);
-      const printWindow = window.open('', '_blank', 'width=450,height=800');
-      if (!printWindow) {
+      const printed = printInvoiceViaPopup(detail);
+      if (!printed) {
         this.notification.warning('Cảnh báo', 'Trình duyệt đang chặn cửa sổ in. Hãy cho phép popup để in hóa đơn.');
         return;
       }
-
-      printWindow.document.open();
-      printWindow.document.write(this.buildReceiptHtml(detail));
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 250);
     } catch (error) {
       const message = getErrorMessage(error, 'Không thể in hóa đơn');
       this.notification.error('Thất bại', message);
@@ -396,128 +388,5 @@ export class DanhSachHoaDonComponent implements OnInit {
 
   private syncProcessingAmountPaid(): void {
     this.processingAmountPaid = this.processingTotalNeedPay;
-  }
-
-  private buildReceiptHtml(invoice: HoaDon): string {
-    const saleAt = this.formatDateTime(invoice.saleAt);
-    const customer = this.escapeHtml(invoice.customerName || 'Khách lẻ');
-    const status = this.escapeHtml(this.toStatusLabel(invoice.status));
-    const rows = invoice.items
-      .map((item) => {
-        const medicineName = this.escapeHtml(item.medicineName);
-        const batchCode = this.escapeHtml(item.batchCode);
-        return `
-          <tr>
-            <td class="left">
-              <div>${medicineName}</div>
-              <small>Lô: ${batchCode}</small>
-            </td>
-            <td class="center">${item.quantity}</td>
-            <td class="right">${this.formatMoney(item.unitPrice)}</td>
-            <td class="right">${this.formatMoney(item.lineTotal)}</td>
-          </tr>
-        `;
-      })
-      .join('');
-
-    return `
-      <!DOCTYPE html>
-      <html lang="vi">
-      <head>
-        <meta charset="utf-8" />
-        <title>Hóa đơn ${this.escapeHtml(invoice.code)}</title>
-        <style>
-          @page { size: 80mm auto; margin: 4mm; }
-          * { box-sizing: border-box; }
-          body { margin: 0; font-family: Arial, sans-serif; color: #111827; }
-          .receipt { width: 72mm; margin: 0 auto; font-size: 12px; }
-          .center { text-align: center; }
-          .left { text-align: left; }
-          .right { text-align: right; }
-          h1 { margin: 0 0 6px; font-size: 16px; }
-          .meta { margin: 2px 0; line-height: 1.35; }
-          .line { border-top: 1px dashed #374151; margin: 8px 0; }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { padding: 4px 0; vertical-align: top; }
-          th { font-size: 11px; border-bottom: 1px solid #374151; }
-          tfoot td { border-top: 1px solid #374151; padding-top: 6px; }
-          .summary-row { display: flex; justify-content: space-between; margin: 3px 0; }
-          .thanks { margin-top: 8px; font-style: italic; text-align: center; }
-        </style>
-      </head>
-      <body>
-        <div class="receipt">
-          <h1 class="center">NHÀ THUỐC PHARMACY</h1>
-          <div class="meta">Mã hóa đơn: <strong>${this.escapeHtml(invoice.code)}</strong></div>
-          <div class="meta">Thời gian: ${saleAt}</div>
-          <div class="meta">Khách hàng: ${customer}</div>
-          <div class="meta">Trạng thái: ${status}</div>
-          <div class="line"></div>
-
-          <table>
-            <thead>
-              <tr>
-                <th class="left">Sản phẩm</th>
-                <th class="center">SL</th>
-                <th class="right">Đơn giá</th>
-                <th class="right">Thành tiền</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-
-          <div class="line"></div>
-          <div class="summary-row"><span>Tạm tính</span><strong>${this.formatMoney(invoice.subtotal)}</strong></div>
-          <div class="summary-row"><span>Giảm giá</span><strong>${this.formatMoney(invoice.discount)}</strong></div>
-          <div class="summary-row"><span>Cần thanh toán</span><strong>${this.formatMoney(invoice.totalNeedPay)}</strong></div>
-          <div class="summary-row"><span>Khách đưa</span><strong>${this.formatMoney(invoice.amountPaid)}</strong></div>
-          <div class="summary-row"><span>Tiền thừa</span><strong>${this.formatMoney(invoice.returnAmount)}</strong></div>
-          <div class="thanks">Cảm ơn quý khách!</div>
-        </div>
-      </body>
-      </html>
-    `;
-  }
-
-  private toStatusLabel(status: HoaDon['status']): string {
-    switch (status) {
-      case 'PAID':
-        return 'Đã thanh toán';
-      case 'PENDING_PAYMENT':
-        return 'Chờ thanh toán';
-      case 'DEBT':
-        return 'Khách nợ';
-      case 'CANCELLED':
-        return 'Đã hủy';
-      default:
-        return 'Không xác định';
-    }
-  }
-
-  private formatMoney(value: number): string {
-    return new Intl.NumberFormat('vi-VN').format(value || 0) + ' đ';
-  }
-
-  private formatDateTime(value: string): string {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-    return new Intl.DateTimeFormat('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  }
-
-  private escapeHtml(value: string): string {
-    return value
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
   }
 }

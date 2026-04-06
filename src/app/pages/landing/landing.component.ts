@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 interface LandingFeature {
   title: string;
@@ -19,6 +20,7 @@ interface LandingFeature {
 export class LandingComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  readonly zaloUrl = environment.contact.zaloUrl;
 
   readonly highlights: string[] = ['Theo dõi tồn kho theo lô', 'Cảnh báo sớm hết hạn', 'Báo cáo kinh doanh tức thời'];
 

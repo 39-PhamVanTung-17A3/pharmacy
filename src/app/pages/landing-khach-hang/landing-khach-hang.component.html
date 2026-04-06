@@ -1,10 +1,10 @@
 <div class="customer-landing">
-  <header class="hero">
-    <nav class="topbar">
-      <div class="brand">PHARMACY WHOLESALE</div>
-      <div class="topbar-actions">
-        <span class="sub-brand">Nhà phân phối thuốc B2B</span>
-        <button type="button" class="cart-badge-btn" (click)="scrollToCart()">
+    <header class="hero">
+        <nav class="topbar">
+            <div class="brand">PHARMACY WHOLESALE</div>
+            <div class="topbar-actions">
+                <span class="sub-brand">Nhà phân phối thuốc B2B</span>
+                <button type="button" class="cart-badge-btn" (click)="scrollToCart()">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
             <path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L22 7H7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             <circle cx="10" cy="20" r="1.8" fill="currentColor" stroke="none"/>
@@ -12,209 +12,197 @@
           </svg>
           <span>Giỏ hàng: {{ cartTotalQuantity }}</span>
         </button>
-      </div>
-    </nav>
+            </div>
+        </nav>
 
-    <div class="hero-grid">
-      <div>
-        <p class="kicker">Kênh phân phối số</p>
-        <h1>Cung cấp thuốc cho nhà thuốc, phòng khám và bệnh viện trên cùng một nền tảng</h1>
-        <p class="subtitle">
-          Tối ưu chuỗi cung ứng dược phẩm với danh mục hàng hóa lớn, chính sách giá sỉ theo cấp và vận hành giao hàng
-          theo tuyến.
-        </p>
+        <div class="hero-grid">
+            <div>
+                <p class="kicker">Kênh phân phối số</p>
+                <h1>Cung cấp thuốc cho nhà thuốc, phòng khám và bệnh viện trên cùng một nền tảng</h1>
+                <p class="subtitle">
+                    Tối ưu chuỗi cung ứng dược phẩm với danh mục hàng hóa lớn, chính sách giá sỉ theo cấp và vận hành giao hàng theo tuyến.
+                </p>
 
-        <div class="hero-actions">
-          <a class="solid-btn" href="tel:0842526960">Liên hệ kinh doanh: 0842 526 960</a>
-          <a class="outline-btn" href="mailto:sales@pharmacy.local">Nhận báo giá sỉ</a>
+                <div class="hero-actions">
+                    <a class="solid-btn" href="tel:0842526960">Liên hệ kinh doanh: 0842 526 960</a>
+                    <a class="outline-btn" href="mailto:sales@pharmacy.local">Nhận báo giá sỉ</a>
+                </div>
+            </div>
+
+            <div class="hero-card">
+                <h3>Giải pháp cho khách hàng doanh nghiệp</h3>
+                <ul>
+                    <li>Nhà thuốc: đặt hàng định kỳ, đối soát công nợ theo kỳ</li>
+                    <li>Phòng khám: ưu tiên danh mục điều trị theo nhu cầu</li>
+                    <li>Bệnh viện: hỗ trợ báo giá lô lớn và lịch giao theo kế hoạch</li>
+                </ul>
+            </div>
         </div>
-      </div>
+    </header>
 
-      <div class="hero-card">
-        <h3>Giải pháp cho khách hàng doanh nghiệp</h3>
-        <ul>
-          <li>Nhà thuốc: đặt hàng định kỳ, đối soát công nợ theo kỳ</li>
-          <li>Phòng khám: ưu tiên danh mục điều trị theo nhu cầu</li>
-          <li>Bệnh viện: hỗ trợ báo giá lô lớn và lịch giao theo kế hoạch</li>
-        </ul>
-      </div>
-    </div>
-  </header>
+    <main class="main-content">
+        <section class="value-grid">
+            <article class="value-card" *ngFor="let item of values">
+                <h2>{{ item.title }}</h2>
+                <p>{{ item.description }}</p>
+            </article>
+        </section>
 
-  <main class="main-content">
-    <section class="value-grid">
-      <article class="value-card" *ngFor="let item of values">
-        <h2>{{ item.title }}</h2>
-        <p>{{ item.description }}</p>
-      </article>
-    </section>
+        <section class="catalog">
+            <div class="section-head">
+                <div>
+                    <p class="kicker">Danh mục phân phối</p>
+                    <h2>Tìm kiếm sản phẩm B2B theo nhóm điều trị</h2>
+                </div>
+                <span class="summary-badge">{{ totalShownText }}</span>
+            </div>
 
-    <section class="catalog">
-      <div class="section-head">
-        <div>
-          <p class="kicker">Danh mục phân phối</p>
-          <h2>Tìm kiếm sản phẩm B2B theo nhóm điều trị</h2>
-        </div>
-        <span class="summary-badge">{{ totalShownText }}</span>
-      </div>
-
-      <div class="catalog-tools">
-        <input
-          class="search-input"
-          type="text"
-          [value]="searchKeyword"
-          (input)="onSearch($event)"
-          placeholder="Tìm theo tên thuốc, nhóm thuốc, mã vạch, đơn vị..."
-        />
-        <div class="chip-row">
-          <button
-            type="button"
-            class="category-chip"
-            *ngFor="let category of categoryOptions"
-            [class.active]="selectedCategory === category"
-            (click)="selectCategory(category)"
-          >
+            <div class="catalog-tools">
+                <input class="search-input" type="text" [value]="searchKeyword" (input)="onSearch($event)" placeholder="Tìm theo tên thuốc, nhóm thuốc, mã vạch, đơn vị..." />
+                <div class="chip-row">
+                    <button type="button" class="category-chip" *ngFor="let category of categoryOptions" [class.active]="selectedCategory === category" (click)="selectCategory(category)">
             {{ category === 'ALL' ? 'Tất cả' : category }}
           </button>
-        </div>
-      </div>
-
-      <p class="action-message" *ngIf="actionMessage" [class.error]="actionMessageType === 'error'" [class.warning]="actionMessageType === 'warning'">
-        {{ actionMessage }}
-      </p>
-
-      <div class="loading-state" *ngIf="loadingProducts">Đang tải danh sách sản phẩm...</div>
-
-      <div class="product-grid" *ngIf="!loadingProducts">
-        <article class="product-card" *ngFor="let item of pagedProducts">
-          <div class="product-top">
-            <div class="thumb-wrap">
-              <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.name" class="product-thumb" />
-              <div *ngIf="!item.imageUrl" class="thumb-placeholder">Không ảnh</div>
+                </div>
             </div>
-            <div class="product-head">
-              <p class="product-category">{{ item.category.name }}</p>
-              <h3>{{ item.name }}</h3>
-            </div>
-          </div>
 
-          <p class="product-pack">Đơn vị: {{ item.unit }}</p>
-          <p class="product-stock">Tồn khả dụng: {{ item.totalQuantity | number }} đơn vị</p>
-          <p class="product-min-order">Mã vạch: {{ item.barcode || 'Chưa có' }}</p>
-          <strong>Giá theo chính sách sỉ và hợp đồng</strong>
-          <button type="button" class="add-cart-btn" (click)="addToCart(item)" [disabled]="addingMedicineId === item.id">
+            <p class="action-message" *ngIf="actionMessage" [class.error]="actionMessageType === 'error'" [class.warning]="actionMessageType === 'warning'">
+                {{ actionMessage }}
+            </p>
+
+            <div class="loading-state" *ngIf="loadingProducts">Đang tải danh sách sản phẩm...</div>
+
+            <div class="product-grid" *ngIf="!loadingProducts">
+                <article class="product-card" *ngFor="let item of pagedProducts">
+                    <div class="product-top">
+                        <div class="thumb-wrap">
+                            <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.name" class="product-thumb" />
+                            <div *ngIf="!item.imageUrl" class="thumb-placeholder">Không ảnh</div>
+                        </div>
+                        <div class="product-head">
+                            <p class="product-category">{{ item.category.name }}</p>
+                            <h3>{{ item.name }}</h3>
+                        </div>
+                    </div>
+
+                    <p class="product-pack">Đơn vị: {{ item.unit }}</p>
+                    <p class="product-stock">Tồn khả dụng: {{ item.totalQuantity | number }} đơn vị</p>
+                    <p class="product-min-order">Mã vạch: {{ item.barcode || 'Chưa có' }}</p>
+                    <strong>Giá theo chính sách sỉ và hợp đồng</strong>
+                    <button type="button" class="add-cart-btn" (click)="addToCart(item)" [disabled]="addingMedicineId === item.id">
             <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
               <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
             </svg>
             <span>{{ addingMedicineId === item.id ? 'Đang thêm...' : 'Thêm vào giỏ' }}</span>
           </button>
-        </article>
-      </div>
+                </article>
+            </div>
 
-      <p class="empty-state" *ngIf="!loadingProducts && !filteredProducts.length">
-        Không có sản phẩm phù hợp bộ lọc. Vui lòng đổi từ khóa hoặc nhóm thuốc.
-      </p>
+            <p class="empty-state" *ngIf="!loadingProducts && !filteredProducts.length">
+                Không có sản phẩm phù hợp bộ lọc. Vui lòng đổi từ khóa hoặc nhóm thuốc.
+            </p>
 
-      <app-pagging
-        *ngIf="!loadingProducts && filteredProducts.length"
-        [total]="filteredProducts.length"
-        [pageIndex]="pageIndex"
-        [pageSize]="pageSize"
-        (pageIndexChange)="onPageChange($event)"
-      ></app-pagging>
-    </section>
+            <app-pagging *ngIf="!loadingProducts && filteredProducts.length" [total]="filteredProducts.length" [pageIndex]="pageIndex" [pageSize]="pageSize" (pageIndexChange)="onPageChange($event)"></app-pagging>
+        </section>
 
-  </main>
+    </main>
 
-  <div class="cart-popup-backdrop" *ngIf="isCartPopupOpen" (click)="closeCartPopup()"></div>
-  <section class="cart-popup" *ngIf="isCartPopupOpen">
-    <header class="cart-popup-header">
-      <div>
-        <p class="kicker">Giỏ hàng yêu cầu</p>
-        <h2>Yêu cầu nhân viên xử lý thanh toán</h2>
-      </div>
-      <button type="button" class="close-popup-btn" (click)="closeCartPopup()" aria-label="Đóng">
+    <div class="cart-popup-backdrop" *ngIf="isCartPopupOpen" (click)="closeCartPopup()"></div>
+    <section class="cart-popup" *ngIf="isCartPopupOpen">
+        <header class="cart-popup-header">
+            <div>
+                <p class="kicker">Giỏ hàng yêu cầu</p>
+                <h2>Yêu cầu nhân viên xử lý thanh toán</h2>
+            </div>
+            <button type="button" class="close-popup-btn" (click)="closeCartPopup()" aria-label="Đóng">
         <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
           <path d="M6 6l12 12M18 6L6 18" stroke-width="2" stroke-linecap="round"/>
         </svg>
       </button>
-    </header>
+        </header>
 
-    <p class="request-note" *ngIf="lastRequestedInvoiceCode">
-      Đã gửi yêu cầu thành công. Mã hóa đơn chờ xử lý: <strong>{{ lastRequestedInvoiceCode }}</strong>
-    </p>
+        <p class="request-note" *ngIf="lastRequestedInvoiceCode">
+            Đã gửi yêu cầu thành công. Mã hóa đơn chờ xử lý: <strong>{{ lastRequestedInvoiceCode }}</strong>
+        </p>
 
-    <div class="cart-empty" *ngIf="!cartItems.length">
-      Chưa có sản phẩm trong giỏ. Vui lòng thêm sản phẩm từ danh mục.
-    </div>
-
-    <div class="cart-list" *ngIf="cartItems.length">
-      <article class="cart-item" *ngFor="let item of cartItems; index as i; trackBy: trackByCartItem">
-        <div class="cart-item-top">
-          <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.medicineName" class="product-thumb" />
-          <div *ngIf="!item.imageUrl" class="thumb-placeholder">Không ảnh</div>
-          <div class="cart-item-meta">
-            <h3>{{ item.medicineName }}</h3>
-            <p>{{ item.categoryName }} • {{ item.unit }}</p>
-            <p>Lô: Tự động chọn theo tồn kho</p>
-          </div>
+        <div class="cart-empty" *ngIf="!cartItems.length">
+            Chưa có sản phẩm trong giỏ. Vui lòng thêm sản phẩm từ danh mục.
         </div>
-        <div class="cart-item-actions">
-          <div class="qty-control">
-            <button type="button" (click)="decreaseCartQty(i)">
+
+        <div class="cart-list" *ngIf="cartItems.length">
+            <article class="cart-item" *ngFor="let item of cartItems; index as i; trackBy: trackByCartItem">
+                <div class="cart-item-top">
+                    <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.medicineName" class="product-thumb" />
+                    <div *ngIf="!item.imageUrl" class="thumb-placeholder">Không ảnh</div>
+                    <div class="cart-item-meta">
+                        <h3>{{ item.medicineName }}</h3>
+                        <p>{{ item.categoryName }} • {{ item.unit }}</p>
+                        <p>Lô: Tự động chọn theo tồn kho</p>
+                    </div>
+                </div>
+                <div class="cart-item-actions">
+                    <div class="qty-control">
+                        <button type="button" (click)="decreaseCartQty(i)">
               <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14" stroke-width="2" stroke-linecap="round"/></svg>
             </button>
-            <input
-              #cartQtyInput
-              class="cart-qty-input"
-              type="number"
-              [ngModel]="item.quantity"
-              [ngModelOptions]="{ standalone: true }"
-              (input)="onCartQtyTyping(i, cartQtyInput)"
-              (blur)="onCartQtyBlur(i, cartQtyInput)"
-              min="1"
-              [max]="item.maxQuantity"
-              step="1"
-            />
-            <button type="button" (click)="increaseCartQty(i)">
+                        <input #cartQtyInput class="cart-qty-input" type="number" [ngModel]="item.quantity" [ngModelOptions]="{ standalone: true }" (input)="onCartQtyTyping(i, cartQtyInput)" (blur)="onCartQtyBlur(i, cartQtyInput)" min="1" [max]="item.maxQuantity" step="1" />
+                        <button type="button" (click)="increaseCartQty(i)">
               <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/></svg>
             </button>
-          </div>
-          <strong>Giá sẽ xác nhận khi xử lý</strong>
-          <button type="button" class="remove-btn" (click)="removeCartItem(i)">
+                    </div>
+                    <strong>Giá sẽ xác nhận khi xử lý</strong>
+                    <button type="button" class="remove-btn" (click)="removeCartItem(i)">
             <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 7h12M9 7V5h6v2m-7 3v7m4-7v7m4-7v7M5 7l1 13h12l1-13" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <span>Xóa</span>
           </button>
+                </div>
+            </article>
         </div>
-      </article>
-    </div>
 
-    <div class="checkout-form" *ngIf="cartItems.length">
-      <label class="field-label">Số điện thoại <span class="required">*</span></label>
-      <input class="search-input" [(ngModel)]="customerPhone" placeholder="Nhập số điện thoại khách hàng" />
-      <label class="field-label">Họ tên <span class="required">*</span></label>
-      <input class="search-input" [(ngModel)]="customerName" placeholder="Nhập họ tên khách hàng" />
-      <label class="field-label">Địa chỉ <span class="required">*</span></label>
-      <input class="search-input" [(ngModel)]="customerAddress" placeholder="Nhập địa chỉ" />
-    </div>
+        <div class="checkout-form" *ngIf="cartItems.length">
+            <label class="field-label">Số điện thoại <span class="required">*</span></label>
+            <input class="search-input" [(ngModel)]="customerPhone" placeholder="Nhập số điện thoại khách hàng" />
+            <label class="field-label">Họ tên <span class="required">*</span></label>
+            <input class="search-input" [(ngModel)]="customerName" placeholder="Nhập họ tên khách hàng" />
+            <label class="field-label">Địa chỉ <span class="required">*</span></label>
+            <input class="search-input" [(ngModel)]="customerAddress" placeholder="Nhập địa chỉ" />
+        </div>
 
-    <div class="cart-footer" *ngIf="cartItems.length">
-      <div class="cart-total">
-        <span>Tạm tính</span>
-        <strong>Sẽ được xác nhận khi xử lý</strong>
-      </div>
-      <div class="cart-buttons">
-        <button type="button" class="outline-btn" (click)="clearCart()" [disabled]="creatingInvoice">
+        <div class="cart-footer" *ngIf="cartItems.length">
+            <div class="cart-total">
+                <span>Tạm tính</span>
+                <strong>Sẽ được xác nhận khi xử lý</strong>
+            </div>
+            <div class="cart-buttons">
+                <button type="button" class="outline-btn" (click)="clearCart()" [disabled]="creatingInvoice">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 7h12M9 7V5h6v2m-7 3v7m4-7v7m4-7v7M5 7l1 13h12l1-13" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span>Xóa giỏ</span>
         </button>
-        <button type="button" class="solid-btn" (click)="requestCheckout()" [disabled]="creatingInvoice">
+                <button type="button" class="solid-btn" (click)="requestCheckout()" [disabled]="creatingInvoice">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 12h16M14 6l6 6-6 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span>{{ creatingInvoice ? 'Đang gửi yêu cầu...' : 'Gửi yêu cầu thanh toán' }}</span>
         </button>
-      </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Float Buttons -->
+    <div class="float-buttons">
+        <a class="float-btn float-btn-zalo" [href]="zaloUrl" target="_blank" title="Liên hệ Zalo" aria-label="Zalo">
+            <svg id="svg_zalo_icon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 614.501 613.667" xml:space="preserve" class="btn-icon">
+              <path fill="#FFFFFF" d="M464.721,301.399c-13.984-0.014-23.707,11.478-23.944,28.312c-0.251,17.771,9.168,29.208,24.037,29.202   c14.287-0.007,23.799-11.095,24.01-27.995C489.028,313.536,479.127,301.399,464.721,301.399z" />
+              <path fill="#FFFFFF" d="M291.83,301.392c-14.473-0.316-24.578,11.603-24.604,29.024c-0.02,16.959,9.294,28.259,23.496,28.502   c15.072,0.251,24.592-10.87,24.539-28.707C315.214,313.318,305.769,301.696,291.83,301.392z" />
+              <path fill="#FFFFFF" d="M310.518,3.158C143.102,3.158,7.375,138.884,7.375,306.3s135.727,303.142,303.143,303.142   c167.415,0,303.143-135.727,303.143-303.142S477.933,3.158,310.518,3.158z M217.858,391.083   c-33.364,0.818-66.828,1.353-100.133-0.343c-21.326-1.095-27.652-18.647-14.248-36.583c21.55-28.826,43.886-57.065,65.792-85.621   c2.546-3.305,6.214-5.996,7.15-12.705c-16.609,0-32.784,0.04-48.958-0.013c-19.195-0.066-28.278-5.805-28.14-17.652   c0.132-11.768,9.175-17.329,28.397-17.348c25.159-0.026,50.324-0.06,75.476,0.026c9.637,0.033,19.604,0.105,25.304,9.789   c6.22,10.561,0.284,19.512-5.646,27.454c-21.26,28.497-43.015,56.624-64.559,84.902c-2.599,3.41-5.119,6.88-9.453,12.725   c23.424,0,44.123-0.053,64.816,0.026c8.674,0.026,16.662,1.873,19.941,11.267C237.892,379.329,231.368,390.752,217.858,391.083z    M350.854,330.211c0,13.417-0.093,26.841,0.039,40.265c0.073,7.599-2.599,13.647-9.512,17.084   c-7.296,3.642-14.71,3.028-20.304-2.968c-3.997-4.281-6.214-3.213-10.488-0.422c-17.955,11.728-39.908,9.96-56.597-3.866   c-29.928-24.789-30.026-74.803-0.211-99.776c16.194-13.562,39.592-15.462,56.709-4.143c3.951,2.619,6.201,4.815,10.396-0.053   c5.39-6.267,13.055-6.761,20.271-3.357c7.454,3.509,9.935,10.165,9.776,18.265C350.67,304.222,350.86,317.217,350.854,330.211z    M395.617,369.579c-0.118,12.837-6.398,19.783-17.196,19.908c-10.779,0.132-17.593-6.966-17.646-19.512   c-0.179-43.352-0.185-86.696,0.007-130.041c0.059-12.256,7.302-19.921,17.896-19.222c11.425,0.752,16.992,7.448,16.992,18.833   c0,22.104,0,44.216,0,66.327C395.677,327.105,395.828,348.345,395.617,369.579z M463.981,391.868   c-34.399-0.336-59.037-26.444-58.786-62.289c0.251-35.66,25.304-60.713,60.383-60.396c34.631,0.304,59.374,26.306,58.998,61.986   C524.207,366.492,498.534,392.205,463.981,391.868z" />
+            </svg>
+            <span>Zalo</span>
+        </a>
+        <button class="float-btn float-btn-cart" (click)="scrollToCart()" [title]="'Giỏ hàng: ' + cartTotalQuantity + ' sản phẩm'" aria-label="Giỏ hàng">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/>
+          <circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        <span class="cart-badge">{{ cartTotalQuantity }}</span>
+      </button>
     </div>
-  </section>
 </div>
-
-

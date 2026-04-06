@@ -22,12 +22,12 @@ import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notif
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { DanhMucThuoc, DanhMucThuocService } from '../../danh-muc-thuoc/danh-muc-thuoc.service';
 import { Thuoc, ThuocService } from '../thuoc.service';
-
-type BarcodeDetectorLike = {
-  detect: (source: ImageBitmapSource) => Promise<Array<{ rawValue?: string }>>;
-};
-
-type BarcodeDetectorCtor = new (options?: { formats?: string[] }) => BarcodeDetectorLike;
+import {
+  CameraScannerSession,
+  createBarcodeDetector,
+  getCameraAccessErrorMessage,
+  startCameraBarcodeScanner
+} from '../../../utils/barcode-scanner.util';
 
 @Component({
   selector: 'app-popup-thuoc',
@@ -68,9 +68,7 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
 
   @ViewChild('barcodeVideo') barcodeVideo?: ElementRef<HTMLVideoElement>;
   private cameraStream: MediaStream | null = null;
-  private cameraScanTimer: number | null = null;
-  private barcodeDetector: BarcodeDetectorLike | null = null;
-  private cameraScanBusy = false;
+  private cameraScannerSession: CameraScannerSession | null = null;
 
   readonly form = this.fb.group({
     name: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(120)]),
@@ -276,76 +274,25 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
       video.srcObject = this.cameraStream;
       video.setAttribute('playsinline', 'true');
       await video.play();
-      this.initBarcodeDetector();
-      this.startCameraDetectLoop(video);
+      const barcodeDetector = createBarcodeDetector();
+      this.cameraScannerSession = await startCameraBarcodeScanner(video, barcodeDetector, async (rawValue) => {
+        this.form.controls.barcode.setValue(rawValue);
+        this.form.controls.barcode.markAsDirty();
+        this.closeCameraScanner();
+      });
+      this.cameraScannerError = '';
     } catch (error) {
-      const errorName = error instanceof DOMException ? error.name : '';
-      if (errorName === 'NotAllowedError') {
-        this.cameraScannerError = 'Bạn đã chặn quyền camera. Hãy cấp quyền camera trong trình duyệt.';
-      } else if (errorName === 'NotFoundError') {
-        this.cameraScannerError = 'Không tìm thấy camera trên thiết bị.';
-      } else if (errorName === 'NotReadableError') {
-        this.cameraScannerError = 'Camera đang được ứng dụng khác sử dụng.';
-      } else {
-        this.cameraScannerError = 'Không thể truy cập camera. Vui lòng cấp quyền camera.';
-      }
+      this.cameraScannerError = getCameraAccessErrorMessage(error);
       console.error('Start camera scanner o popup thuoc failed', error);
     } finally {
       this.cameraScannerStarting = false;
     }
   }
 
-  private initBarcodeDetector(): void {
-    if (this.barcodeDetector) {
-      return;
-    }
-    const detectorGlobal = window as unknown as { BarcodeDetector?: BarcodeDetectorCtor };
-    if (!detectorGlobal.BarcodeDetector) {
-      this.cameraScannerError = 'Trình duyệt chưa hỗ trợ BarcodeDetector. Hãy nhập mã tay hoặc dùng máy quét.';
-      return;
-    }
-
-    this.barcodeDetector = new detectorGlobal.BarcodeDetector({
-      formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code']
-    });
-  }
-
-  private startCameraDetectLoop(video: HTMLVideoElement): void {
-    if (!this.barcodeDetector) {
-      return;
-    }
-    this.cameraScanTimer = window.setInterval(() => {
-      void this.detectFromVideoFrame(video);
-    }, 350);
-  }
-
-  private async detectFromVideoFrame(video: HTMLVideoElement): Promise<void> {
-    if (!this.barcodeDetector || this.cameraScanBusy || video.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) {
-      return;
-    }
-
-    this.cameraScanBusy = true;
-    try {
-      const results = await this.barcodeDetector.detect(video);
-      const rawValue = results.find((item) => !!item.rawValue)?.rawValue?.trim();
-      if (!rawValue) {
-        return;
-      }
-
-      this.form.controls.barcode.setValue(rawValue);
-      this.form.controls.barcode.markAsDirty();
-      this.closeCameraScanner();
-    } catch (error) {
-      console.error('Detect barcode from camera o popup thuoc failed', error);
-    } finally {
-      this.cameraScanBusy = false;
-    }
-  }
-
   private stopCameraScanner(): void {
-    if (this.cameraScanTimer !== null) {
-      window.clearInterval(this.cameraScanTimer);
-      this.cameraScanTimer = null;
+    if (this.cameraScannerSession) {
+      this.cameraScannerSession.stop();
+      this.cameraScannerSession = null;
     }
 
     if (this.cameraStream) {
