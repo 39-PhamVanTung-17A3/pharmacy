@@ -119,7 +119,9 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   private cameraStream: MediaStream | null = null;
   private cameraScanTimer: number | null = null;
   private barcodeDetector: BarcodeDetectorLike | null = null;
+  private zxingScannerControls: { stop: () => void } | null = null;
   private cameraScanBusy = false;
+  private cameraSubmitBusy = false;
 
   async ngOnInit(): Promise<void> {
     this.customerForm.controls.customerId.valueChanges.subscribe((customerId) => {
@@ -686,7 +688,11 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       video.setAttribute('playsinline', 'true');
       await video.play();
       this.initBarcodeDetector();
-      this.startCameraDetectLoop(video);
+      if (this.barcodeDetector) {
+        this.startCameraDetectLoop(video);
+      } else {
+        await this.startCameraDetectLoopWithZxing(video);
+      }
     } catch (error) {
       const errorName = error instanceof DOMException ? error.name : '';
       if (errorName === 'NotAllowedError') {
@@ -710,13 +716,31 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     }
     const detectorGlobal = window as unknown as { BarcodeDetector?: BarcodeDetectorCtor };
     if (!detectorGlobal.BarcodeDetector) {
-      this.cameraScannerError = 'Trình duyệt chưa hỗ trợ BarcodeDetector. Hãy dùng ô nhập mã hoặc máy quét.';
+      this.cameraScannerError = '';
       return;
     }
 
+    this.cameraScannerError = '';
     this.barcodeDetector = new detectorGlobal.BarcodeDetector({
       formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code']
     });
+  }
+
+  private async startCameraDetectLoopWithZxing(video: HTMLVideoElement): Promise<void> {
+    try {
+      const { BrowserMultiFormatReader } = await import('@zxing/browser');
+      const reader = new BrowserMultiFormatReader();
+      this.zxingScannerControls = await reader.decodeFromVideoElement(video, (result) => {
+        const rawValue = result?.getText?.()?.trim();
+        if (!rawValue) {
+          return;
+        }
+        void this.handleCameraDetectedCode(rawValue);
+      });
+    } catch (error) {
+      this.cameraScannerError = 'Thiết bị/trình duyệt chưa hỗ trợ quét camera. Hãy dùng Chrome hoặc máy quét mã vạch.';
+      console.error('Start ZXing camera scanner failed', error);
+    }
   }
 
   private startCameraDetectLoop(video: HTMLVideoElement): void {
@@ -741,9 +765,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.saleForm.patchValue({ barcodeScan: rawValue }, { emitEvent: false });
-      await this.onBarcodeScanSubmit();
-      this.closeCameraScanner();
+      await this.handleCameraDetectedCode(rawValue);
     } catch (error) {
       console.error('Detect barcode from camera failed', error);
     } finally {
@@ -751,10 +773,30 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     }
   }
 
+  private async handleCameraDetectedCode(rawValue: string): Promise<void> {
+    if (this.cameraSubmitBusy) {
+      return;
+    }
+
+    this.cameraSubmitBusy = true;
+    try {
+      this.saleForm.patchValue({ barcodeScan: rawValue }, { emitEvent: false });
+      await this.onBarcodeScanSubmit();
+      this.closeCameraScanner();
+    } finally {
+      this.cameraSubmitBusy = false;
+    }
+  }
+
   private stopCameraScanner(): void {
     if (this.cameraScanTimer !== null) {
       window.clearInterval(this.cameraScanTimer);
       this.cameraScanTimer = null;
+    }
+
+    if (this.zxingScannerControls) {
+      this.zxingScannerControls.stop();
+      this.zxingScannerControls = null;
     }
 
     if (this.cameraStream) {
@@ -766,6 +808,9 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       video.pause();
       video.srcObject = null;
     }
+
+    this.cameraScanBusy = false;
+    this.cameraSubmitBusy = false;
   }
 }
 
