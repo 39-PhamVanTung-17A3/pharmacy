@@ -25,8 +25,14 @@
                 </button>
                     </div>
 
-                    <nz-tree-select formControlName="selectedImportKey" [nzNodes]="medicineImportTreeNodes" [nzExpandedKeys]="expandedMedicineKeys" [nzOpen]="medicineTreeOpen" (nzOpenChange)="medicineTreeOpen = $event" nzShowSearch nzAllowClear nzPlaceHolder="Chọn thuốc theo lô nhập"
-                        class="w-full" (nzExpandChange)="onMedicineNodeExpand($event)" (nzTreeClick)="onMedicineNodeClick($event)"></nz-tree-select>
+                    <div class="medicine-select-row">
+                        <nz-tree-select formControlName="selectedImportKey" [nzNodes]="medicineImportTreeNodes" [nzExpandedKeys]="expandedMedicineKeys" [nzOpen]="medicineTreeOpen" (nzOpenChange)="medicineTreeOpen = $event" nzShowSearch nzAllowClear nzPlaceHolder="Chọn thuốc theo lô nhập"
+                            class="w-full" (nzExpandChange)="onMedicineNodeExpand($event)" (nzTreeClick)="onMedicineNodeClick($event)"></nz-tree-select>
+                        <button nz-button nzType="default" type="button" (click)="openMedicinePopup()">
+                <span nz-icon nzType="user-add"></span>
+                <span>Thêm thuốc mới</span>
+              </button>
+                    </div>
                     <div class="subtle" *ngIf="!loadingMedicineTree && medicineImportTreeNodes.length === 0">
                         Chưa có thuốc nào để hiển thị.
                     </div>
@@ -188,4 +194,7 @@
     </nz-modal>
 
     <app-popup-khach-hang [open]="customerPopupOpen" [editingCustomer]="null" (closePopup)="closeCustomerPopup()" (customerSaved)="onCustomerSaved($event)"></app-popup-khach-hang>
+
+    <ng-template #medicinePopupHost></ng-template>
+    <ng-template #importPopupHost></ng-template>
 </div>

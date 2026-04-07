@@ -76,6 +76,17 @@
     gap: 8px;
 }
 
+.medicine-select-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: end;
+}
+
+.medicine-select-row nz-tree-select {
+    width: 100%;
+}
+
 .camera-scan-wrap {
     display: grid;
     gap: 8px;

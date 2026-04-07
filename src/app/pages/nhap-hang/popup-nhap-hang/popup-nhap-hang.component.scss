@@ -1,46 +1,57 @@
 :host {
-  display: block;
+    display: block;
 }
 
 .grid-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 16px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
 }
 
 .full-width {
-  grid-column: 1 / -1;
+    grid-column: 1 / -1;
 }
 
 .w-full {
-  width: 100%;
+    width: 100%;
 }
 
 .barcode-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 8px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+}
+
+.medicine-select-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: end;
+}
+
+.medicine-select-row nz-select {
+    width: 100%;
 }
 
 .camera-scan-wrap {
-  display: grid;
-  gap: 8px;
+    display: grid;
+    gap: 8px;
 }
 
 .camera-video {
-  width: 100%;
-  min-height: 260px;
-  max-height: 60vh;
-  object-fit: cover;
-  border-radius: 8px;
-  background: #000;
+    width: 100%;
+    min-height: 260px;
+    max-height: 60vh;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #000;
 }
 
 .subtle {
-  color: #8c8c8c;
-  font-size: 12px;
+    color: #8c8c8c;
+    font-size: 12px;
 }
 
 .negative {
-  color: #cf1322;
+    color: #cf1322;
 }

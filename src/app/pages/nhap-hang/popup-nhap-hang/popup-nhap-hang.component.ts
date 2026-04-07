@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { getErrorMessage } from '../../../utils/error.util';
 import {
   Component,
+  ComponentRef,
   ElementRef,
   EventEmitter,
   Input,
@@ -10,18 +11,22 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  ViewContainerRef,
   ViewChild,
   inject
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { Thuoc, ThuocService } from '../../thuoc/thuoc.service';
+import { PopupThuocComponent } from '../../thuoc/popup-thuoc/popup-thuoc.component';
 import { NhapHang, NhapHangService } from '../nhap-hang.service';
 import {
   CameraScannerSession,
@@ -29,7 +34,7 @@ import {
   getCameraAccessErrorMessage,
   startCameraBarcodeScanner
 } from '../../../utils/barcode-scanner.util';
-import { generateBatchCodeByCurrentDate, toDateInputValue } from '../../../utils/nhap-hang.util';
+import { generateBatchCodeByCurrentDate } from '../../../utils/nhap-hang.util';
 
 @Component({
   selector: 'app-popup-nhap-hang',
@@ -38,7 +43,9 @@ import { generateBatchCodeByCurrentDate, toDateInputValue } from '../../../utils
     CommonModule,
     ReactiveFormsModule,
     NzButtonModule,
+    NzDatePickerModule,
     NzFormModule,
+    NzIconModule,
     NzInputModule,
     NzInputNumberModule,
     NzSelectModule,
@@ -51,6 +58,7 @@ import { generateBatchCodeByCurrentDate, toDateInputValue } from '../../../utils
 export class PopupNhapHangComponent implements OnInit, OnChanges, OnDestroy {
   @Input() open = false;
   @Input() editingImport: NhapHang | null = null;
+  @Input() initialMedicineId: number | null = null;
 
   @Output() closePopup = new EventEmitter<void>();
   @Output() importSaved = new EventEmitter<NhapHang>();
@@ -67,10 +75,12 @@ export class PopupNhapHangComponent implements OnInit, OnChanges, OnDestroy {
   cameraScannerStarting = false;
 
   @ViewChild('barcodeVideo') barcodeVideo?: ElementRef<HTMLVideoElement>;
+  @ViewChild('medicinePopupHost', { read: ViewContainerRef }) medicinePopupHost?: ViewContainerRef;
   private cameraStream: MediaStream | null = null;
   private cameraScannerSession: CameraScannerSession | null = null;
+  private medicinePopupRef: ComponentRef<PopupThuocComponent> | null = null;
 
-  readonly form = this.fb.nonNullable.group({
+  readonly form = this.fb.group({
     barcodeScan: [''],
     medicineId: [0, [Validators.required, Validators.min(1)]],
     batchCode: ['', Validators.required],
@@ -78,8 +88,8 @@ export class PopupNhapHangComponent implements OnInit, OnChanges, OnDestroy {
     quantity: [0, [Validators.required, Validators.min(1)]],
     importPrice: [0, [Validators.required, Validators.min(0)]],
     sellPrice: [0, [Validators.min(0)]],
-    expiryDate: [''],
-    importedAt: ['', Validators.required]
+    expiryDate: [null as Date | null],
+    importedAt: [null as Date | null, Validators.required]
   });
 
   get isEditMode(): boolean {
@@ -109,7 +119,47 @@ export class PopupNhapHangComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
     this.closeCameraScanner();
+    this.closeMedicinePopup();
     this.closePopup.emit();
+  }
+
+  openMedicinePopup(): void {
+    if (this.medicinePopupRef) {
+      this.medicinePopupRef.setInput('open', true);
+      return;
+    }
+
+    if (!this.medicinePopupHost) {
+      return;
+    }
+
+    this.medicinePopupHost.clear();
+    this.medicinePopupRef = this.medicinePopupHost.createComponent(PopupThuocComponent);
+    this.medicinePopupRef.setInput('open', true);
+    this.medicinePopupRef.setInput('editingMedicine', null);
+
+    this.medicinePopupRef.instance.closePopup.subscribe(() => {
+      this.closeMedicinePopup();
+    });
+
+    this.medicinePopupRef.instance.medicineSaved.subscribe(async (savedMedicine) => {
+      await this.onMedicineSaved(savedMedicine);
+    });
+  }
+
+  closeMedicinePopup(): void {
+    if (this.medicinePopupRef) {
+      this.medicinePopupRef.destroy();
+      this.medicinePopupRef = null;
+    }
+    this.medicinePopupHost?.clear();
+  }
+
+  async onMedicineSaved(savedMedicine: Thuoc): Promise<void> {
+    await this.loadMedicineOptions();
+    this.form.patchValue({ medicineId: savedMedicine.id });
+    this.notification.success('Thành công', `Đã chọn thuốc: ${savedMedicine.name}`);
+    this.closeMedicinePopup();
   }
 
   async save(): Promise<void> {
@@ -126,13 +176,13 @@ export class PopupNhapHangComponent implements OnInit, OnChanges, OnDestroy {
     try {
       const value = this.form.getRawValue();
       const medicineId = Number(value.medicineId) || 0;
-      const batchCode = value.batchCode.trim();
-      const supplier = value.supplier.trim();
+      const batchCode = String(value.batchCode ?? '').trim();
+      const supplier = String(value.supplier ?? '').trim();
       const quantity = Number(value.quantity) || 0;
       const importPrice = Number(value.importPrice) || 0;
       const sellPrice = Number(value.sellPrice) || 0;
-      const expiryDate = value.expiryDate;
-      const importedAt = value.importedAt;
+      const expiryDate = this.formatDateForApi(value.expiryDate);
+      const importedAt = this.formatDateForApi(value.importedAt);
 
       const saved = this.isEditMode
         ? await this.nhapHangService.update(
@@ -174,7 +224,7 @@ export class PopupNhapHangComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   async onBarcodeScanSubmit(): Promise<void> {
-    const barcode = this.form.controls.barcodeScan.value.trim();
+    const barcode = String(this.form.controls.barcodeScan.value ?? '').trim();
     if (!barcode) {
       this.notification.warning('Cảnh báo', 'Vui lòng nhập mã vạch thuốc để quét');
       return;
@@ -229,22 +279,22 @@ export class PopupNhapHangComponent implements OnInit, OnChanges, OnDestroy {
         quantity: this.editingImport.quantity,
         importPrice: this.editingImport.importPrice,
         sellPrice: this.editingImport.sellPrice,
-        expiryDate: this.editingImport.expiryDate,
-        importedAt: this.editingImport.importedAt
+        expiryDate: this.parseDateFromApi(this.editingImport.expiryDate),
+        importedAt: this.parseDateFromApi(this.editingImport.importedAt)
       });
       return;
     }
 
     this.form.reset({
       barcodeScan: '',
-      medicineId: 0,
+      medicineId: this.initialMedicineId ?? 0,
       batchCode: this.generateDefaultBatchCode(),
       supplier: '',
       quantity: 0,
       importPrice: 0,
       sellPrice: 0,
-      expiryDate: '',
-      importedAt: this.getTodayDateInputValue()
+      expiryDate: null,
+      importedAt: this.getTodayDateValue()
     });
   }
 
@@ -308,11 +358,45 @@ export class PopupNhapHangComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  private getTodayDateInputValue(): string {
-    return toDateInputValue();
+  private getTodayDateValue(): Date {
+    return new Date();
   }
 
   private generateDefaultBatchCode(): string {
     return generateBatchCodeByCurrentDate();
+  }
+
+  private parseDateFromApi(value: string | null | undefined): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const datePart = value.slice(0, 10);
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart);
+    if (!match) {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    return new Date(year, month - 1, day);
+  }
+
+  private formatDateForApi(value: Date | string | null | undefined): string {
+    if (!value) {
+      return '';
+    }
+
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

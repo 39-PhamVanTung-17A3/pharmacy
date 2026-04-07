@@ -1,141 +1,136 @@
-<nz-modal
-  [nzVisible]="open"
-  [nzTitle]="isEditMode ? 'Cập nhật phiếu nhập' : 'Tạo phiếu nhập'"
-  nzWidth="760"
-  nzOkText="Lưu"
-  nzCancelText="Hủy"
-  [nzOkLoading]="isSubmitting"
-  (nzOnCancel)="close()"
-  (nzOnOk)="save()"
->
-  <ng-container *nzModalContent>
-    <form nz-form [formGroup]="form" nzLayout="vertical">
-      <div class="grid-form">
-        <nz-form-item class="full-width">
-          <nz-form-label>Quét mã thuốc</nz-form-label>
-          <nz-form-control>
-            <div class="barcode-row">
-              <input
-                nz-input
-                formControlName="barcodeScan"
-                placeholder="Quét hoặc nhập mã vạch thuốc"
-                (keyup.enter)="onBarcodeScanSubmit()"
-              />
-              <button nz-button nzType="default" type="button" (click)="onBarcodeScanSubmit()">Quét</button>
-              <button nz-button nzType="default" type="button" (click)="openCameraScanner()">Quét camera</button>
+<nz-modal [nzVisible]="open" [nzTitle]="isEditMode ? 'Cập nhật phiếu nhập' : 'Tạo phiếu nhập'" nzWidth="760" nzOkText="Lưu" nzCancelText="Hủy" [nzOkLoading]="isSubmitting" (nzOnCancel)="close()" (nzOnOk)="save()">
+    <ng-container *nzModalContent>
+        <form nz-form [formGroup]="form" nzLayout="vertical">
+            <div class="grid-form">
+                <nz-form-item class="full-width">
+                    <nz-form-label>Quét mã thuốc</nz-form-label>
+                    <nz-form-control>
+                        <div class="barcode-row">
+                            <input nz-input formControlName="barcodeScan" placeholder="Quét hoặc nhập mã vạch thuốc" (keyup.enter)="onBarcodeScanSubmit()" />
+                            <button nz-button nzType="default" type="button" (click)="onBarcodeScanSubmit()">
+                                <span nz-icon nzType="scan"></span>
+                                <span>Quét</span>
+                            </button>
+                            <button nz-button nzType="default" type="button" (click)="openCameraScanner()">
+                                <span nz-icon nzType="camera"></span>
+                                <span>Quét camera</span>
+                            </button>
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="full-width">
+                    <nz-form-label [nzRequired]="true">Tên thuốc</nz-form-label>
+                    <nz-form-control [nzValidateStatus]="form.controls.medicineId" [nzErrorTip]="medicineValidError">
+                        <div class="medicine-select-row">
+                            <nz-select formControlName="medicineId" nzShowSearch nzPlaceHolder="Chọn thuốc cần nhập">
+                                <nz-option *ngFor="let medicine of medicineOptions" [nzLabel]="medicine.name" [nzValue]="medicine.id"></nz-option>
+                            </nz-select>
+                            <button nz-button nzType="default" type="button" (click)="openMedicinePopup()">
+                                <span nz-icon nzType="user-add"></span>
+                                <span>Thêm thuốc mới</span>
+                            </button>
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="full-width">
+                    <nz-form-label [nzRequired]="true">Mã lô hàng</nz-form-label>
+                    <nz-form-control [nzValidateStatus]="form.controls.batchCode" [nzErrorTip]="batchCodeValidError">
+                        <input nz-input formControlName="batchCode" placeholder="Nhập mã lô hàng" />
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="full-width">
+                    <nz-form-label>Nhà cung cấp</nz-form-label>
+                    <nz-form-control [nzValidateStatus]="form.controls.supplier" [nzErrorTip]="supplierValidError">
+                        <input nz-input formControlName="supplier" placeholder="Nhập nhà cung cấp" />
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item>
+                    <nz-form-label [nzRequired]="true">Số lượng nhập</nz-form-label>
+                    <nz-form-control [nzValidateStatus]="form.controls.quantity" [nzErrorTip]="quantityValidError">
+                        <nz-input-number formControlName="quantity" [nzMin]="1" [nzStep]="1" class="w-full"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item>
+                    <nz-form-label [nzRequired]="true">Giá nhập</nz-form-label>
+                    <nz-form-control [nzValidateStatus]="form.controls.importPrice" [nzErrorTip]="importPriceValidError">
+                        <nz-input-number formControlName="importPrice" [nzMin]="0" [nzStep]="1000" class="w-full"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item>
+                    <nz-form-label>Giá bán áp dụng</nz-form-label>
+                    <nz-form-control [nzValidateStatus]="form.controls.sellPrice" [nzErrorTip]="sellPriceValidError">
+                        <nz-input-number formControlName="sellPrice" [nzMin]="0" [nzStep]="1000" class="w-full"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item>
+                    <nz-form-label>Hạn dùng</nz-form-label>
+                    <nz-form-control nzErrorTip="Vui lòng chọn hạn dùng">
+                        <nz-date-picker formControlName="expiryDate" nzFormat="dd/MM/yyyy" class="w-full"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item>
+                    <nz-form-label [nzRequired]="true">Ngày nhập</nz-form-label>
+                    <nz-form-control [nzValidateStatus]="form.controls.importedAt" [nzErrorTip]="importedAtValidError">
+                        <nz-date-picker formControlName="importedAt" nzFormat="dd/MM/yyyy" [nzAllowClear]="false" class="w-full"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
             </div>
-          </nz-form-control>
-        </nz-form-item>
+        </form>
 
-        <nz-form-item class="full-width">
-          <nz-form-label [nzRequired]="true">Tên thuốc</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.medicineId" [nzErrorTip]="medicineValidError">
-            <nz-select formControlName="medicineId" nzShowSearch nzPlaceHolder="Chọn thuốc cần nhập">
-              <nz-option *ngFor="let medicine of medicineOptions" [nzLabel]="medicine.name" [nzValue]="medicine.id"></nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item class="full-width">
-          <nz-form-label [nzRequired]="true">Mã lô hàng</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.batchCode" [nzErrorTip]="batchCodeValidError">
-            <input nz-input formControlName="batchCode" placeholder="Nhập mã lô hàng" />
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item class="full-width">
-          <nz-form-label>Nhà cung cấp</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.supplier" [nzErrorTip]="supplierValidError">
-            <input nz-input formControlName="supplier" placeholder="Nhập nhà cung cấp" />
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item>
-          <nz-form-label [nzRequired]="true">Số lượng nhập</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.quantity" [nzErrorTip]="quantityValidError">
-            <nz-input-number formControlName="quantity" [nzMin]="1" [nzStep]="1" class="w-full"></nz-input-number>
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item>
-          <nz-form-label [nzRequired]="true">Giá nhập</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.importPrice" [nzErrorTip]="importPriceValidError">
-            <nz-input-number formControlName="importPrice" [nzMin]="0" [nzStep]="1000" class="w-full"></nz-input-number>
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item>
-          <nz-form-label>Giá bán áp dụng</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.sellPrice" [nzErrorTip]="sellPriceValidError">
-            <nz-input-number formControlName="sellPrice" [nzMin]="0" [nzStep]="1000" class="w-full"></nz-input-number>
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item>
-          <nz-form-label>Hạn dùng</nz-form-label>
-          <nz-form-control nzErrorTip="Vui lòng chọn hạn dùng">
-            <input nz-input type="date" formControlName="expiryDate" />
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item>
-          <nz-form-label [nzRequired]="true">Ngày nhập</nz-form-label>
-          <nz-form-control [nzValidateStatus]="form.controls.importedAt" [nzErrorTip]="importedAtValidError">
-            <input nz-input type="date" formControlName="importedAt" />
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-    </form>
-
-    <ng-template #medicineValidError let-control>
-      <ng-container *ngIf="control.errors?.['required'] || control.errors?.['min']">
-        <div>Vui lòng chọn thuốc cần nhập</div>
-      </ng-container>
-    </ng-template>
-    <ng-template #batchCodeValidError let-control>
-      <ng-container *ngIf="control.errors?.['required']">
-        <div>Vui lòng nhập mã lô hàng</div>
-      </ng-container>
-    </ng-template>
-    <ng-template #supplierValidError let-control>
-      <ng-container *ngIf="control.errors?.['maxlength']">
-        <div>Nhà cung cấp tối đa 160 ký tự</div>
-      </ng-container>
-    </ng-template>
-    <ng-template #quantityValidError let-control>
-      <ng-container *ngIf="control.errors?.['required'] || control.errors?.['min']">
-        <div>Số lượng phải lớn hơn hoặc bằng 1</div>
-      </ng-container>
-    </ng-template>
-    <ng-template #importPriceValidError let-control>
-      <ng-container *ngIf="control.errors?.['required'] || control.errors?.['min']">
-        <div>Giá nhập phải lớn hơn hoặc bằng 0</div>
-      </ng-container>
-    </ng-template>
-    <ng-template #sellPriceValidError let-control>
-      <ng-container *ngIf="control.errors?.['min']">
-        <div>Giá bán phải lớn hơn hoặc bằng 0</div>
-      </ng-container>
-    </ng-template>
-    <ng-template #importedAtValidError let-control>
-      <ng-container *ngIf="control.errors?.['required']">
-        <div>Vui lòng chọn ngày nhập</div>
-      </ng-container>
-    </ng-template>
-  </ng-container>
+        <ng-template #medicineValidError let-control>
+            <ng-container *ngIf="control.errors?.['required'] || control.errors?.['min']">
+                <div>Vui lòng chọn thuốc cần nhập</div>
+            </ng-container>
+        </ng-template>
+        <ng-template #batchCodeValidError let-control>
+            <ng-container *ngIf="control.errors?.['required']">
+                <div>Vui lòng nhập mã lô hàng</div>
+            </ng-container>
+        </ng-template>
+        <ng-template #supplierValidError let-control>
+            <ng-container *ngIf="control.errors?.['maxlength']">
+                <div>Nhà cung cấp tối đa 160 ký tự</div>
+            </ng-container>
+        </ng-template>
+        <ng-template #quantityValidError let-control>
+            <ng-container *ngIf="control.errors?.['required'] || control.errors?.['min']">
+                <div>Số lượng phải lớn hơn hoặc bằng 1</div>
+            </ng-container>
+        </ng-template>
+        <ng-template #importPriceValidError let-control>
+            <ng-container *ngIf="control.errors?.['required'] || control.errors?.['min']">
+                <div>Giá nhập phải lớn hơn hoặc bằng 0</div>
+            </ng-container>
+        </ng-template>
+        <ng-template #sellPriceValidError let-control>
+            <ng-container *ngIf="control.errors?.['min']">
+                <div>Giá bán phải lớn hơn hoặc bằng 0</div>
+            </ng-container>
+        </ng-template>
+        <ng-template #importedAtValidError let-control>
+            <ng-container *ngIf="control.errors?.['required']">
+                <div>Vui lòng chọn ngày nhập</div>
+            </ng-container>
+        </ng-template>
+    </ng-container>
 </nz-modal>
 
-<nz-modal
-  [nzVisible]="isCameraScannerOpen"
-  nzTitle="Quét mã bằng camera"
-  [nzFooter]="null"
-  (nzOnCancel)="closeCameraScanner()"
->
-  <ng-container *nzModalContent>
-    <div class="camera-scan-wrap">
-      <video #barcodeVideo class="camera-video" muted autoplay></video>
-      <div class="subtle" *ngIf="cameraScannerStarting">Đang khởi động camera...</div>
-      <div class="negative" *ngIf="cameraScannerError">{{ cameraScannerError }}</div>
-    </div>
-  </ng-container>
+<ng-template #medicinePopupHost></ng-template>
+
+<nz-modal [nzVisible]="isCameraScannerOpen" nzTitle="Quét mã bằng camera" [nzFooter]="null" (nzOnCancel)="closeCameraScanner()">
+    <ng-container *nzModalContent>
+        <div class="camera-scan-wrap">
+            <video #barcodeVideo class="camera-video" muted autoplay></video>
+            <div class="subtle" *ngIf="cameraScannerStarting">Đang khởi động camera...</div>
+            <div class="negative" *ngIf="cameraScannerError">{{ cameraScannerError }}</div>
+        </div>
+    </ng-container>
 </nz-modal>

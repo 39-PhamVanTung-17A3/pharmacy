@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, ComponentRef, ElementRef, OnDestroy, OnInit, ViewChild, ViewContainerRef, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -28,7 +28,9 @@ import { printInvoiceViaPopup } from '../../utils/invoice-print.util';
 import { KhachHang, KhachHangService } from '../khach-hang/khach-hang.service';
 import { PopupKhachHangComponent } from '../khach-hang/popup-khach-hang/popup-khach-hang.component';
 import { NhapHang, NhapHangService } from '../nhap-hang/nhap-hang.service';
+import { PopupNhapHangComponent } from '../nhap-hang/popup-nhap-hang/popup-nhap-hang.component';
 import { Thuoc, ThuocService } from '../thuoc/thuoc.service';
+import { PopupThuocComponent } from '../thuoc/popup-thuoc/popup-thuoc.component';
 import { HoaDon, HoaDonItemRequest, HoaDonService } from './hoa-don.service';
 
 interface BillItem {
@@ -105,6 +107,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   customerOptions: KhachHang[] = [];
   loadingCustomers = false;
   customerPopupOpen = false;
+  private pendingMedicineForImport: Thuoc | null = null;
   checkoutLoading = false;
   currentInvoiceCode = 'Tự động';
   qrCodeUrl: string | null = null;
@@ -119,8 +122,12 @@ export class HoaDonComponent implements OnInit, OnDestroy {
 
   billItems: BillItem[] = [];
   @ViewChild('barcodeVideo') barcodeVideo?: ElementRef<HTMLVideoElement>;
+  @ViewChild('medicinePopupHost', { read: ViewContainerRef }) medicinePopupHost?: ViewContainerRef;
+  @ViewChild('importPopupHost', { read: ViewContainerRef }) importPopupHost?: ViewContainerRef;
   private cameraStream: MediaStream | null = null;
   private cameraScannerSession: CameraScannerSession | null = null;
+  private medicinePopupRef: ComponentRef<PopupThuocComponent> | null = null;
+  private importPopupRef: ComponentRef<PopupNhapHangComponent> | null = null;
 
   async ngOnInit(): Promise<void> {
     this.customerForm.controls.customerId.valueChanges.subscribe((customerId) => {
@@ -295,6 +302,92 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       customerId: saved.id,
       phone: saved.phone
     });
+  }
+
+  openMedicinePopup(): void {
+    if (this.medicinePopupRef) {
+      this.medicinePopupRef.setInput('open', true);
+      return;
+    }
+
+    if (!this.medicinePopupHost) {
+      return;
+    }
+
+    this.medicinePopupHost.clear();
+    this.medicinePopupRef = this.medicinePopupHost.createComponent(PopupThuocComponent);
+    this.medicinePopupRef.setInput('open', true);
+    this.medicinePopupRef.setInput('editingMedicine', null);
+
+    this.medicinePopupRef.instance.closePopup.subscribe(() => {
+      this.closeMedicinePopup();
+    });
+
+    this.medicinePopupRef.instance.medicineSaved.subscribe((savedMedicine) => {
+      void this.onMedicineSaved(savedMedicine);
+    });
+  }
+
+  closeMedicinePopup(): void {
+    if (this.medicinePopupRef) {
+      this.medicinePopupRef.destroy();
+      this.medicinePopupRef = null;
+    }
+    this.medicinePopupHost?.clear();
+  }
+
+  async onMedicineSaved(savedMedicine: Thuoc): Promise<void> {
+    this.pendingMedicineForImport = savedMedicine;
+    this.closeMedicinePopup();
+    await this.openImportPopup(savedMedicine.id);
+  }
+
+  private async openImportPopup(initialMedicineId: number): Promise<void> {
+    if (this.importPopupRef) {
+      this.importPopupRef.setInput('open', true);
+      this.importPopupRef.setInput('editingImport', null);
+      this.importPopupRef.setInput('initialMedicineId', initialMedicineId);
+      return;
+    }
+
+    if (!this.importPopupHost) {
+      return;
+    }
+
+    this.importPopupHost.clear();
+    this.importPopupRef = this.importPopupHost.createComponent(PopupNhapHangComponent);
+    this.importPopupRef.setInput('open', true);
+    this.importPopupRef.setInput('editingImport', null);
+    this.importPopupRef.setInput('initialMedicineId', initialMedicineId);
+
+    this.importPopupRef.instance.closePopup.subscribe(() => {
+      this.closeImportPopup();
+    });
+
+    this.importPopupRef.instance.importSaved.subscribe((savedImport) => {
+      void this.onImportCreatedFromMedicineFlow(savedImport);
+    });
+  }
+
+  closeImportPopup(): void {
+    if (this.importPopupRef) {
+      this.importPopupRef.destroy();
+      this.importPopupRef = null;
+    }
+    this.importPopupHost?.clear();
+  }
+
+  async onImportCreatedFromMedicineFlow(savedImport: NhapHang): Promise<void> {
+    this.closeImportPopup();
+
+    this.importOptionsById.set(savedImport.id, savedImport);
+    if (this.pendingMedicineForImport && this.pendingMedicineForImport.id === savedImport.medicineId) {
+      this.medicineImageById.set(savedImport.medicineId, this.pendingMedicineForImport.imageUrl ?? null);
+    }
+
+    this.onImportOrderSelected(`import-${savedImport.id}`);
+    this.pendingMedicineForImport = null;
+    await this.loadMedicineTreeByMedicine();
   }
 
   private onImportOrderSelected(selectedKey: string | null): void {

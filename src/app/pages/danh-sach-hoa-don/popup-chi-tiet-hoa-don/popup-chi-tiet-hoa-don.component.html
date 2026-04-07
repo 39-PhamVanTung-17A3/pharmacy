@@ -1,56 +1,55 @@
-<nz-modal [nzVisible]="open" nzTitle="Chi tiết hóa đơn" [nzClosable]="true" [nzMaskClosable]="true"
-  [nzFooter]="viewFooterTpl" (nzOnCancel)="close()">
-  <ng-container *nzModalContent>
-    <ng-container *ngIf="invoice; else loadingDetailTpl">
-      <div class="summary-top">
-        <p><strong>Mã hóa đơn:</strong> {{ invoice.code }}</p>
-        <p><strong>Khách hàng:</strong> {{ invoice.customerName }}</p>
-        <p><strong>Ngày tạo:</strong> {{ invoice.saleAt | date: 'dd/MM/yyyy HH:mm' }}</p>
-        <p>
-          <strong>Trạng thái:</strong>
-          <span *ngIf="invoice.status === 'PAID'">Đã thanh toán</span>
-          <span *ngIf="invoice.status === 'DEBT'">Khách nợ</span>
-          <span *ngIf="invoice.status === 'PENDING_PAYMENT'">Chờ thanh toán</span>
-          <span *ngIf="invoice.status === 'CANCELLED'">Đã hủy</span>
-        </p>
-      </div>
+<nz-modal [nzVisible]="open" nzTitle="Chi tiết hóa đơn" [nzClosable]="true" [nzMaskClosable]="true" [nzFooter]="viewFooterTpl" (nzOnCancel)="close()">
+    <ng-container *nzModalContent>
+        <ng-container *ngIf="invoice; else loadingDetailTpl">
+            <div class="summary-top">
+                <p><strong>Mã hóa đơn:</strong> {{ invoice.code }}</p>
+                <p><strong>Khách hàng:</strong> {{ invoice.customerName }}</p>
+                <p><strong>Ngày tạo:</strong> {{ invoice.saleAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+                <p>
+                    <strong>Trạng thái:</strong>
+                    <span *ngIf="invoice.status === 'PAID'">Đã thanh toán</span>
+                    <span *ngIf="invoice.status === 'DEBT'">Khách nợ</span>
+                    <span *ngIf="invoice.status === 'PENDING_PAYMENT'">Chờ thanh toán</span>
+                    <span *ngIf="invoice.status === 'CANCELLED'">Đã hủy</span>
+                </p>
+            </div>
 
-      <nz-table [nzData]="invoice.items" [nzShowPagination]="false" nzSize="small">
-        <thead>
-          <tr>
-            <th>Thuốc</th>
-            <th>Lô</th>
-            <th class="text-right">SL</th>
-            <th class="text-right">Đơn giá</th>
-            <th class="text-right">Thành tiền</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let detailItem of invoice.items">
-            <td>{{ detailItem.medicineName }}</td>
-            <td>{{ detailItem.batchCode }}</td>
-            <td class="text-right">{{ detailItem.quantity }}</td>
-            <td class="text-right">{{ detailItem.unitPrice | number }} đ</td>
-            <td class="text-right">{{ detailItem.lineTotal | number }} đ</td>
-          </tr>
-        </tbody>
-      </nz-table>
+            <nz-table [nzData]="invoice.items" [nzShowPagination]="false" nzSize="small">
+                <thead>
+                    <tr>
+                        <th>Thuốc</th>
+                        <th>Lô</th>
+                        <th class="text-right">SL</th>
+                        <th class="text-right">Đơn giá</th>
+                        <th class="text-right">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let detailItem of invoice.items">
+                        <td>{{ detailItem.medicineName }}</td>
+                        <td>{{ detailItem.batchCode }}</td>
+                        <td class="text-right">{{ detailItem.quantity }}</td>
+                        <td class="text-right">{{ detailItem.unitPrice | number }} đ</td>
+                        <td class="text-right">{{ detailItem.lineTotal | number }} đ</td>
+                    </tr>
+                </tbody>
+            </nz-table>
 
-      <div class="summary-bottom">
-        <p class="text-right"><strong>Tạm tính:</strong> {{ invoice.subtotal | number }} đ</p>
-        <p class="text-right"><strong>Giảm giá:</strong> {{ invoice.discount | number }} đ</p>
-        <p class="text-right"><strong>Cần thu:</strong> {{ invoice.totalNeedPay | number }} đ</p>
-        <p class="text-right"><strong>Khách đưa:</strong> {{ invoice.amountPaid | number }} đ</p>
-        <p class="text-right"><strong>Tiền thừa:</strong> {{ invoice.returnAmount | number }} đ</p>
-      </div>
+            <div class="summary-bottom">
+                <p class="text-right"><strong>Tạm tính:</strong> {{ invoice.subtotal | number }} đ</p>
+                <p class="text-right"><strong>Giảm giá:</strong> {{ invoice.discount | number }} đ</p>
+                <p class="text-right"><strong>Cần thu:</strong> {{ invoice.totalNeedPay | number }} đ</p>
+                <p class="text-right"><strong>Khách đưa:</strong> {{ invoice.amountPaid | number }} đ</p>
+                <p class="text-right"><strong>Tiền thừa:</strong> {{ invoice.returnAmount | number }} đ</p>
+            </div>
+        </ng-container>
     </ng-container>
-  </ng-container>
 
-  <ng-template #loadingDetailTpl>
-    <p>Đang tải chi tiết hóa đơn...</p>
-  </ng-template>
+    <ng-template #loadingDetailTpl>
+        <p>Đang tải chi tiết hóa đơn...</p>
+    </ng-template>
 
-  <ng-template #viewFooterTpl>
-    <button nz-button (click)="close()" [disabled]="loading">Đóng</button>
-  </ng-template>
+    <ng-template #viewFooterTpl>
+        <button nz-button (click)="close()" [disabled]="loading">Đóng</button>
+    </ng-template>
 </nz-modal>
