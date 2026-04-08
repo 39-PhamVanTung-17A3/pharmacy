@@ -332,6 +332,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   }
 
   async onMedicineSaved(savedMedicine: Thuoc): Promise<void> {
+    this.clearBarcodeScanCache(savedMedicine.barcode);
     this.pendingMedicineForImport = savedMedicine;
     this.closeMedicinePopup();
     await this.openImportPopup(savedMedicine.id);
@@ -705,6 +706,20 @@ export class HoaDonComponent implements OnInit, OnDestroy {
 
   private normalizeBarcode(barcode: string): string {
     return barcode.trim().toUpperCase();
+  }
+
+  private clearBarcodeScanCache(barcode: string | null | undefined): void {
+    if (!barcode) {
+      return;
+    }
+    const normalizedBarcode = this.normalizeBarcode(barcode);
+    if (!normalizedBarcode) {
+      return;
+    }
+
+    this.barcodeBlockedReasonByValue.delete(normalizedBarcode);
+    this.barcodeLastApiCallAt.delete(normalizedBarcode);
+    this.barcodeLastNotificationAt.delete(normalizedBarcode);
   }
 
   private notifyBarcodeWarning(normalizedBarcode: string, message: string): void {
