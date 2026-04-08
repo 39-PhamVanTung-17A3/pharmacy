@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ComponentRef, ElementRef, OnDestroy, OnInit, ViewChild, ViewContainerRef, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
@@ -67,6 +68,9 @@ type PaymentMode = 'CASH' | 'BANK_QR';
   styleUrl: './hoa-don.component.scss'
 })
 export class HoaDonComponent implements OnInit, OnDestroy {
+  private static readonly BARCODE_API_COOLDOWN_MS = 5000;
+  private static readonly BARCODE_NOTIFICATION_COOLDOWN_MS = 1200;
+
   private readonly fb = inject(FormBuilder);
   private readonly nhapHangService = inject(NhapHangService);
   private readonly thuocService = inject(ThuocService);
@@ -115,6 +119,12 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   @ViewChild('medicinePopupHost', { read: ViewContainerRef }) medicinePopupHost?: ViewContainerRef;
   @ViewChild('importPopupHost', { read: ViewContainerRef }) importPopupHost?: ViewContainerRef;
   private readonly cameraScannerWorkflow = new CameraScannerWorkflow();
+  private readonly barcodeLastApiCallAt = new Map<string, number>();
+  private readonly barcodeBlockedReasonByValue = new Map<string, string>();
+  private readonly barcodeLastNotificationAt = new Map<string, number>();
+  private readonly saleImportsByMedicineId = new Map<number, NhapHang[]>();
+  private saleImportsCacheLoaded = false;
+  private saleImportsCacheLoadingPromise: Promise<void> | null = null;
   private medicinePopupRef: ComponentRef<PopupThuocComponent> | null = null;
   private importPopupRef: ComponentRef<PopupNhapHangComponent> | null = null;
 
@@ -419,11 +429,35 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const normalizedBarcode = this.normalizeBarcode(barcode);
+    const blockedReason = this.barcodeBlockedReasonByValue.get(normalizedBarcode);
+    if (blockedReason) {
+      this.notifyBarcodeWarning(normalizedBarcode, blockedReason);
+      return;
+    }
+
+    const now = Date.now();
+    const lastApiCallAt = this.barcodeLastApiCallAt.get(normalizedBarcode) ?? 0;
+    if (now - lastApiCallAt < HoaDonComponent.BARCODE_API_COOLDOWN_MS) {
+      return;
+    }
+    this.barcodeLastApiCallAt.set(normalizedBarcode, now);
+
     try {
       const medicine = await this.thuocService.findByBarcode(barcode);
-      const imports = await this.nhapHangService.findSaleImportsByMedicineId(medicine.id);
+      if ((medicine.totalQuantity ?? 0) <= 0) {
+        const message = `Thuốc ${medicine.name} đã hết hàng`;
+        this.barcodeBlockedReasonByValue.set(normalizedBarcode, message);
+        this.notifyBarcodeWarning(normalizedBarcode, message);
+        return;
+      }
+
+      await this.ensureSaleImportsCache();
+      const imports = this.saleImportsByMedicineId.get(medicine.id) ?? [];
       if (imports.length === 0) {
-        this.notification.warning('Cảnh báo', `Thuốc ${medicine.name} hiện không còn lô bán khả dụng`);
+        const message = `Thuốc ${medicine.name} hiện không còn lô bán khả dụng`;
+        this.barcodeBlockedReasonByValue.set(normalizedBarcode, message);
+        this.notifyBarcodeWarning(normalizedBarcode, message);
         return;
       }
 
@@ -434,7 +468,12 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       }
       this.openScanBatchSelectModal(medicine.name, imports);
     } catch (error) {
-      const message = getErrorMessage(error, 'Không tìm thấy thuốc theo mã vạch');
+      const message = this.resolveBarcodeErrorMessage(error);
+      if (this.shouldBlockBarcodeAfterError(error)) {
+        this.barcodeBlockedReasonByValue.set(normalizedBarcode, message);
+        this.notifyBarcodeWarning(normalizedBarcode, message);
+        return;
+      }
       this.notification.error('Thất bại', message);
       console.error('Scan barcode ở hóa đơn failed', error);
     }
@@ -539,6 +578,8 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   }
 
   private triggerMedicineTreeReload(): void {
+    this.saleImportsCacheLoaded = false;
+    this.saleImportsByMedicineId.clear();
     this.medicineTreeReloadToken += 1;
   }
 
@@ -660,6 +701,79 @@ export class HoaDonComponent implements OnInit, OnDestroy {
 
   private stopCameraScanner(): void {
     this.cameraScannerWorkflow.stop(this.barcodeVideo?.nativeElement);
+  }
+
+  private normalizeBarcode(barcode: string): string {
+    return barcode.trim().toUpperCase();
+  }
+
+  private notifyBarcodeWarning(normalizedBarcode: string, message: string): void {
+    const now = Date.now();
+    const lastNotifiedAt = this.barcodeLastNotificationAt.get(normalizedBarcode) ?? 0;
+    if (now - lastNotifiedAt < HoaDonComponent.BARCODE_NOTIFICATION_COOLDOWN_MS) {
+      return;
+    }
+    this.barcodeLastNotificationAt.set(normalizedBarcode, now);
+    this.notification.warning('Cảnh báo', message);
+  }
+
+  private shouldBlockBarcodeAfterError(error: unknown): boolean {
+    if (error instanceof HttpErrorResponse) {
+      return error.status === 404;
+    }
+    const message = getErrorMessage(error, '').toLowerCase();
+    return message.includes('không tìm thấy');
+  }
+
+  private resolveBarcodeErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse && error.status === 404) {
+      return 'Không tìm thấy thuốc theo mã vạch';
+    }
+    return getErrorMessage(error, 'Không tìm thấy thuốc theo mã vạch');
+  }
+
+  private async ensureSaleImportsCache(): Promise<void> {
+    if (this.saleImportsCacheLoaded) {
+      return;
+    }
+
+    if (this.saleImportsCacheLoadingPromise) {
+      await this.saleImportsCacheLoadingPromise;
+      return;
+    }
+
+    this.saleImportsCacheLoadingPromise = (async () => {
+      const saleTree = await this.nhapHangService.findSaleTree();
+      this.saleImportsByMedicineId.clear();
+      for (const item of saleTree.imports) {
+        if (item.quantity <= 0) {
+          continue;
+        }
+        const current = this.saleImportsByMedicineId.get(item.medicineId) ?? [];
+        current.push(item);
+        this.saleImportsByMedicineId.set(item.medicineId, current);
+      }
+
+      for (const [medicineId, imports] of this.saleImportsByMedicineId.entries()) {
+        const sorted = [...imports].sort((a, b) => {
+          const expiryA = a.expiryDate ? new Date(a.expiryDate).getTime() : Number.MAX_SAFE_INTEGER;
+          const expiryB = b.expiryDate ? new Date(b.expiryDate).getTime() : Number.MAX_SAFE_INTEGER;
+          if (expiryA !== expiryB) {
+            return expiryA - expiryB;
+          }
+          return new Date(a.importedAt).getTime() - new Date(b.importedAt).getTime();
+        });
+        this.saleImportsByMedicineId.set(medicineId, sorted);
+      }
+
+      this.saleImportsCacheLoaded = true;
+    })();
+
+    try {
+      await this.saleImportsCacheLoadingPromise;
+    } finally {
+      this.saleImportsCacheLoadingPromise = null;
+    }
   }
 
 }
