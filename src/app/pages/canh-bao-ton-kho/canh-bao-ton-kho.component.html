@@ -37,6 +37,7 @@
           <div class="ai-kpi-row">
             <span>Tổng cảnh báo: <b>{{ aiSuggestion.tongSoCanhBao }}</b></span>
             <span>Sắp hết hàng: <b>{{ aiSuggestion.soLuongSapHetHang }}</b></span>
+            <span>Đã hết hàng: <b>{{ aiSuggestion.soLuongDaHetHang }}</b></span>
             <span>Sắp hết hạn: <b>{{ aiSuggestion.soLuongSapHetHan }}</b></span>
             <span>Đã hết hạn: <b>{{ aiSuggestion.soLuongDaHetHan }}</b></span>
           </div>
@@ -78,8 +79,8 @@
             </td>
             <td>{{ item.supplier || '-' }}</td>
             <td>
-              <nz-tag [nzColor]="item.alertType === 'EXPIRED' ? 'red' : item.alertType === 'NEAR_EXPIRY' ? 'orange' : 'gold'">
-                {{ getAlertTypeLabel(item.alertType) }}
+              <nz-tag [nzColor]="getAlertTagColor(item)">
+                {{ getAlertTypeLabel(getDisplayAlertType(item)) }}
               </nz-tag>
             </td>
           </tr>

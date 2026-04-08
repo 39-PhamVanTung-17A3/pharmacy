@@ -83,6 +83,7 @@ export class CanhBaoTonKhoService {
     return {
       tongSoCanhBao: item.tongSoCanhBao,
       soLuongSapHetHang: item.soLuongSapHetHang,
+      soLuongDaHetHang: item.soLuongDaHetHang,
       soLuongSapHetHan: item.soLuongSapHetHan,
       soLuongDaHetHan: item.soLuongDaHetHan,
       tomTat: item.tomTat,

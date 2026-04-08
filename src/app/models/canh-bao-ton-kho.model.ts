@@ -1,4 +1,4 @@
-export type CanhBaoTonKhoLoai = 'ALL' | 'LOW_STOCK' | 'NEAR_EXPIRY' | 'EXPIRED';
+export type CanhBaoTonKhoLoai = 'ALL' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'NEAR_EXPIRY' | 'EXPIRED';
 
 export interface CanhBaoTonKhoApiResponse {
   importId: number;

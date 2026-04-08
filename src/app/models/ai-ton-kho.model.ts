@@ -6,6 +6,7 @@ export interface AiTonKhoGoiYRequest {
 export interface AiTonKhoGoiYApiResponse {
   tongSoCanhBao: number;
   soLuongSapHetHang: number;
+  soLuongDaHetHang: number;
   soLuongSapHetHan: number;
   soLuongDaHetHan: number;
   tomTat: string;
@@ -17,6 +18,7 @@ export interface AiTonKhoGoiYApiResponse {
 export interface AiTonKhoGoiY {
   tongSoCanhBao: number;
   soLuongSapHetHang: number;
+  soLuongDaHetHang: number;
   soLuongSapHetHan: number;
   soLuongDaHetHan: number;
   tomTat: string;

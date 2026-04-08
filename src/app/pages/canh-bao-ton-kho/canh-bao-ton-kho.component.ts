@@ -16,6 +16,8 @@ import { AiTonKhoGoiY } from '../../models/ai-ton-kho.model';
 import { getErrorMessage } from '../../utils/error.util';
 import { CanhBaoTonKho, CanhBaoTonKhoLoai, CanhBaoTonKhoService } from './canh-bao-ton-kho.service';
 
+type HienThiCanhBaoLoai = Exclude<CanhBaoTonKhoLoai, 'ALL'>;
+
 @Component({
   selector: 'app-canh-bao-ton-kho',
   standalone: true,
@@ -47,6 +49,7 @@ export class CanhBaoTonKhoComponent implements OnInit {
   readonly alertTypeOptions: Array<{ value: CanhBaoTonKhoLoai; label: string }> = [
     { value: 'ALL', label: 'Tất cả' },
     { value: 'LOW_STOCK', label: 'Sắp hết hàng' },
+    { value: 'OUT_OF_STOCK', label: 'Đã hết hàng' },
     { value: 'NEAR_EXPIRY', label: 'Sắp hết hạn' },
     { value: 'EXPIRED', label: 'Đã hết hạn' }
   ];
@@ -98,8 +101,10 @@ export class CanhBaoTonKhoComponent implements OnInit {
     }
   }
 
-  getAlertTypeLabel(type: CanhBaoTonKhoLoai): string {
+  getAlertTypeLabel(type: HienThiCanhBaoLoai): string {
     switch (type) {
+      case 'OUT_OF_STOCK':
+        return 'Đã hết hàng';
       case 'LOW_STOCK':
         return 'Sắp hết hàng';
       case 'NEAR_EXPIRY':
@@ -108,6 +113,30 @@ export class CanhBaoTonKhoComponent implements OnInit {
         return 'Đã hết hạn';
       default:
         return 'Theo dõi';
+    }
+  }
+
+  getDisplayAlertType(item: CanhBaoTonKho): HienThiCanhBaoLoai {
+    if (item.quantity <= 0) {
+      return 'OUT_OF_STOCK';
+    }
+    if (item.alertType === 'ALL') {
+      return 'LOW_STOCK';
+    }
+    return item.alertType === 'OUT_OF_STOCK' ? 'LOW_STOCK' : item.alertType;
+  }
+
+  getAlertTagColor(item: CanhBaoTonKho): string {
+    const displayType = this.getDisplayAlertType(item);
+    switch (displayType) {
+      case 'OUT_OF_STOCK':
+      case 'EXPIRED':
+        return 'red';
+      case 'NEAR_EXPIRY':
+        return 'orange';
+      case 'LOW_STOCK':
+      default:
+        return 'gold';
     }
   }
 
