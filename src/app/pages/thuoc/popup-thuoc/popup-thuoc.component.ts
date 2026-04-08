@@ -16,6 +16,7 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
@@ -37,6 +38,7 @@ import {
     ReactiveFormsModule,
     NzButtonModule,
     NzFormModule,
+    NzIconModule,
     NzInputModule,
     NzModalModule,
     NzSelectModule,
