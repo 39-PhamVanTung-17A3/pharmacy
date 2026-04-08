@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ComponentRef, ElementRef, OnDestroy, OnInit, ViewChild, ViewContainerRef, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -11,6 +11,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { MenuComponent } from '../../components/menu/menu.component';
@@ -60,6 +61,7 @@ type PaymentMode = 'CASH' | 'BANK_QR';
     NzInputModule,
     NzInputNumberModule,
     NzModalModule,
+    NzPopconfirmModule,
     NzSelectModule,
     NzTableModule,
     MedicineImportTreeSelectComponent
@@ -168,6 +170,14 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     return this.amountPaid - this.totalNeedPay;
   }
 
+  isBillItemInvalid(item: BillItem): boolean {
+    return item.quantity < 1 || item.quantity > item.maxQuantity || item.price <= 0;
+  }
+
+  get hasInvalidBillItems(): boolean {
+    return this.billItems.some((item) => this.isBillItemInvalid(item));
+  }
+
   increaseQty(index: number): void {
     if (this.billItems[index].quantity >= this.billItems[index].maxQuantity) {
       this.notification.warning('Cảnh báo', 'Số lượng bán vượt quá tồn kho của lô nhập');
@@ -229,6 +239,10 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   async submitCheckout(): Promise<void> {
     if (this.billItems.length === 0) {
       this.notification.warning('Cảnh báo', 'Vui lòng thêm ít nhất một sản phẩm để thanh toán');
+      return;
+    }
+    if (this.hasInvalidBillItems) {
+      this.notification.warning('Cảnh báo', 'Vui lòng sửa các dòng sản phẩm đang lỗi trước khi thanh toán');
       return;
     }
 
@@ -792,6 +806,9 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   }
 
 }
+
+
+
 
 
 
