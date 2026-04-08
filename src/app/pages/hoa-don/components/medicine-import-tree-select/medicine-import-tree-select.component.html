@@ -1,0 +1,27 @@
+<nz-tree-select
+  #medicineTreeSelect
+  [ngModel]="selectedImportKey"
+  (ngModelChange)="onTreeModelChange($event)"
+  [nzNodes]="medicineImportTreeNodes"
+  [nzExpandedKeys]="expandedMedicineKeys"
+  [nzOpen]="medicineTreeOpen"
+  (nzOpenChange)="onMedicineTreeOpenChange($event)"
+  [nzTreeTemplate]="medicineTreeTemplate"
+  [nzDisplayWith]="displayMedicineNode"
+  [nzHideUnMatched]="false"
+  [nzDisabled]="isDisabled"
+  nzShowSearch
+  nzAllowClear
+  [nzPlaceHolder]="placeholder"
+  class="w-full"
+  (input)="onMedicineTreeInput($event)"
+  (nzCleared)="onMedicineTreeCleared()"
+  (nzExpandChange)="onMedicineNodeExpand($event)"
+  (nzTreeClick)="onMedicineNodeClick($event)">
+</nz-tree-select>
+
+<div class="subtle" *ngIf="showEmptyHint">Chưa có thuốc nào để hiển thị.</div>
+
+<ng-template #medicineTreeTemplate let-node let-origin="origin">
+  <span>{{ origin['displayTitle'] || node.title }}</span>
+</ng-template>

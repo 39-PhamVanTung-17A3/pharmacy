@@ -12,17 +12,12 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { NzTreeNodeOptions } from 'ng-zorro-antd/core/tree';
-import { NzFormatEmitEvent } from 'ng-zorro-antd/tree';
-import { NzTreeSelectComponent, NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { MenuComponent } from '../../components/menu/menu.component';
 import { environment } from '../../../environments/environment';
 import {
-  CameraScannerSession,
-  createBarcodeDetector,
-  getCameraAccessErrorMessage,
-  startCameraBarcodeScanner
+  getCameraAccessErrorMessage
 } from '../../utils/barcode-scanner.util';
+import { CameraScannerWorkflow } from '../../utils/camera-scanner-workflow.util';
 import { getErrorMessage } from '../../utils/error.util';
 import { printInvoiceViaPopup } from '../../utils/invoice-print.util';
 import { KhachHang, KhachHangService } from '../khach-hang/khach-hang.service';
@@ -31,6 +26,7 @@ import { NhapHang, NhapHangService } from '../nhap-hang/nhap-hang.service';
 import { PopupNhapHangComponent } from '../nhap-hang/popup-nhap-hang/popup-nhap-hang.component';
 import { Thuoc, ThuocService } from '../thuoc/thuoc.service';
 import { PopupThuocComponent } from '../thuoc/popup-thuoc/popup-thuoc.component';
+import { MedicineImportTreeSelectComponent } from './components/medicine-import-tree-select/medicine-import-tree-select.component';
 import { HoaDon, HoaDonItemRequest, HoaDonService } from './hoa-don.service';
 
 interface BillItem {
@@ -65,7 +61,7 @@ type PaymentMode = 'CASH' | 'BANK_QR';
     NzModalModule,
     NzSelectModule,
     NzTableModule,
-    NzTreeSelectModule
+    MedicineImportTreeSelectComponent
   ],
   templateUrl: './hoa-don.component.html',
   styleUrl: './hoa-don.component.scss'
@@ -94,17 +90,9 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     amountPaid: [0]
   });
 
-  medicineImportTreeNodes: NzTreeNodeOptions[] = [];
-  allMedicineTreeNodes: NzTreeNodeOptions[] = [];
-  expandedMedicineKeys: string[] = [];
-  medicineTreeOpen = false;
-  medicineTreeSearchKeyword = '';
+  medicineTreeReloadToken = 0;
   importOptionsById = new Map<number, NhapHang>();
   medicineImageById = new Map<number, string | null>();
-  medicineSearchTokensById = new Map<number, string>();
-  loadedMedicineNodeKeys = new Set<string>();
-  loadingMedicineNodeKeys = new Set<string>();
-  loadingMedicineTree = false;
 
   customerOptions: KhachHang[] = [];
   loadingCustomers = false;
@@ -123,12 +111,10 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   lastPrintedInvoice: HoaDon | null = null;
 
   billItems: BillItem[] = [];
-  @ViewChild('medicineTreeSelect') medicineTreeSelect?: NzTreeSelectComponent;
   @ViewChild('barcodeVideo') barcodeVideo?: ElementRef<HTMLVideoElement>;
   @ViewChild('medicinePopupHost', { read: ViewContainerRef }) medicinePopupHost?: ViewContainerRef;
   @ViewChild('importPopupHost', { read: ViewContainerRef }) importPopupHost?: ViewContainerRef;
-  private cameraStream: MediaStream | null = null;
-  private cameraScannerSession: CameraScannerSession | null = null;
+  private readonly cameraScannerWorkflow = new CameraScannerWorkflow();
   private medicinePopupRef: ComponentRef<PopupThuocComponent> | null = null;
   private importPopupRef: ComponentRef<PopupNhapHangComponent> | null = null;
 
@@ -145,11 +131,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       this.handlePaymentModeChange(mode);
     });
 
-    this.saleForm.controls.selectedImportKey.valueChanges.subscribe((selectedKey) => {
-      this.onImportOrderSelected(selectedKey);
-    });
-
-    await Promise.all([this.loadCustomers(), this.loadMedicineTreeByMedicine()]);
+    await this.loadCustomers();
   }
 
   ngOnDestroy(): void {
@@ -174,34 +156,6 @@ export class HoaDonComponent implements OnInit, OnDestroy {
 
   get returnAmount(): number {
     return this.amountPaid - this.totalNeedPay;
-  }
-
-  displayMedicineNode = (node: { origin?: Record<string, unknown>; title?: string | null }): string => {
-    const displayTitle = typeof node?.origin?.['displayTitle'] === 'string' ? node.origin['displayTitle'] as string : '';
-    return displayTitle || String(node?.title ?? '');
-  };
-
-  onMedicineTreeOpenChange(isOpen: boolean): void {
-    this.medicineTreeOpen = isOpen;
-    if (!isOpen) {
-      this.medicineTreeSearchKeyword = '';
-      this.medicineTreeSelect?.setInputValue('');
-      this.applyMedicineTreeFilter();
-      return;
-    }
-    this.syncMedicineTreeKeywordFromInput();
-    this.applyMedicineTreeFilter();
-  }
-
-  onMedicineTreeInput(event: Event): void {
-    const target = event?.target as HTMLInputElement | null;
-    this.medicineTreeSearchKeyword = target?.value ?? this.medicineTreeSearchKeyword;
-    this.applyMedicineTreeFilter();
-  }
-
-  onMedicineTreeCleared(): void {
-    this.medicineTreeSearchKeyword = '';
-    this.applyMedicineTreeFilter();
   }
 
   increaseQty(index: number): void {
@@ -418,7 +372,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
 
     this.onImportOrderSelected(`import-${savedImport.id}`);
     this.pendingMedicineForImport = null;
-    await this.loadMedicineTreeByMedicine();
+    this.triggerMedicineTreeReload();
   }
 
   private onImportOrderSelected(selectedKey: string | null): void {
@@ -437,7 +391,6 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       this.increaseQty(existedIndex);
       this.notification.success('Thành công', `Đã cộng thêm: ${selectedImport.medicineName} (Tổng: ${this.billItems[existedIndex].quantity})`);
       this.saleForm.controls.selectedImportKey.setValue(null, { emitEvent: false });
-      this.medicineTreeOpen = false;
       return;
     }
 
@@ -456,7 +409,6 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.billItems = [newItem, ...this.billItems];
     this.saleForm.controls.selectedImportKey.setValue(null, { emitEvent: false });
     this.syncAmountPaidWithTotalNeedPay();
-    this.medicineTreeOpen = false;
     this.notification.success('Thành công', `Đã thêm: ${selectedImport.medicineName} (SL: 1)`);
   }
 
@@ -504,16 +456,9 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   }
 
   async openCameraScanner(): Promise<void> {
-    if (!window.isSecureContext) {
-      this.notification.warning(
-        'Cảnh báo',
-        'Trang hiện không bảo mật (HTTP). Hãy dùng HTTPS hoặc localhost để mở camera.'
-      );
-      return;
-    }
-
-    if (!navigator.mediaDevices?.getUserMedia) {
-      this.notification.warning('Cảnh báo', 'Thiết bị không hỗ trợ truy cập camera');
+    const unavailableReason = CameraScannerWorkflow.getUnavailableReason();
+    if (unavailableReason) {
+      this.notification.warning('Cảnh báo', unavailableReason);
       return;
     }
 
@@ -588,212 +533,13 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       this.loadingCustomers = false;
     }
   }
-  async onMedicineNodeExpand(event: NzFormatEmitEvent): Promise<void> {
-    this.syncMedicineTreeKeywordFromInput();
-
-    const node = event.node;
-    if (!node || event.eventName !== 'expand') {
-      return;
-    }
-
-    const medicineKey = String(node.key ?? '');
-    if (!medicineKey.startsWith('medicine-')) {
-      return;
-    }
-
-    this.setMedicineExpandedState(medicineKey, node.isExpanded);
-    if (!node.isExpanded) {
-      return;
-    }
-    await this.ensureMedicineNodeChildrenLoaded(medicineKey);
+  onMedicineImportSelected(selectedImport: NhapHang): void {
+    this.importOptionsById.set(selectedImport.id, selectedImport);
+    this.onImportOrderSelected(`import-${selectedImport.id}`);
   }
 
-  async onMedicineNodeClick(event: NzFormatEmitEvent): Promise<void> {
-    const node = event.node;
-    if (!node || event.eventName !== 'click') {
-      return;
-    }
-
-    const medicineKey = String(node.key ?? '');
-    if (!medicineKey.startsWith('medicine-') || node.isLeaf) {
-      return;
-    }
-
-    const singleImportKey = this.getSingleImportKeyForMedicineNode(medicineKey);
-    if (node.isExpanded && singleImportKey) {
-      this.onImportOrderSelected(singleImportKey);
-      return;
-    }
-
-    const nextExpanded = !this.expandedMedicineKeys.includes(medicineKey);
-    this.setMedicineExpandedState(medicineKey, nextExpanded);
-    if (nextExpanded) {
-      await this.ensureMedicineNodeChildrenLoaded(medicineKey);
-    }
-  }
-
-  private getSingleImportKeyForMedicineNode(medicineKey: string): string | null {
-    const medicineNode = this.allMedicineTreeNodes.find((item) => String(item.key) === medicineKey);
-    if (!medicineNode || !medicineNode.children || medicineNode.children.length !== 1) {
-      return null;
-    }
-    const childKey = String(medicineNode.children[0].key ?? '');
-    return childKey.startsWith('import-') ? childKey : null;
-  }
-
-  private setMedicineExpandedState(medicineKey: string, expanded: boolean): void {
-    if (!expanded) {
-      this.expandedMedicineKeys = this.expandedMedicineKeys.filter((key) => key !== medicineKey);
-      return;
-    }
-    if (!this.expandedMedicineKeys.includes(medicineKey)) {
-      this.expandedMedicineKeys = [...this.expandedMedicineKeys, medicineKey];
-    }
-  }
-
-  private syncMedicineTreeKeywordFromInput(): void {
-    const treeSelect = this.medicineTreeSelect;
-    if (!treeSelect) {
-      return;
-    }
-    this.medicineTreeSearchKeyword = String(treeSelect.inputValue || this.medicineTreeSearchKeyword || '');
-  }
-
-  private normalizeTreeSearchText(value: string): string {
-    return String(value || '')
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  private applyMedicineTreeFilter(): void {
-    const normalizedSearch = this.normalizeTreeSearchText(this.medicineTreeSearchKeyword);
-    if (!normalizedSearch) {
-      this.medicineImportTreeNodes = [...this.allMedicineTreeNodes];
-      return;
-    }
-
-    this.medicineImportTreeNodes = this.allMedicineTreeNodes.filter((node) => {
-      if (!String(node.key ?? '').startsWith('medicine-')) {
-        return false;
-      }
-      const searchText = this.normalizeTreeSearchText(String(node['searchText'] ?? node.title ?? ''));
-      return searchText.includes(normalizedSearch);
-    });
-  }
-
-  private async ensureMedicineNodeChildrenLoaded(medicineKey: string): Promise<void> {
-    this.syncMedicineTreeKeywordFromInput();
-
-    if (this.loadedMedicineNodeKeys.has(medicineKey) || this.loadingMedicineNodeKeys.has(medicineKey)) {
-      return;
-    }
-
-    const medicineId = Number(medicineKey.replace('medicine-', ''));
-    if (!Number.isFinite(medicineId)) {
-      return;
-    }
-
-    this.loadingMedicineNodeKeys.add(medicineKey);
-    try {
-      const imports = await this.nhapHangService.findSaleImportsByMedicineId(medicineId);
-      imports.forEach((item) => this.importOptionsById.set(item.id, item));
-      const medicineSearchTokens = this.medicineSearchTokensById.get(medicineId) ?? '';
-
-      const children: NzTreeNodeOptions[] = imports.map((item) => {
-        const displayTitle = `- Lô ${item.batchCode} (Kho: ${item.quantity})`;
-        const searchableTitle = medicineSearchTokens ? `${displayTitle} ${medicineSearchTokens}` : displayTitle;
-        return {
-          title: searchableTitle,
-          displayTitle,
-          key: `import-${item.id}`,
-          isLeaf: true,
-          selectable: true
-        } as NzTreeNodeOptions;
-      });
-
-      this.allMedicineTreeNodes = this.allMedicineTreeNodes.map((treeNode) => {
-        if (String(treeNode.key) !== medicineKey) {
-          return treeNode;
-        }
-        return {
-          ...treeNode,
-          children,
-          isLeaf: children.length === 0
-        };
-      });
-
-      this.applyMedicineTreeFilter();
-
-      this.loadedMedicineNodeKeys.add(medicineKey);
-
-      if (imports.length === 1) {
-        this.onImportOrderSelected(`import-${imports[0].id}`);
-      }
-    } catch (error) {
-      const message = getErrorMessage(error, 'Không tải được danh sách lô nhập của thuốc');
-      this.notification.error('Thất bại', message);
-    } finally {
-      this.loadingMedicineNodeKeys.delete(medicineKey);
-    }
-  }
-
-  private async loadMedicineTreeByMedicine(): Promise<void> {
-    this.loadingMedicineTree = true;
-    try {
-      const pageData = await this.thuocService.findAll(1, 1000);
-      const medicines = pageData.items;
-      this.medicineImageById.clear();
-      this.medicineSearchTokensById.clear();
-      medicines.forEach((medicine) => {
-        this.medicineImageById.set(medicine.id, medicine.imageUrl ?? null);
-      });
-
-      this.allMedicineTreeNodes = medicines.map((medicine: Thuoc) => {
-        const hasStock = medicine.totalQuantity > 0;
-        const displayTitle = `${medicine.name} (${hasStock ? `Còn hàng: ${medicine.totalQuantity}` : 'Hết hàng'})`;
-        const barcode = medicine.barcode?.trim() ?? '';
-        const normalizedBarcode = barcode.replace(/\s+/g, '');
-        const compactBarcode = barcode.replace(/[^0-9A-Za-z]/g, '');
-        const searchTokens = [barcode, normalizedBarcode, compactBarcode]
-          .filter((value, index, array) => value && array.indexOf(value) === index)
-          .join(' ');
-        const searchableTitle = searchTokens ? `${displayTitle} ${searchTokens}` : displayTitle;
-        this.medicineSearchTokensById.set(medicine.id, searchTokens);
-        return {
-          key: `medicine-${medicine.id}`,
-          title: searchableTitle,
-          displayTitle,
-          searchText: searchableTitle,
-          selectable: false,
-          isLeaf: !hasStock,
-          disabled: false,
-          children: []
-        } as NzTreeNodeOptions;
-      });
-
-      this.applyMedicineTreeFilter();
-
-      this.importOptionsById.clear();
-      this.loadedMedicineNodeKeys.clear();
-      this.loadingMedicineNodeKeys.clear();
-      this.expandedMedicineKeys = [];
-    } catch (error) {
-      const message = getErrorMessage(error, 'Không tải được danh sách thuốc');
-      this.notification.error('Thất bại', message);
-      this.medicineImportTreeNodes = [];
-      this.allMedicineTreeNodes = [];
-      this.importOptionsById.clear();
-      this.medicineImageById.clear();
-      this.medicineSearchTokensById.clear();
-      this.loadedMedicineNodeKeys.clear();
-      this.loadingMedicineNodeKeys.clear();
-      this.expandedMedicineKeys = [];
-    } finally {
-      this.loadingMedicineTree = false;
-    }
+  private triggerMedicineTreeReload(): void {
+    this.medicineTreeReloadToken += 1;
   }
 
   private syncAmountPaidWithTotalNeedPay(): void {
@@ -874,7 +620,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       selectedImportKey: null
     });
 
-    await this.loadMedicineTreeByMedicine();
+    this.triggerMedicineTreeReload();
   }
 
   private openScanBatchSelectModal(medicineName: string, imports: NhapHang[]): void {
@@ -900,16 +646,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     }
 
     try {
-      this.cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' } },
-        audio: false
-      });
-
-      video.srcObject = this.cameraStream;
-      video.setAttribute('playsinline', 'true');
-      await video.play();
-      const barcodeDetector = createBarcodeDetector();
-      this.cameraScannerSession = await startCameraBarcodeScanner(video, barcodeDetector, async (rawValue) => {
+      await this.cameraScannerWorkflow.start(video, async (rawValue) => {
         await this.onBarcodeScanSubmit(rawValue);
       });
       this.cameraScannerError = '';
@@ -922,20 +659,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   }
 
   private stopCameraScanner(): void {
-    if (this.cameraScannerSession) {
-      this.cameraScannerSession.stop();
-      this.cameraScannerSession = null;
-    }
-
-    if (this.cameraStream) {
-      this.cameraStream.getTracks().forEach((track) => track.stop());
-      this.cameraStream = null;
-    }
-    const video = this.barcodeVideo?.nativeElement;
-    if (video) {
-      video.pause();
-      video.srcObject = null;
-    }
+    this.cameraScannerWorkflow.stop(this.barcodeVideo?.nativeElement);
   }
 
 }
