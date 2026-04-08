@@ -70,15 +70,9 @@
     width: 72px;
 }
 
-.barcode-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    gap: 8px;
-}
-
 .medicine-select-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 8px;
     align-items: end;
 }
@@ -183,6 +177,9 @@
         gap: 8px;
     }
     .customer-actions {
+        grid-template-columns: 1fr;
+    }
+    .medicine-select-row {
         grid-template-columns: 1fr;
     }
     .customer-select {

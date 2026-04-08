@@ -13,29 +13,31 @@
         <div class="bill-grid">
             <nz-card nzTitle="Danh sách sản phẩm">
                 <form [formGroup]="saleForm" class="mb-12 stack-12">
-                    <div class="barcode-row">
-                        <input nz-input formControlName="barcodeScan" placeholder="Quét hoặc nhập mã vạch thuốc" (keyup.enter)="onBarcodeScanSubmit()" />
-                        <button nz-button nzType="default" type="button" (click)="onBarcodeScanSubmit()">
-                  <span nz-icon nzType="scan"></span>
-                  <span>Quét mã</span>
-                </button>
-                        <button nz-button nzType="default" type="button" (click)="openCameraScanner()">
-                  <span nz-icon nzType="camera"></span>
-                  <span>Quét camera</span>
-                </button>
-                    </div>
-
                     <div class="medicine-select-row">
-                        <nz-tree-select formControlName="selectedImportKey" [nzNodes]="medicineImportTreeNodes" [nzExpandedKeys]="expandedMedicineKeys" [nzOpen]="medicineTreeOpen" (nzOpenChange)="medicineTreeOpen = $event" nzShowSearch nzAllowClear nzPlaceHolder="Chọn thuốc theo lô nhập"
-                            class="w-full" (nzExpandChange)="onMedicineNodeExpand($event)" (nzTreeClick)="onMedicineNodeClick($event)"></nz-tree-select>
+                        <nz-tree-select #medicineTreeSelect formControlName="selectedImportKey"
+                            [nzNodes]="medicineImportTreeNodes"
+                            [nzExpandedKeys]="expandedMedicineKeys" [nzOpen]="medicineTreeOpen"
+                            (nzOpenChange)="onMedicineTreeOpenChange($event)" [nzTreeTemplate]="medicineTreeTemplate"
+                            [nzDisplayWith]="displayMedicineNode" [nzHideUnMatched]="false" nzShowSearch nzAllowClear
+                            nzPlaceHolder="Chọn thuốc theo lô nhập" class="w-full"
+                            (input)="onMedicineTreeInput($event)" (nzCleared)="onMedicineTreeCleared()"
+                            (nzExpandChange)="onMedicineNodeExpand($event)"
+                            (nzTreeClick)="onMedicineNodeClick($event)"></nz-tree-select>
+                        <button nz-button nzType="default" type="button" (click)="openCameraScanner()">
+                            <span nz-icon nzType="camera"></span>
+                            <span>Quét camera</span>
+                        </button>
                         <button nz-button nzType="default" type="button" (click)="openMedicinePopup()">
-                <span nz-icon nzType="user-add"></span>
-                <span>Thêm thuốc mới</span>
-              </button>
+                            <span nz-icon nzType="file-add"></span>
+                            <span>Thêm thuốc mới</span>
+                        </button>
                     </div>
                     <div class="subtle" *ngIf="!loadingMedicineTree && medicineImportTreeNodes.length === 0">
                         Chưa có thuốc nào để hiển thị.
                     </div>
+                    <ng-template #medicineTreeTemplate let-node let-origin="origin">
+                        <span>{{ origin['displayTitle'] || node.title }}</span>
+                    </ng-template>
                 </form>
 
                 <nz-table [nzData]="billItems" [nzShowPagination]="false" nzSize="middle">
@@ -52,7 +54,8 @@
                     <tbody>
                         <tr *ngFor="let item of billItems; index as i">
                             <td>
-                                <img *ngIf="item.imageUrl" [src]="item.imageUrl" alt="Ảnh sản phẩm" class="medicine-thumb" />
+                                <img *ngIf="item.imageUrl" [src]="item.imageUrl" alt="Ảnh sản phẩm"
+                                    class="medicine-thumb" />
                                 <span *ngIf="!item.imageUrl" class="subtle">Chưa có</span>
                             </td>
                             <td>
@@ -61,20 +64,27 @@
                             </td>
                             <td class="text-right">
                                 <div class="qty-actions">
-                                    <button nz-button nzType="default" nzSize="small" (click)="decreaseQty(i)">-</button>
-                                    <input #qtyInput nz-input type="number" [ngModel]="item.quantity" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onQtyInput(i, $event, qtyInput)" min="1" [max]="item.maxQuantity" step="1" class="qty-input" />
-                                    <button nz-button nzType="default" nzSize="small" (click)="increaseQty(i)">+</button>
+                                    <button nz-button nzType="default" nzSize="small"
+                                        (click)="decreaseQty(i)">-</button>
+                                    <input #qtyInput nz-input type="number" [ngModel]="item.quantity"
+                                        [ngModelOptions]="{ standalone: true }"
+                                        (ngModelChange)="onQtyInput(i, $event, qtyInput)" min="1"
+                                        [max]="item.maxQuantity" step="1" class="qty-input" />
+                                    <button nz-button nzType="default" nzSize="small"
+                                        (click)="increaseQty(i)">+</button>
                                 </div>
                             </td>
                             <td class="text-right">
-                                <nz-input-number [ngModel]="item.price" [ngModelOptions]="{ standalone: true }" (ngModelChange)="updatePrice(i, $event)" [nzMin]="0" [nzStep]="1000" class="price-input"></nz-input-number>
+                                <nz-input-number [ngModel]="item.price" [ngModelOptions]="{ standalone: true }"
+                                    (ngModelChange)="updatePrice(i, $event)" [nzMin]="0" [nzStep]="1000"
+                                    class="price-input"></nz-input-number>
                             </td>
                             <td class="text-right">{{ item.price * item.quantity | number }} đ</td>
                             <td class="text-right">
                                 <button nz-button nzType="text" nzDanger (click)="removeItem(i)">
-                  <span nz-icon nzType="delete"></span>
-                  Xóa
-                </button>
+                                    <span nz-icon nzType="delete"></span>
+                                    Xóa
+                                </button>
                             </td>
                         </tr>
                     </tbody>
@@ -82,9 +92,9 @@
 
                 <div class="table-footer">
                     <button nz-button nzType="default" nzDanger (click)="clearBill()">
-                  <span nz-icon nzType="delete"></span>
-                  <span>Xóa tất cả</span>
-                </button>
+                        <span nz-icon nzType="delete"></span>
+                        <span>Xóa tất cả</span>
+                    </button>
                     <span>{{ billItems.length }} mặt hàng</span>
                 </div>
             </nz-card>
@@ -93,13 +103,16 @@
                 <nz-card nzTitle="Thông tin khách hàng">
                     <form [formGroup]="customerForm" class="stack-12">
                         <div class="customer-actions">
-                            <nz-select formControlName="customerId" nzShowSearch nzAllowClear nzPlaceHolder="Chọn khách hàng" class="customer-select">
-                                <nz-option *ngFor="let customer of customerOptions" [nzLabel]="customer.name + ' - ' + customer.phone" [nzValue]="customer.id"></nz-option>
+                            <nz-select formControlName="customerId" nzShowSearch nzAllowClear
+                                nzPlaceHolder="Chọn khách hàng" class="customer-select">
+                                <nz-option *ngFor="let customer of customerOptions"
+                                    [nzLabel]="customer.name + ' - ' + customer.phone"
+                                    [nzValue]="customer.id"></nz-option>
                             </nz-select>
                             <button nz-button nzType="default" type="button" (click)="openCreateCustomerPopup()">
-                <span nz-icon nzType="user-add"></span>
-                <span>Thêm mới</span>
-              </button>
+                                <span nz-icon nzType="user-add"></span>
+                                <span>Thêm mới</span>
+                            </button>
                         </div>
 
                         <input nz-input formControlName="phone" placeholder="Số điện thoại" readonly />
@@ -114,38 +127,45 @@
                             <nz-option nzLabel="Chuyển khoản QR" nzValue="BANK_QR"></nz-option>
                         </nz-select>
 
-                        <div class="row-between"><span>Tổng tiền hàng</span><strong>{{ subtotal | number }} đ</strong></div>
+                        <div class="row-between"><span>Tổng tiền hàng</span><strong>{{ subtotal | number }} đ</strong>
+                        </div>
                         <nz-divider></nz-divider>
 
                         <label>Giảm giá</label>
-                        <nz-input-number formControlName="discount" [nzMin]="0" [nzStep]="1000" class="w-full"></nz-input-number>
+                        <nz-input-number formControlName="discount" [nzMin]="0" [nzStep]="1000"
+                            class="w-full"></nz-input-number>
 
                         <label>Tiền khách đưa</label>
-                        <nz-input-number formControlName="amountPaid" [nzMin]="0" [nzStep]="1000" class="w-full"></nz-input-number>
+                        <nz-input-number formControlName="amountPaid" [nzMin]="0" [nzStep]="1000"
+                            class="w-full"></nz-input-number>
 
                         <div *ngIf="paymentForm.controls.paymentMode.value === 'BANK_QR'" class="qr-box">
                             <button nz-button nzType="default" type="button" (click)="generatePaymentQr()">
-                  <span nz-icon nzType="qrcode"></span>
-                  <span>Tạo lại mã QR</span>
-                </button>
+                                <span nz-icon nzType="qrcode"></span>
+                                <span>Tạo lại mã QR</span>
+                            </button>
                             <img *ngIf="qrCodeUrl" [src]="qrCodeUrl" alt="QR thanh toán" class="qr-image" />
                             <div class="subtle" *ngIf="qrTransferNote">Nội dung chuyển khoản: {{ qrTransferNote }}</div>
                         </div>
 
-                        <div class="row-between"><span>Cần thu</span><strong>{{ totalNeedPay | number }} đ</strong></div>
-                        <div class="row-between"><span>Tiền thừa</span><strong [class.negative]="returnAmount < 0">{{ returnAmount | number }} đ</strong></div>
+                        <div class="row-between"><span>Cần thu</span><strong>{{ totalNeedPay | number }} đ</strong>
+                        </div>
+                        <div class="row-between"><span>Tiền thừa</span><strong [class.negative]="returnAmount < 0">{{
+                                returnAmount | number }} đ</strong></div>
 
-                        <button nz-button nzType="primary" nzBlock [nzLoading]="checkoutLoading" [disabled]="checkoutLoading" type="submit">
-              <span nz-icon nzType="check-circle"></span>
-              <span>Xác nhận thanh toán</span>
-            </button>
+                        <button nz-button nzType="primary" nzBlock [nzLoading]="checkoutLoading"
+                            [disabled]="checkoutLoading" type="submit">
+                            <span nz-icon nzType="check-circle"></span>
+                            <span>Xác nhận thanh toán</span>
+                        </button>
                     </form>
                 </nz-card>
             </div>
         </div>
     </main>
 
-    <nz-modal [nzVisible]="isCameraScannerOpen" nzTitle="Quét mã bằng camera" [nzFooter]="null" (nzOnCancel)="closeCameraScanner()">
+    <nz-modal [nzVisible]="isCameraScannerOpen" nzTitle="Quét mã bằng camera" [nzFooter]="null"
+        (nzOnCancel)="closeCameraScanner()">
         <ng-container *nzModalContent>
             <div class="camera-scan-wrap">
                 <video #barcodeVideo class="camera-video" muted autoplay></video>
@@ -158,7 +178,8 @@
         </ng-container>
     </nz-modal>
 
-    <nz-modal [nzVisible]="scanBatchSelectOpen" nzTitle="Chọn lô nhập" [nzFooter]="null" (nzOnCancel)="closeScanBatchSelectModal()">
+    <nz-modal [nzVisible]="scanBatchSelectOpen" nzTitle="Chọn lô nhập" [nzFooter]="null"
+        (nzOnCancel)="closeScanBatchSelectModal()">
         <ng-container *nzModalContent>
             <p class="subtle">
                 Thuốc <strong>{{ scanBatchSelectMedicineName }}</strong> có nhiều lô còn hàng. Vui lòng chọn lô để bán.
@@ -177,15 +198,19 @@
                 <tbody>
                     <tr *ngFor="let item of scanBatchSelectImports">
                         <td>
-                            <img *ngIf="getMedicineImageUrl(item.medicineId)" [src]="getMedicineImageUrl(item.medicineId)!" alt="Ảnh sản phẩm" class="medicine-thumb" />
+                            <img *ngIf="getMedicineImageUrl(item.medicineId)"
+                                [src]="getMedicineImageUrl(item.medicineId)!" alt="Ảnh sản phẩm"
+                                class="medicine-thumb" />
                             <span *ngIf="!getMedicineImageUrl(item.medicineId)" class="subtle">Chưa có</span>
                         </td>
                         <td>{{ item.batchCode }}</td>
                         <td class="text-right">{{ item.quantity }}</td>
-                        <td class="text-right">{{ (item.sellPrice > 0 ? item.sellPrice : item.importPrice) | number }} đ</td>
+                        <td class="text-right">{{ (item.sellPrice > 0 ? item.sellPrice : item.importPrice) | number }} đ
+                        </td>
                         <td>{{ item.expiryDate || 'Không xác định' }}</td>
                         <td class="text-right">
-                            <button nz-button nzType="primary" nzSize="small" (click)="selectImportFromScan(item.id)">Chọn</button>
+                            <button nz-button nzType="primary" nzSize="small"
+                                (click)="selectImportFromScan(item.id)">Chọn</button>
                         </td>
                     </tr>
                 </tbody>
@@ -193,7 +218,8 @@
         </ng-container>
     </nz-modal>
 
-    <app-popup-khach-hang [open]="customerPopupOpen" [editingCustomer]="null" (closePopup)="closeCustomerPopup()" (customerSaved)="onCustomerSaved($event)"></app-popup-khach-hang>
+    <app-popup-khach-hang [open]="customerPopupOpen" [editingCustomer]="null" (closePopup)="closeCustomerPopup()"
+        (customerSaved)="onCustomerSaved($event)"></app-popup-khach-hang>
 
     <ng-template #medicinePopupHost></ng-template>
     <ng-template #importPopupHost></ng-template>
