@@ -224,6 +224,41 @@
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15);
 }
 
+.quick-invoice-fab {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 35;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 16px;
+    border-radius: 999px;
+    border: 1px solid #0d9488;
+    background: linear-gradient(135deg, #14b8a6, #0f766e);
+    color: #ffffff;
+    text-decoration: none;
+    box-shadow: 0 12px 28px rgba(15, 118, 110, 0.32);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.quick-invoice-fab:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px rgba(15, 118, 110, 0.36);
+}
+
+.quick-invoice-fab [nz-icon] {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.fab-label {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+}
+
 .menu-backdrop {
     position: fixed;
     inset: 0;
@@ -232,6 +267,20 @@
 }
 
 @media (max-width: 1024px) {
+    .quick-invoice-fab {
+        right: 14px;
+        bottom: 14px;
+        width: 46px;
+        height: 46px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    .fab-label {
+        display: none;
+    }
+
     .app-sider {
         width: 260px !important;
         height: 100dvh;

@@ -2,6 +2,18 @@
   <span nz-icon [nzType]="isMenuOpen ? 'menu-fold' : 'menu-unfold'"></span>
 </button>
 
+<a
+  *ngIf="showCreateInvoiceFab"
+  class="quick-invoice-fab"
+  [routerLink]="'/hoa-don'"
+  (click)="closeMobileMenu()"
+  aria-label="Tạo hóa đơn nhanh"
+  title="Tạo hóa đơn nhanh"
+>
+  <span nz-icon nzType="file-add"></span>
+  <span class="fab-label">Tạo hóa đơn</span>
+</a>
+
 <div *ngIf="isMobile && isMenuOpen" class="menu-backdrop" (click)="closeMobileMenu()"></div>
 
 <nz-sider

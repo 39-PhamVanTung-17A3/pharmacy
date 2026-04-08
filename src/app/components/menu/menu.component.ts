@@ -1,6 +1,6 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { ROLE_LABELS, parseNhanVienRole } from '../../models/role.enum';
@@ -28,6 +28,7 @@ interface MenuSection {
 })
 export class MenuComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   isMenuOpen = true;
   isMobile = false;
@@ -100,6 +101,14 @@ export class MenuComponent implements OnInit {
 
   get showFloatingToggle(): boolean {
     return this.isMobile || !this.isMenuOpen;
+  }
+
+  get showCreateInvoiceFab(): boolean {
+    return this.can('PERM_INVOICE_MANAGE') && !this.isInvoicePage;
+  }
+
+  private get isInvoicePage(): boolean {
+    return this.router.url.split('?')[0] === '/hoa-don';
   }
 
   get siderWidth(): number {
