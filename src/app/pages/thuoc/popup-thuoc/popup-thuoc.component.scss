@@ -57,6 +57,19 @@
   gap: 8px;
 }
 
+.image-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.camera-action-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .medicine-preview-image {
   width: 140px;
   height: 140px;

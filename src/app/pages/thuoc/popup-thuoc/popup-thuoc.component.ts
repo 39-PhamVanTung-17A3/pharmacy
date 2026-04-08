@@ -64,10 +64,15 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
   cameraScannerStarting = false;
   selectedImageFile: File | null = null;
   imagePreviewUrl: string | null = null;
+  isImageCameraOpen = false;
+  imageCameraError = '';
+  imageCameraStarting = false;
   private localImagePreviewObjectUrl: string | null = null;
 
   @ViewChild('barcodeVideo') barcodeVideo?: ElementRef<HTMLVideoElement>;
+  @ViewChild('imageCameraVideo') imageCameraVideo?: ElementRef<HTMLVideoElement>;
   private cameraStream: MediaStream | null = null;
+  private imageCameraStream: MediaStream | null = null;
   private cameraScannerSession: CameraScannerSession | null = null;
 
   readonly form = this.fb.group({
@@ -91,12 +96,14 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
     }
     if (changes['open'] && !this.open) {
       this.closeCameraScanner();
+      this.closeImageCamera();
       this.clearImageSelection();
     }
   }
 
   ngOnDestroy(): void {
     this.stopCameraScanner();
+    this.stopImageCamera();
     this.clearImageSelection();
   }
 
@@ -105,6 +112,7 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
     this.closeCameraScanner();
+    this.closeImageCamera();
     this.clearImageSelection();
     this.closePopup.emit();
   }
@@ -165,6 +173,81 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
     this.revokeLocalImagePreviewObjectUrl();
     this.localImagePreviewObjectUrl = URL.createObjectURL(file);
     this.imagePreviewUrl = this.localImagePreviewObjectUrl;
+  }
+
+  async openImageCamera(): Promise<void> {
+    if (!window.isSecureContext) {
+      this.notification.warning(
+        'Cảnh báo',
+        'Trang hiện không bảo mật (HTTP). Hãy dùng HTTPS hoặc localhost để mở camera.'
+      );
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this.notification.warning('Cảnh báo', 'Thiết bị không hỗ trợ truy cập camera');
+      return;
+    }
+
+    this.isImageCameraOpen = true;
+    this.imageCameraError = '';
+    this.imageCameraStarting = true;
+    setTimeout(() => {
+      void this.startImageCamera();
+    }, 0);
+  }
+
+  closeImageCamera(): void {
+    this.stopImageCamera();
+    this.isImageCameraOpen = false;
+    this.imageCameraStarting = false;
+  }
+
+  async captureImageFromCamera(): Promise<void> {
+    const video = this.imageCameraVideo?.nativeElement;
+    if (!video) {
+      this.imageCameraError = 'Không tìm thấy khung camera để chụp ảnh.';
+      return;
+    }
+
+    if (video.videoWidth <= 0 || video.videoHeight <= 0) {
+      this.imageCameraError = 'Camera chưa sẵn sàng. Vui lòng thử lại.';
+      return;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
+    if (!context) {
+      this.imageCameraError = 'Không thể xử lý ảnh vừa chụp.';
+      return;
+    }
+
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob((result) => resolve(result), 'image/jpeg', 0.92);
+    });
+
+    if (!blob) {
+      this.imageCameraError = 'Không thể tạo file ảnh từ camera.';
+      return;
+    }
+
+    const maxSizeInBytes = 5 * 1024 * 1024;
+    if (blob.size > maxSizeInBytes) {
+      this.imageCameraError = 'Ảnh chụp vượt quá 5MB. Vui lòng thử lại.';
+      return;
+    }
+
+    const fileName = `medicine-camera-${Date.now()}.jpg`;
+    const capturedFile = new File([blob], fileName, { type: 'image/jpeg' });
+    this.selectedImageFile = capturedFile;
+    this.revokeLocalImagePreviewObjectUrl();
+    this.localImagePreviewObjectUrl = URL.createObjectURL(capturedFile);
+    this.imagePreviewUrl = this.localImagePreviewObjectUrl;
+    this.closeImageCamera();
   }
 
   async save(): Promise<void> {
@@ -301,6 +384,44 @@ export class PopupThuocComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     const video = this.barcodeVideo?.nativeElement;
+    if (video) {
+      video.pause();
+      video.srcObject = null;
+    }
+  }
+
+  private async startImageCamera(): Promise<void> {
+    const video = this.imageCameraVideo?.nativeElement;
+    if (!video) {
+      this.imageCameraError = 'Không mở được camera. Vui lòng thử lại.';
+      this.imageCameraStarting = false;
+      return;
+    }
+
+    try {
+      this.imageCameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false
+      });
+      video.srcObject = this.imageCameraStream;
+      video.setAttribute('playsinline', 'true');
+      await video.play();
+      this.imageCameraError = '';
+    } catch (error) {
+      this.imageCameraError = getCameraAccessErrorMessage(error);
+      console.error('Start image camera o popup thuoc failed', error);
+    } finally {
+      this.imageCameraStarting = false;
+    }
+  }
+
+  private stopImageCamera(): void {
+    if (this.imageCameraStream) {
+      this.imageCameraStream.getTracks().forEach((track) => track.stop());
+      this.imageCameraStream = null;
+    }
+
+    const video = this.imageCameraVideo?.nativeElement;
     if (video) {
       video.pause();
       video.srcObject = null;
