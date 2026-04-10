@@ -20,6 +20,11 @@ import { getErrorMessage } from '../../../../utils/error.util';
 import { NhapHang, NhapHangService } from '../../../nhap-hang/nhap-hang.service';
 import { Thuoc, ThuocService } from '../../../thuoc/thuoc.service';
 
+export interface SelectedMedicineImportPayload {
+  importItem: NhapHang;
+  imageUrl: string | null;
+}
+
 @Component({
   selector: 'app-medicine-import-tree-select',
   standalone: true,
@@ -82,6 +87,11 @@ import { Thuoc, ThuocService } from '../../../thuoc/thuoc.service';
           transform: scale(3);
         }
       }
+
+      :host ::ng-deep .ant-select-tree-list {
+        max-height: 360px;
+        overflow-y: auto;
+      }
     `
   ],
   providers: [
@@ -99,11 +109,15 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
 
   @Input() placeholder = 'Chọn thuốc theo lô nhập';
   @Input() reloadToken = 0;
-  @Output() importSelected = new EventEmitter<NhapHang>();
+  @Output() importSelected = new EventEmitter<SelectedMedicineImportPayload>();
 
   @ViewChild('medicineTreeSelect') medicineTreeSelect?: NzTreeSelectComponent;
 
   medicineImportTreeNodes: NzTreeNodeOptions[] = [];
+  readonly medicineDropdownStyle: Record<string, string> = {
+    maxHeight: '420px',
+    overflowY: 'auto'
+  };
   allMedicineTreeNodes: NzTreeNodeOptions[] = [];
   expandedMedicineKeys: string[] = [];
   medicineTreeOpen = false;
@@ -111,6 +125,7 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
   loadingMedicineTree = false;
 
   private importOptionsById = new Map<number, NhapHang>();
+  private medicineImageById = new Map<number, string | null>();
   private medicineSearchTokensById = new Map<number, string>();
   private loadedMedicineNodeKeys = new Set<string>();
   private loadingMedicineNodeKeys = new Set<string>();
@@ -199,7 +214,11 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
       return;
     }
 
-    this.importSelected.emit(selectedImport);
+    const imageUrl = this.medicineImageById.get(selectedImport.medicineId) ?? null;
+    this.importSelected.emit({
+      importItem: selectedImport,
+      imageUrl
+    });
 
     // Keep select ready for next quick add.
     this.selectedImportKey = null;
@@ -363,6 +382,7 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
       const pageData = await this.thuocService.findAll(1, 1000);
       const medicines = pageData.items;
       this.medicineSearchTokensById.clear();
+      this.medicineImageById.clear();
 
       this.allMedicineTreeNodes = medicines.map((medicine: Thuoc) => {
         const hasStock = medicine.totalQuantity > 0;
@@ -375,6 +395,7 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
           .join(' ');
         const searchableTitle = searchTokens ? `${displayTitle} ${searchTokens}` : displayTitle;
         this.medicineSearchTokensById.set(medicine.id, searchTokens);
+        this.medicineImageById.set(medicine.id, medicine.imageUrl ?? null);
         return {
           key: `medicine-${medicine.id}`,
           title: searchableTitle,

@@ -28,7 +28,10 @@ import { NhapHang, NhapHangService } from '../nhap-hang/nhap-hang.service';
 import { PopupNhapHangComponent } from '../nhap-hang/popup-nhap-hang/popup-nhap-hang.component';
 import { Thuoc, ThuocService } from '../thuoc/thuoc.service';
 import { PopupThuocComponent } from '../thuoc/popup-thuoc/popup-thuoc.component';
-import { MedicineImportTreeSelectComponent } from './components/medicine-import-tree-select/medicine-import-tree-select.component';
+import {
+  MedicineImportTreeSelectComponent,
+  SelectedMedicineImportPayload
+} from './components/medicine-import-tree-select/medicine-import-tree-select.component';
 import { HoaDon, HoaDonItemRequest, HoaDonService } from './hoa-don.service';
 
 interface BillItem {
@@ -460,6 +463,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
 
     try {
       const medicine = await this.thuocService.findByBarcode(barcode);
+      this.medicineImageById.set(medicine.id, medicine.imageUrl ?? null);
       if ((medicine.totalQuantity ?? 0) <= 0) {
         const message = `Thuốc ${medicine.name} đã hết hàng`;
         this.barcodeBlockedReasonByValue.set(normalizedBarcode, message);
@@ -587,9 +591,10 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       this.loadingCustomers = false;
     }
   }
-  onMedicineImportSelected(selectedImport: NhapHang): void {
-    this.importOptionsById.set(selectedImport.id, selectedImport);
-    this.onImportOrderSelected(`import-${selectedImport.id}`);
+  onMedicineImportSelected(payload: SelectedMedicineImportPayload): void {
+    this.importOptionsById.set(payload.importItem.id, payload.importItem);
+    this.medicineImageById.set(payload.importItem.medicineId, payload.imageUrl ?? null);
+    this.onImportOrderSelected(`import-${payload.importItem.id}`);
   }
 
   private triggerMedicineTreeReload(): void {

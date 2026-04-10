@@ -34,7 +34,7 @@
         <nz-table [nzData]="billItems" [nzShowPagination]="false" nzSize="middle">
           <thead>
             <tr>
-              <th>Ảnh</th>
+              <th class="image-col">Ảnh</th>
               <th>Sản phẩm</th>
               <th class="text-right">Số lượng</th>
               <th class="text-right">Đơn giá bán</th>
@@ -44,7 +44,7 @@
           </thead>
           <tbody>
             <tr *ngFor="let item of billItems; index as i" [class.product-row-error]="isBillItemInvalid(item)">
-              <td>
+              <td class="image-col">
                 <img *ngIf="item.imageUrl" [src]="item.imageUrl" alt="Ảnh sản phẩm" class="medicine-thumb" />
                 <span *ngIf="!item.imageUrl" class="subtle">Chưa có</span>
               </td>
