@@ -24,6 +24,34 @@
     margin-bottom: 16px;
 }
 
+.workspace-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.workspace-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+}
+
+.workspace-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.workspace-close {
+    font-size: 12px;
+    opacity: 0.75;
+}
+
 .bill-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
@@ -285,6 +313,13 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
+    }
+    .workspace-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .workspace-list {
+        width: 100%;
     }
     .bill-grid,
     .medicine-pane,

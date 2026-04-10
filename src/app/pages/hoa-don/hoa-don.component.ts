@@ -55,6 +55,19 @@ interface HoaDonDraftData {
   paymentMode: PaymentMode;
   discount: number;
   amountPaid: number;
+  currentInvoiceCode?: string;
+  qrCodeUrl?: string | null;
+  qrTransferNote?: string;
+}
+
+interface HoaDonWorkspaceDraftData extends HoaDonDraftData {
+  id: number;
+  title: string;
+}
+
+interface HoaDonMultiDraftData {
+  activeWorkspaceId: number;
+  workspaces: HoaDonWorkspaceDraftData[];
 }
 
 @Component({
@@ -87,6 +100,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   private static readonly BARCODE_API_COOLDOWN_MS = 5000;
   private static readonly BARCODE_NOTIFICATION_COOLDOWN_MS = 1200;
   private static readonly DRAFT_STORAGE_KEY = 'hoa_don_draft_v1';
+  private static readonly MAX_WORKSPACES = 4;
 
   private readonly fb = inject(FormBuilder);
   private readonly nhapHangService = inject(NhapHangService);
@@ -130,6 +144,8 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   scanBatchSelectMedicineName = '';
   scanBatchSelectImports: NhapHang[] = [];
   lastPrintedInvoice: HoaDon | null = null;
+  workspaces: HoaDonWorkspaceDraftData[] = [];
+  activeWorkspaceId: number | null = null;
 
   billItems: BillItem[] = [];
   @ViewChild('barcodeVideo') barcodeVideo?: ElementRef<HTMLVideoElement>;
@@ -144,6 +160,8 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   private saleImportsCacheLoadingPromise: Promise<void> | null = null;
   private medicinePopupRef: ComponentRef<PopupThuocComponent> | null = null;
   private importPopupRef: ComponentRef<PopupNhapHangComponent> | null = null;
+  private applyingWorkspace = false;
+  private nextWorkspaceId = 1;
 
   async ngOnInit(): Promise<void> {
     this.customerForm.controls.customerId.valueChanges.subscribe((customerId) => {
@@ -160,6 +178,9 @@ export class HoaDonComponent implements OnInit, OnDestroy {
 
     await this.loadCustomers();
     this.restoreDraftFromStorage();
+    if (this.workspaces.length === 0) {
+      this.addWorkspace();
+    }
   }
 
   ngOnDestroy(): void {
@@ -192,6 +213,73 @@ export class HoaDonComponent implements OnInit, OnDestroy {
 
   get hasInvalidBillItems(): boolean {
     return this.billItems.some((item) => this.isBillItemInvalid(item));
+  }
+
+  get canAddWorkspace(): boolean {
+    return this.workspaces.length < HoaDonComponent.MAX_WORKSPACES;
+  }
+
+  addWorkspace(): void {
+    if (!this.canAddWorkspace) {
+      this.notification.warning('Cảnh báo', `Chỉ tạo tối đa ${HoaDonComponent.MAX_WORKSPACES} hóa đơn cùng lúc`);
+      return;
+    }
+
+    this.persistCurrentWorkspaceState();
+    const workspaceId = this.nextWorkspaceId++;
+    const workspace: HoaDonWorkspaceDraftData = {
+      id: workspaceId,
+      title: `Hóa đơn ${this.workspaces.length + 1}`,
+      ...this.createEmptyDraft()
+    };
+    this.workspaces = [...this.workspaces, workspace];
+    this.activateWorkspace(workspaceId);
+    this.saveDraftToStorage();
+  }
+
+  activateWorkspace(workspaceId: number): void {
+    if (this.activeWorkspaceId === workspaceId) {
+      return;
+    }
+
+    this.persistCurrentWorkspaceState();
+    const target = this.workspaces.find((item) => item.id === workspaceId);
+    if (!target) {
+      return;
+    }
+    this.activeWorkspaceId = workspaceId;
+    this.applyWorkspaceState(target);
+  }
+
+  closeWorkspace(workspaceId: number, event?: MouseEvent): void {
+    event?.stopPropagation();
+    if (this.workspaces.length <= 1) {
+      this.clearBill();
+      return;
+    }
+
+    this.persistCurrentWorkspaceState();
+    const closingIndex = this.workspaces.findIndex((item) => item.id === workspaceId);
+    if (closingIndex < 0) {
+      return;
+    }
+
+    const nextWorkspaces = this.workspaces.filter((item) => item.id !== workspaceId);
+    this.workspaces = nextWorkspaces.map((item, index) => ({
+      ...item,
+      title: `Hóa đơn ${index + 1}`
+    }));
+
+    if (this.activeWorkspaceId === workspaceId) {
+      const nextIndex = Math.min(closingIndex, this.workspaces.length - 1);
+      const nextActive = this.workspaces[nextIndex];
+      this.activeWorkspaceId = nextActive?.id ?? null;
+      if (nextActive) {
+        this.applyWorkspaceState(nextActive);
+      }
+    }
+
+    this.saveDraftToStorage();
   }
 
   increaseQty(index: number): void {
@@ -254,8 +342,19 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.qrCodeUrl = null;
     this.qrTransferNote = '';
     this.currentInvoiceCode = 'Tự động';
+    this.paymentForm.patchValue({
+      paymentMode: 'CASH',
+      discount: 0,
+      amountPaid: 0
+    });
+    this.customerForm.patchValue({
+      customerId: null,
+      phone: ''
+    });
+    this.handlePaymentModeChange('CASH');
     this.syncAmountPaidWithTotalNeedPay();
-    this.clearDraftStorage();
+    this.persistCurrentWorkspaceState();
+    this.saveDraftToStorage();
   }
 
   async submitCheckout(): Promise<void> {
@@ -299,6 +398,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
 
       this.currentInvoiceCode = savedInvoice.code;
       this.lastPrintedInvoice = savedInvoice;
+      this.saveDraftToStorage();
       this.notification.success('Thành công', `Thanh toán hóa đơn ${savedInvoice.code} thành công`);
 
       this.showPrintConfirmDialog();
@@ -693,11 +793,6 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   private async resetAfterCheckout(): Promise<void> {
     this.clearBill();
     this.lastPrintedInvoice = null;
-    this.paymentForm.patchValue({
-      paymentMode: 'CASH',
-      discount: 0,
-      amountPaid: 0
-    });
     this.saleForm.patchValue({
       selectedImportKey: null
     });
@@ -706,14 +801,14 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   }
 
   private saveDraftToStorage(): void {
+    if (this.applyingWorkspace) {
+      return;
+    }
+    this.persistCurrentWorkspaceState();
     try {
-      const draft: HoaDonDraftData = {
-        billItems: this.billItems,
-        customerId: this.customerForm.controls.customerId.value ?? null,
-        customerPhone: this.customerForm.controls.phone.value ?? '',
-        paymentMode: this.paymentForm.controls.paymentMode.value,
-        discount: Number(this.paymentForm.controls.discount.value) || 0,
-        amountPaid: Number(this.paymentForm.controls.amountPaid.value) || 0
+      const draft: HoaDonMultiDraftData = {
+        activeWorkspaceId: this.activeWorkspaceId ?? (this.workspaces[0]?.id ?? 0),
+        workspaces: this.workspaces
       };
       localStorage.setItem(HoaDonComponent.DRAFT_STORAGE_KEY, JSON.stringify(draft));
     } catch {
@@ -728,30 +823,35 @@ export class HoaDonComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const parsed = JSON.parse(rawDraft) as Partial<HoaDonDraftData>;
-      if (Array.isArray(parsed.billItems)) {
-        this.billItems = parsed.billItems;
+      const parsed = JSON.parse(rawDraft) as Partial<HoaDonMultiDraftData & HoaDonDraftData>;
+      if (Array.isArray(parsed.workspaces) && parsed.workspaces.length > 0) {
+        this.workspaces = parsed.workspaces
+          .slice(0, HoaDonComponent.MAX_WORKSPACES)
+          .map((workspace, index) => ({
+            id: Number(workspace.id) || index + 1,
+            title: workspace.title || `Hóa đơn ${index + 1}`,
+            ...this.normalizeDraft(workspace)
+          }));
+
+        this.nextWorkspaceId = this.workspaces.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1;
+        const preferredId = Number(parsed.activeWorkspaceId) || this.workspaces[0].id;
+        const firstWorkspace = this.workspaces.find((item) => item.id === preferredId) ?? this.workspaces[0];
+        this.activeWorkspaceId = firstWorkspace.id;
+        this.applyWorkspaceState(firstWorkspace);
+        return;
       }
 
-      this.customerForm.patchValue(
-        {
-          customerId: parsed.customerId ?? null,
-          phone: parsed.customerPhone ?? ''
-        },
-        { emitEvent: false }
-      );
-
-      this.paymentForm.patchValue(
-        {
-          paymentMode: parsed.paymentMode === 'BANK_QR' ? 'BANK_QR' : 'CASH',
-          discount: Number(parsed.discount) || 0,
-          amountPaid: Number(parsed.amountPaid) || 0
-        },
-        { emitEvent: false }
-      );
-
-      this.handlePaymentModeChange(this.paymentForm.controls.paymentMode.value);
-      this.syncAmountPaidWithTotalNeedPay();
+      if (Array.isArray(parsed.billItems)) {
+        const singleWorkspace: HoaDonWorkspaceDraftData = {
+          id: 1,
+          title: 'Hóa đơn 1',
+          ...this.normalizeDraft(parsed)
+        };
+        this.workspaces = [singleWorkspace];
+        this.nextWorkspaceId = 2;
+        this.activeWorkspaceId = 1;
+        this.applyWorkspaceState(singleWorkspace);
+      }
     } catch {
       this.clearDraftStorage();
     }
@@ -763,6 +863,91 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     } catch {
       // Ignore browser storage failures.
     }
+  }
+
+  private createEmptyDraft(): HoaDonDraftData {
+    return {
+      billItems: [],
+      customerId: null,
+      customerPhone: '',
+      paymentMode: 'CASH',
+      discount: 0,
+      amountPaid: 0,
+      currentInvoiceCode: 'Tự động',
+      qrCodeUrl: null,
+      qrTransferNote: ''
+    };
+  }
+
+  private normalizeDraft(raw: Partial<HoaDonDraftData>): HoaDonDraftData {
+    const fallback = this.createEmptyDraft();
+    return {
+      billItems: Array.isArray(raw.billItems) ? raw.billItems : fallback.billItems,
+      customerId: raw.customerId ?? fallback.customerId,
+      customerPhone: raw.customerPhone ?? fallback.customerPhone,
+      paymentMode: raw.paymentMode === 'BANK_QR' ? 'BANK_QR' : 'CASH',
+      discount: Number(raw.discount) || 0,
+      amountPaid: Number(raw.amountPaid) || 0,
+      currentInvoiceCode: raw.currentInvoiceCode || fallback.currentInvoiceCode,
+      qrCodeUrl: raw.qrCodeUrl ?? fallback.qrCodeUrl,
+      qrTransferNote: raw.qrTransferNote ?? fallback.qrTransferNote
+    };
+  }
+
+  private persistCurrentWorkspaceState(): void {
+    if (this.applyingWorkspace || this.activeWorkspaceId === null) {
+      return;
+    }
+    const index = this.workspaces.findIndex((item) => item.id === this.activeWorkspaceId);
+    if (index < 0) {
+      return;
+    }
+
+    const current = this.workspaces[index];
+    const updated: HoaDonWorkspaceDraftData = {
+      ...current,
+      billItems: this.billItems,
+      customerId: this.customerForm.controls.customerId.value ?? null,
+      customerPhone: this.customerForm.controls.phone.value ?? '',
+      paymentMode: this.paymentForm.controls.paymentMode.value,
+      discount: Number(this.paymentForm.controls.discount.value) || 0,
+      amountPaid: Number(this.paymentForm.controls.amountPaid.value) || 0,
+      currentInvoiceCode: this.currentInvoiceCode,
+      qrCodeUrl: this.qrCodeUrl,
+      qrTransferNote: this.qrTransferNote
+    };
+    const next = [...this.workspaces];
+    next[index] = updated;
+    this.workspaces = next;
+  }
+
+  private applyWorkspaceState(workspace: HoaDonWorkspaceDraftData): void {
+    this.applyingWorkspace = true;
+    this.billItems = [...workspace.billItems];
+    this.currentInvoiceCode = workspace.currentInvoiceCode || 'Tự động';
+    this.qrCodeUrl = workspace.qrCodeUrl ?? null;
+    this.qrTransferNote = workspace.qrTransferNote ?? '';
+    this.lastPrintedInvoice = null;
+
+    this.customerForm.patchValue(
+      {
+        customerId: workspace.customerId ?? null,
+        phone: workspace.customerPhone ?? ''
+      },
+      { emitEvent: false }
+    );
+
+    this.paymentForm.patchValue(
+      {
+        paymentMode: workspace.paymentMode === 'BANK_QR' ? 'BANK_QR' : 'CASH',
+        discount: Number(workspace.discount) || 0,
+        amountPaid: Number(workspace.amountPaid) || 0
+      },
+      { emitEvent: false }
+    );
+    this.applyingWorkspace = false;
+    this.handlePaymentModeChange(this.paymentForm.controls.paymentMode.value);
+    this.syncAmountPaidWithTotalNeedPay();
   }
 
   private openScanBatchSelectModal(medicineName: string, imports: NhapHang[]): void {

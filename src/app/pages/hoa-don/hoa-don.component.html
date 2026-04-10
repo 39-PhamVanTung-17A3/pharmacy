@@ -10,6 +10,31 @@
       <strong>Mã đơn: {{ currentInvoiceCode }}</strong>
     </header>
 
+    <div class="workspace-bar">
+      <div class="workspace-list">
+        <button
+          *ngFor="let workspace of workspaces"
+          nz-button
+          [nzType]="workspace.id === activeWorkspaceId ? 'primary' : 'default'"
+          class="workspace-btn"
+          (click)="activateWorkspace(workspace.id)"
+        >
+          <span nz-icon nzType="file-text"></span>
+          <span>{{ workspace.title }}</span>
+          <span
+            nz-icon
+            nzType="close"
+            class="workspace-close"
+            (click)="closeWorkspace(workspace.id, $event)"
+          ></span>
+        </button>
+      </div>
+      <button nz-button nzType="dashed" [disabled]="!canAddWorkspace" (click)="addWorkspace()">
+        <span nz-icon nzType="plus"></span>
+        <span>Tạo hóa đơn</span>
+      </button>
+    </div>
+
     <div class="bill-grid">
       <div class="medicine-pane">
         <nz-card nzTitle="Chọn thuốc cho hóa đơn" class="medicine-select-pane">
