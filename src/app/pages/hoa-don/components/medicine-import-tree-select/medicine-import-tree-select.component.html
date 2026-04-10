@@ -23,5 +23,14 @@
 <div class="subtle" *ngIf="showEmptyHint">Chưa có thuốc nào để hiển thị.</div>
 
 <ng-template #medicineTreeTemplate let-node let-origin="origin">
-  <span>{{ origin['displayTitle'] || node.title }}</span>
+  <span class="tree-node-label">
+    <img
+      *ngIf="isMedicineNode(origin) && origin['imageUrl']"
+      [src]="toStringValue(origin['imageUrl'])"
+      alt="Medicine image"
+      class="tree-node-thumb"
+    />
+    <span *ngIf="isMedicineNode(origin) && !origin['imageUrl']" class="tree-node-thumb tree-node-thumb--placeholder">N/A</span>
+    <span>{{ origin['displayTitle'] || node.title }}</span>
+  </span>
 </ng-template>

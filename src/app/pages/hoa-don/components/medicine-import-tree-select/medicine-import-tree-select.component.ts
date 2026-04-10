@@ -25,6 +25,65 @@ import { Thuoc, ThuocService } from '../../../thuoc/thuoc.service';
   standalone: true,
   imports: [CommonModule, FormsModule, NzTreeSelectModule],
   templateUrl: './medicine-import-tree-select.component.html',
+  styles: [
+    `
+      .tree-node-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .tree-node-thumb {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        object-fit: cover;
+        border: 1px solid #dbeafe;
+        cursor: zoom-in;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transform-origin: center;
+        position: relative;
+        z-index: 1;
+        background: #ffffff;
+      }
+
+      .tree-node-thumb:hover {
+        transform: scale(2.8);
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.22);
+        z-index: 10;
+      }
+
+      .tree-node-thumb:active {
+        transform: scale(3.2);
+        z-index: 11;
+      }
+
+      .tree-node-thumb--placeholder {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        color: #64748b;
+        background: #f8fafc;
+        border-style: dashed;
+        cursor: default;
+      }
+
+      @media (max-width: 768px) {
+        .tree-node-thumb {
+          transform-origin: left center;
+        }
+
+        .tree-node-thumb:hover {
+          transform: scale(2.5);
+        }
+
+        .tree-node-thumb:active {
+          transform: scale(3);
+        }
+      }
+    `
+  ],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -91,6 +150,14 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
     const displayTitle = typeof node?.origin?.['displayTitle'] === 'string' ? (node.origin['displayTitle'] as string) : '';
     return displayTitle || String(node?.title ?? '');
   };
+
+  isMedicineNode(origin: Record<string, unknown> | null | undefined): boolean {
+    return String(origin?.['key'] ?? '').startsWith('medicine-');
+  }
+
+  toStringValue(value: unknown): string {
+    return String(value ?? '');
+  }
 
   onMedicineTreeOpenChange(isOpen: boolean): void {
     this.medicineTreeOpen = isOpen;
@@ -313,6 +380,7 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
           title: searchableTitle,
           displayTitle,
           searchText: searchableTitle,
+          imageUrl: medicine.imageUrl,
           selectable: false,
           isLeaf: !hasStock,
           disabled: false,
