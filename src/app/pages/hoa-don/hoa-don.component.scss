@@ -21,15 +21,15 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
 }
 
 .workspace-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin-bottom: 8px;
 }
 
 .workspace-list {
@@ -37,7 +37,7 @@
     align-items: center;
     gap: 8px;
     overflow-x: auto;
-    padding-bottom: 2px;
+    padding: 2px 0;
 }
 
 .workspace-btn {
@@ -45,11 +45,45 @@
     align-items: center;
     gap: 6px;
     white-space: nowrap;
+    height: 34px;
+    border-radius: 999px;
+    border: 1px solid #d9d9d9;
+    background: #fff;
+    padding: 0 10px;
+    transition: all 0.2s ease;
+}
+
+.workspace-btn:hover {
+    border-color: #4096ff;
+    color: #1677ff;
+    box-shadow: 0 2px 8px rgba(22, 119, 255, 0.14);
+}
+
+.workspace-btn.ant-btn-primary {
+    border-color: #1677ff;
+    background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%);
+    box-shadow: 0 4px 12px rgba(22, 119, 255, 0.22);
+}
+
+.workspace-btn.ant-btn-primary:hover {
+    border-color: #0958d9;
+    background: linear-gradient(135deg, #0958d9 0%, #1677ff 100%);
 }
 
 .workspace-close {
     font-size: 12px;
-    opacity: 0.75;
+    opacity: 0.8;
+    border-radius: 50%;
+    padding: 2px;
+    transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.workspace-btn:hover .workspace-close {
+    opacity: 1;
+}
+
+.workspace-btn .workspace-close:hover {
+    background: rgba(0, 0, 0, 0.08);
 }
 
 .bill-grid {
@@ -66,6 +100,11 @@
 :host ::ng-deep .bill-grid .ant-card {
     width: 100%;
     max-width: 100%;
+}
+
+:host ::ng-deep .bill-grid .ant-card-body {
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 .summary-col {
@@ -312,14 +351,17 @@
     .page-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+        gap: 6px;
     }
     .workspace-bar {
         flex-direction: column;
         align-items: stretch;
+        gap: 8px;
+        margin-bottom: 6px;
     }
     .workspace-list {
         width: 100%;
+        padding-top: 0;
     }
     .bill-grid,
     .medicine-pane,
