@@ -28,6 +28,7 @@ import { NhapHang, NhapHangService } from '../nhap-hang/nhap-hang.service';
 import { PopupNhapHangComponent } from '../nhap-hang/popup-nhap-hang/popup-nhap-hang.component';
 import { Thuoc, ThuocService } from '../thuoc/thuoc.service';
 import { PopupThuocComponent } from '../thuoc/popup-thuoc/popup-thuoc.component';
+import { LotPickerPopupComponent } from './components/lot-picker-popup/lot-picker-popup.component';
 import {
   MedicineImportTreeSelectComponent,
   SelectedMedicineImportPayload
@@ -67,6 +68,7 @@ type PaymentMode = 'CASH' | 'BANK_QR';
     NzPopconfirmModule,
     NzSelectModule,
     NzTableModule,
+    LotPickerPopupComponent,
     MedicineImportTreeSelectComponent
   ],
   templateUrl: './hoa-don.component.html',
@@ -507,10 +509,6 @@ export class HoaDonComponent implements OnInit, OnDestroy {
   selectImportFromScan(importId: number): void {
     this.onImportOrderSelected(`import-${importId}`);
     this.closeScanBatchSelectModal();
-  }
-
-  getMedicineImageUrl(medicineId: number): string | null {
-    return this.medicineImageById.get(medicineId) ?? null;
   }
 
   async openCameraScanner(): Promise<void> {

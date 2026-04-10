@@ -42,6 +42,11 @@
     min-width: 0;
 }
 
+.medicine-pane,
+.customer-pane {
+    min-height: 0;
+}
+
 .text-right {
     text-align: right;
 }
@@ -93,13 +98,31 @@
 
 .medicine-select-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
-    align-items: end;
+    align-items: start;
 }
 
 .medicine-select-row app-medicine-import-tree-select {
     width: 100%;
+}
+
+.medicine-action-column {
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 8px;
+}
+
+.medicine-action-column button {
+    width: 100%;
+    white-space: nowrap;
+}
+
+.selected-items-title {
+    margin: 4px 0 10px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
 }
 
 .camera-scan-wrap {
@@ -206,6 +229,32 @@
 @media (max-width: 1200px) {
     .bill-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 1201px) {
+    .main-content {
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .bill-grid {
+        flex: 1 1 auto;
+        min-height: 0;
+        align-items: stretch;
+    }
+
+    .page-header {
+        flex: 0 0 auto;
+    }
+
+    .medicine-pane,
+    .customer-pane {
+        height: 100%;
+        overflow-y: auto;
+        padding-right: 4px;
     }
 }
 

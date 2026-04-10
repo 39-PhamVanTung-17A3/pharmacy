@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -13,87 +13,33 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { NzTreeNodeOptions } from 'ng-zorro-antd/core/tree';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzFormatEmitEvent } from 'ng-zorro-antd/tree';
 import { NzTreeSelectComponent, NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
-import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { getErrorMessage } from '../../../../utils/error.util';
 import { NhapHang, NhapHangService } from '../../../nhap-hang/nhap-hang.service';
 import { Thuoc, ThuocService } from '../../../thuoc/thuoc.service';
+import { LotPickerPopupComponent } from '../lot-picker-popup/lot-picker-popup.component';
 
 export interface SelectedMedicineImportPayload {
   importItem: NhapHang;
   imageUrl: string | null;
 }
 
+interface MedicineOptionItem {
+  id: number;
+  name: string;
+  searchText: string;
+  imageUrl: string | null;
+  totalQuantity: number;
+}
+
 @Component({
   selector: 'app-medicine-import-tree-select',
   standalone: true,
-  imports: [CommonModule, FormsModule, NzTreeSelectModule],
+  imports: [CommonModule, FormsModule, NzTreeSelectModule, LotPickerPopupComponent],
   templateUrl: './medicine-import-tree-select.component.html',
-  styles: [
-    `
-      .tree-node-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .tree-node-thumb {
-        width: 22px;
-        height: 22px;
-        border-radius: 6px;
-        object-fit: cover;
-        border: 1px solid #dbeafe;
-        cursor: zoom-in;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        transform-origin: center;
-        position: relative;
-        z-index: 1;
-        background: #ffffff;
-      }
-
-      .tree-node-thumb:hover {
-        transform: scale(2.8);
-        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.22);
-        z-index: 10;
-      }
-
-      .tree-node-thumb:active {
-        transform: scale(3.2);
-        z-index: 11;
-      }
-
-      .tree-node-thumb--placeholder {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 9px;
-        color: #64748b;
-        background: #f8fafc;
-        border-style: dashed;
-        cursor: default;
-      }
-
-      @media (max-width: 768px) {
-        .tree-node-thumb {
-          transform-origin: left center;
-        }
-
-        .tree-node-thumb:hover {
-          transform: scale(2.5);
-        }
-
-        .tree-node-thumb:active {
-          transform: scale(3);
-        }
-      }
-
-      :host ::ng-deep .ant-select-tree-list {
-        max-height: 360px;
-        overflow-y: auto;
-      }
-    `
-  ],
+  styleUrl: './medicine-import-tree-select.component.scss',
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -113,6 +59,20 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
 
   @ViewChild('medicineTreeSelect') medicineTreeSelect?: NzTreeSelectComponent;
 
+  selectionMode: 'modern' | 'tree' = 'modern';
+  medicineKeyword = '';
+  medicineOptions: MedicineOptionItem[] = [];
+  filteredMedicineOptions: MedicineOptionItem[] = [];
+  visibleMedicineCount = 24;
+  readonly modernPageSize = 24;
+  loadingMedicineTree = false;
+  quickAddingMedicineId: number | null = null;
+
+  importPickerOpen = false;
+  importPickerMedicineName = '';
+  importPickerImports: NhapHang[] = [];
+  importPickerLoading = false;
+
   medicineImportTreeNodes: NzTreeNodeOptions[] = [];
   readonly medicineDropdownStyle: Record<string, string> = {
     maxHeight: '420px',
@@ -122,10 +82,10 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
   expandedMedicineKeys: string[] = [];
   medicineTreeOpen = false;
   medicineTreeSearchKeyword = '';
-  loadingMedicineTree = false;
 
   private importOptionsById = new Map<number, NhapHang>();
   private medicineImageById = new Map<number, string | null>();
+  private importsByMedicineId = new Map<number, NhapHang[]>();
   private medicineSearchTokensById = new Map<number, string>();
   private loadedMedicineNodeKeys = new Set<string>();
   private loadingMedicineNodeKeys = new Set<string>();
@@ -161,6 +121,31 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
     this.disabled = isDisabled;
   }
 
+  get isDisabled(): boolean {
+    return this.disabled;
+  }
+
+  get showEmptyHint(): boolean {
+    return !this.loadingMedicineTree && this.medicineImportTreeNodes.length === 0;
+  }
+
+  get showModernEmptyHint(): boolean {
+    return !this.loadingMedicineTree && this.filteredMedicineOptions.length === 0;
+  }
+
+  get visibleMedicineOptions(): MedicineOptionItem[] {
+    return this.filteredMedicineOptions.slice(0, this.visibleMedicineCount);
+  }
+
+  get hasMoreMedicineToShow(): boolean {
+    return this.visibleMedicineCount < this.filteredMedicineOptions.length;
+  }
+
+  trackByMedicineId(_: number, item: MedicineOptionItem): number {
+    return item.id;
+  }
+
+
   displayMedicineNode = (node: { origin?: Record<string, unknown>; title?: string | null }): string => {
     const displayTitle = typeof node?.origin?.['displayTitle'] === 'string' ? (node.origin['displayTitle'] as string) : '';
     return displayTitle || String(node?.title ?? '');
@@ -172,6 +157,79 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
 
   toStringValue(value: unknown): string {
     return String(value ?? '');
+  }
+
+  setSelectionMode(mode: 'modern' | 'tree'): void {
+    this.selectionMode = mode;
+  }
+
+  onMedicineKeywordInput(event: Event): void {
+    const target = event?.target as HTMLInputElement | null;
+    this.medicineKeyword = target?.value ?? '';
+    this.applyModernMedicineFilter();
+  }
+
+  onModernGridScroll(event: Event): void {
+    if (!this.hasMoreMedicineToShow) {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    if (!target) {
+      return;
+    }
+
+    const remaining = target.scrollHeight - target.scrollTop - target.clientHeight;
+    if (remaining > 80) {
+      return;
+    }
+
+    this.visibleMedicineCount += this.modernPageSize;
+  }
+
+  async onModernMedicinePick(item: MedicineOptionItem): Promise<void> {
+    if (this.isDisabled || this.quickAddingMedicineId !== null) {
+      return;
+    }
+
+    this.quickAddingMedicineId = item.id;
+    try {
+      const imports = await this.ensureMedicineImportsLoaded(item.id);
+      if (imports.length === 0) {
+        this.notification.warning('Cảnh báo', 'Thuốc này chưa có lô bán khả dụng');
+        return;
+      }
+
+      if (imports.length === 1) {
+        this.emitSelectedImport(imports[0]);
+        return;
+      }
+
+      const lotQuantityOverOneCount = imports.filter((importItem) => importItem.quantity > 1).length;
+      if (lotQuantityOverOneCount > 1) {
+        this.openImportPicker(item, imports);
+        return;
+      }
+
+      this.emitSelectedImport(imports[0]);
+    } finally {
+      this.quickAddingMedicineId = null;
+    }
+  }
+
+  closeImportPicker(): void {
+    this.importPickerOpen = false;
+    this.importPickerMedicineName = '';
+    this.importPickerImports = [];
+    this.importPickerLoading = false;
+  }
+
+  onImportPickerSelect(importItem: NhapHang): void {
+    if (this.isDisabled) {
+      return;
+    }
+    this.emitSelectedImport(importItem);
+    this.closeImportPicker();
   }
 
   onMedicineTreeOpenChange(isOpen: boolean): void {
@@ -214,18 +272,7 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
       return;
     }
 
-    const imageUrl = this.medicineImageById.get(selectedImport.medicineId) ?? null;
-    this.importSelected.emit({
-      importItem: selectedImport,
-      imageUrl
-    });
-
-    // Keep select ready for next quick add.
-    this.selectedImportKey = null;
-    this.onChange(null);
-    this.medicineTreeSelect?.onClearSelection();
-    this.medicineTreeSelect?.setInputValue('');
-    this.medicineTreeOpen = false;
+    this.emitSelectedImport(selectedImport);
   }
 
   async onMedicineNodeExpand(event: NzFormatEmitEvent): Promise<void> {
@@ -270,6 +317,12 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
     if (nextExpanded) {
       await this.ensureMedicineNodeChildrenLoaded(medicineKey);
     }
+  }
+
+  private openImportPicker(medicine: MedicineOptionItem, imports: NhapHang[]): void {
+    this.importPickerMedicineName = medicine.name;
+    this.importPickerImports = imports;
+    this.importPickerOpen = true;
   }
 
   private getSingleImportKeyForMedicineNode(medicineKey: string): string | null {
@@ -324,6 +377,32 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
     });
   }
 
+  private applyModernMedicineFilter(): void {
+    const normalizedSearch = this.normalizeTreeSearchText(this.medicineKeyword);
+    const source = this.medicineOptions.filter((item) => item.totalQuantity > 0);
+
+    if (!normalizedSearch) {
+      this.filteredMedicineOptions = source;
+    } else {
+      this.filteredMedicineOptions = source.filter((item) =>
+        this.normalizeTreeSearchText(item.searchText).includes(normalizedSearch)
+      );
+    }
+
+    this.visibleMedicineCount = this.modernPageSize;
+  }
+
+  private async ensureMedicineImportsLoaded(medicineId: number): Promise<NhapHang[]> {
+    const cached = this.importsByMedicineId.get(medicineId);
+    if (cached) {
+      return cached;
+    }
+
+    const medicineKey = `medicine-${medicineId}`;
+    await this.ensureMedicineNodeChildrenLoaded(medicineKey);
+    return this.importsByMedicineId.get(medicineId) ?? [];
+  }
+
   private async ensureMedicineNodeChildrenLoaded(medicineKey: string): Promise<void> {
     this.syncMedicineTreeKeywordFromInput();
 
@@ -339,10 +418,12 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
     this.loadingMedicineNodeKeys.add(medicineKey);
     try {
       const imports = await this.nhapHangService.findSaleImportsByMedicineId(medicineId);
-      imports.forEach((item) => this.importOptionsById.set(item.id, item));
-      const medicineSearchTokens = this.medicineSearchTokensById.get(medicineId) ?? '';
+      const sortedImports = this.sortImports(imports);
+      sortedImports.forEach((item) => this.importOptionsById.set(item.id, item));
+      this.importsByMedicineId.set(medicineId, sortedImports);
 
-      const children: NzTreeNodeOptions[] = imports.map((item) => {
+      const medicineSearchTokens = this.medicineSearchTokensById.get(medicineId) ?? '';
+      const children: NzTreeNodeOptions[] = sortedImports.map((item) => {
         const displayTitle = `- Lô ${item.batchCode} (Kho: ${item.quantity})`;
         const searchableTitle = medicineSearchTokens ? `${displayTitle} ${medicineSearchTokens}` : displayTitle;
         return {
@@ -366,7 +447,6 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
       });
 
       this.applyMedicineTreeFilter();
-
       this.loadedMedicineNodeKeys.add(medicineKey);
     } catch (error) {
       const message = getErrorMessage(error, 'Không tải được danh sách lô nhập của thuốc');
@@ -381,8 +461,11 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
     try {
       const pageData = await this.thuocService.findAll(1, 1000);
       const medicines = pageData.items;
+
       this.medicineSearchTokensById.clear();
       this.medicineImageById.clear();
+      this.importsByMedicineId.clear();
+      this.medicineOptions = [];
 
       this.allMedicineTreeNodes = medicines.map((medicine: Thuoc) => {
         const hasStock = medicine.totalQuantity > 0;
@@ -394,8 +477,17 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
           .filter((value, index, array) => value && array.indexOf(value) === index)
           .join(' ');
         const searchableTitle = searchTokens ? `${displayTitle} ${searchTokens}` : displayTitle;
+
         this.medicineSearchTokensById.set(medicine.id, searchTokens);
         this.medicineImageById.set(medicine.id, medicine.imageUrl ?? null);
+        this.medicineOptions.push({
+          id: medicine.id,
+          name: medicine.name,
+          searchText: searchableTitle,
+          imageUrl: medicine.imageUrl ?? null,
+          totalQuantity: medicine.totalQuantity
+        });
+
         return {
           key: `medicine-${medicine.id}`,
           title: searchableTitle,
@@ -410,31 +502,60 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
       });
 
       this.applyMedicineTreeFilter();
+      this.applyModernMedicineFilter();
 
       this.importOptionsById.clear();
       this.loadedMedicineNodeKeys.clear();
       this.loadingMedicineNodeKeys.clear();
       this.expandedMedicineKeys = [];
+      this.closeImportPicker();
     } catch (error) {
       const message = getErrorMessage(error, 'Không tải được danh sách thuốc');
       this.notification.error('Thất bại', message);
       this.medicineImportTreeNodes = [];
       this.allMedicineTreeNodes = [];
+      this.medicineOptions = [];
+      this.filteredMedicineOptions = [];
       this.importOptionsById.clear();
       this.medicineSearchTokensById.clear();
+      this.importsByMedicineId.clear();
       this.loadedMedicineNodeKeys.clear();
       this.loadingMedicineNodeKeys.clear();
       this.expandedMedicineKeys = [];
+      this.closeImportPicker();
     } finally {
       this.loadingMedicineTree = false;
     }
   }
 
-  get showEmptyHint(): boolean {
-    return !this.loadingMedicineTree && this.medicineImportTreeNodes.length === 0;
+  private emitSelectedImport(selectedImport: NhapHang): void {
+    const selectedKey = `import-${selectedImport.id}`;
+    this.selectedImportKey = selectedKey;
+    this.onChange(selectedKey);
+    this.onTouched();
+
+    const imageUrl = this.medicineImageById.get(selectedImport.medicineId) ?? null;
+    this.importSelected.emit({
+      importItem: selectedImport,
+      imageUrl
+    });
+
+    this.selectedImportKey = null;
+    this.onChange(null);
+    this.medicineTreeSelect?.onClearSelection();
+    this.medicineTreeSelect?.setInputValue('');
+    this.medicineTreeOpen = false;
   }
 
-  get isDisabled(): boolean {
-    return this.disabled;
+  private sortImports(imports: NhapHang[]): NhapHang[] {
+    return [...imports].sort((a, b) => {
+      const expiryA = a.expiryDate ? new Date(a.expiryDate).getTime() : Number.MAX_SAFE_INTEGER;
+      const expiryB = b.expiryDate ? new Date(b.expiryDate).getTime() : Number.MAX_SAFE_INTEGER;
+      if (expiryA !== expiryB) {
+        return expiryA - expiryB;
+      }
+      return new Date(a.importedAt).getTime() - new Date(b.importedAt).getTime();
+    });
   }
 }
+

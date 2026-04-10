@@ -1,36 +1,96 @@
-<nz-tree-select
-  #medicineTreeSelect
-  [ngModel]="selectedImportKey"
-  (ngModelChange)="onTreeModelChange($event)"
-  [nzNodes]="medicineImportTreeNodes"
-  [nzExpandedKeys]="expandedMedicineKeys"
-  [nzOpen]="medicineTreeOpen"
-  (nzOpenChange)="onMedicineTreeOpenChange($event)"
-  [nzTreeTemplate]="medicineTreeTemplate"
-  [nzDisplayWith]="displayMedicineNode"
-  [nzDropdownStyle]="medicineDropdownStyle"
-  [nzHideUnMatched]="false"
-  [nzDisabled]="isDisabled"
-  nzShowSearch
-  nzAllowClear
-  [nzPlaceHolder]="placeholder"
-  class="w-full"
-  (input)="onMedicineTreeInput($event)"
-  (nzCleared)="onMedicineTreeCleared()"
-  (nzExpandChange)="onMedicineNodeExpand($event)"
-  (nzTreeClick)="onMedicineNodeClick($event)">
-</nz-tree-select>
+﻿<div class="mode-toggle-row">
+  <button type="button" class="mode-toggle-btn" [class.active]="selectionMode === 'modern'" (click)="setSelectionMode('modern')">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <rect x="1" y="1" width="4" height="4" stroke="currentColor" />
+      <rect x="7" y="1" width="4" height="4" stroke="currentColor" />
+      <rect x="1" y="7" width="4" height="4" stroke="currentColor" />
+      <rect x="7" y="7" width="4" height="4" stroke="currentColor" />
+    </svg>
+    <span>Kiểu lưới</span>
+  </button>
+  <button type="button" class="mode-toggle-btn" [class.active]="selectionMode === 'tree'" (click)="setSelectionMode('tree')">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path d="M6 1V11M6 3H2M6 6H3M6 9H4" stroke="currentColor" stroke-linecap="round" />
+    </svg>
+    <span>Kiểu cây</span>
+  </button>
+</div>
 
-<div class="subtle" *ngIf="showEmptyHint">Chưa có thuốc nào để hiển thị.</div>
+<ng-container *ngIf="selectionMode === 'modern'; else treeModeTpl">
+  <input
+    type="text"
+    class="modern-search-input"
+    [value]="medicineKeyword"
+    (input)="onMedicineKeywordInput($event)"
+    [disabled]="isDisabled"
+    placeholder="Tìm theo tên thuốc hoặc mã vạch..."
+  />
+
+  <div class="modern-grid-wrap" (scroll)="onModernGridScroll($event)">
+    <div class="modern-grid" *ngIf="!showModernEmptyHint">
+      <div
+        class="modern-card"
+        [class.disabled]="isDisabled || quickAddingMedicineId === item.id"
+        *ngFor="let item of visibleMedicineOptions; trackBy: trackByMedicineId"
+        (click)="onModernMedicinePick(item)"
+      >
+        <div class="modern-card-top">
+          <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.name" class="modern-thumb" />
+          <span *ngIf="!item.imageUrl" class="modern-thumb placeholder">N/A</span>
+          <div>
+            <div class="modern-name">{{ item.name }}</div>
+            <div class="modern-stock">Tồn: {{ item.totalQuantity }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modern-empty" *ngIf="showModernEmptyHint">Không có thuốc phù hợp để hiển thị.</div>
+    <div class="modern-loading-more" *ngIf="hasMoreMedicineToShow">Cuộn xuống để tải thêm...</div>
+  </div>
+
+  <app-lot-picker-popup
+    [open]="importPickerOpen"
+    [title]="'Chọn lô thuốc'"
+    [subtitle]="'Thuốc ' + importPickerMedicineName + ' có nhiều lô khả dụng. Vui lòng chọn lô để thêm.'"
+    [imports]="importPickerImports"
+    [disabled]="isDisabled"
+    (close)="closeImportPicker()"
+    (pick)="onImportPickerSelect($event)"
+  ></app-lot-picker-popup>
+</ng-container>
+
+<ng-template #treeModeTpl>
+  <nz-tree-select
+    #medicineTreeSelect
+    [ngModel]="selectedImportKey"
+    (ngModelChange)="onTreeModelChange($event)"
+    [nzNodes]="medicineImportTreeNodes"
+    [nzExpandedKeys]="expandedMedicineKeys"
+    [nzOpen]="medicineTreeOpen"
+    (nzOpenChange)="onMedicineTreeOpenChange($event)"
+    [nzTreeTemplate]="medicineTreeTemplate"
+    [nzDisplayWith]="displayMedicineNode"
+    [nzDropdownStyle]="medicineDropdownStyle"
+    [nzHideUnMatched]="false"
+    [nzDisabled]="isDisabled"
+    nzShowSearch
+    nzAllowClear
+    [nzPlaceHolder]="placeholder"
+    class="w-full"
+    (input)="onMedicineTreeInput($event)"
+    (nzCleared)="onMedicineTreeCleared()"
+    (nzExpandChange)="onMedicineNodeExpand($event)"
+    (nzTreeClick)="onMedicineNodeClick($event)"
+  >
+  </nz-tree-select>
+
+  <div class="subtle" *ngIf="showEmptyHint">Chưa có thuốc nào để hiển thị.</div>
+</ng-template>
 
 <ng-template #medicineTreeTemplate let-node let-origin="origin">
   <span class="tree-node-label">
-    <img
-      *ngIf="isMedicineNode(origin) && origin['imageUrl']"
-      [src]="toStringValue(origin['imageUrl'])"
-      alt="Medicine image"
-      class="tree-node-thumb"
-    />
+    <img *ngIf="isMedicineNode(origin) && origin['imageUrl']" [src]="toStringValue(origin['imageUrl'])" alt="Ảnh thuốc" class="tree-node-thumb" />
     <span *ngIf="isMedicineNode(origin) && !origin['imageUrl']" class="tree-node-thumb tree-node-thumb--placeholder">N/A</span>
     <span>{{ origin['displayTitle'] || node.title }}</span>
   </span>

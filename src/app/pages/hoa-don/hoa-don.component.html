@@ -11,7 +11,7 @@
     </header>
 
     <div class="bill-grid">
-      <nz-card nzTitle="Danh sách sản phẩm">
+      <nz-card nzTitle="Chọn thuốc cho hóa đơn" class="medicine-pane">
         <form [formGroup]="saleForm" class="mb-12 stack-12">
           <div class="medicine-select-row">
             <app-medicine-import-tree-select
@@ -20,17 +20,20 @@
               [reloadToken]="medicineTreeReloadToken"
               (importSelected)="onMedicineImportSelected($event)"
             ></app-medicine-import-tree-select>
-            <button nz-button nzType="default" type="button" (click)="openCameraScanner()">
-              <span nz-icon nzType="camera"></span>
-              <span>Quét camera</span>
-            </button>
-            <button nz-button nzType="default" type="button" (click)="openMedicinePopup()">
-              <span nz-icon nzType="file-add"></span>
-              <span>Thêm thuốc mới</span>
-            </button>
+            <div class="medicine-action-column">
+              <button nz-button nzType="default" type="button" (click)="openCameraScanner()">
+                <span nz-icon nzType="camera"></span>
+                <span>Quét camera</span>
+              </button>
+              <button nz-button nzType="default" type="button" (click)="openMedicinePopup()">
+                <span nz-icon nzType="file-add"></span>
+                <span>Thêm thuốc mới</span>
+              </button>
+            </div>
           </div>
         </form>
 
+        <h3 class="selected-items-title">Danh sách sản phẩm đã chọn mua</h3>
         <nz-table [nzData]="billItems" [nzShowPagination]="false" nzSize="middle">
           <thead>
             <tr>
@@ -111,7 +114,7 @@
         </div>
       </nz-card>
 
-      <div class="summary-col">
+      <div class="summary-col customer-pane">
         <nz-card nzTitle="Thông tin khách hàng">
           <form [formGroup]="customerForm" class="stack-12">
             <div class="customer-actions">
@@ -193,40 +196,15 @@
     </ng-container>
   </nz-modal>
 
-  <nz-modal [nzVisible]="scanBatchSelectOpen" nzTitle="Chọn lô nhập" [nzFooter]="null" (nzOnCancel)="closeScanBatchSelectModal()">
-    <ng-container *nzModalContent>
-      <p class="subtle">
-        Thuốc <strong>{{ scanBatchSelectMedicineName }}</strong> có nhiều lô còn hàng. Vui lòng chọn lô để bán.
-      </p>
-      <nz-table [nzData]="scanBatchSelectImports" [nzShowPagination]="false" nzSize="small">
-        <thead>
-          <tr>
-            <th>Ảnh</th>
-            <th>Lô nhập</th>
-            <th class="text-right">Tồn kho</th>
-            <th class="text-right">Giá áp dụng</th>
-            <th>Hạn dùng</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of scanBatchSelectImports">
-            <td>
-              <img *ngIf="getMedicineImageUrl(item.medicineId)" [src]="getMedicineImageUrl(item.medicineId)!" alt="Ảnh sản phẩm" class="medicine-thumb" />
-              <span *ngIf="!getMedicineImageUrl(item.medicineId)" class="subtle">Chưa có</span>
-            </td>
-            <td>{{ item.batchCode }}</td>
-            <td class="text-right">{{ item.quantity }}</td>
-            <td class="text-right">{{ (item.sellPrice > 0 ? item.sellPrice : item.importPrice) | number }} đ</td>
-            <td>{{ item.expiryDate || 'Không xác định' }}</td>
-            <td class="text-right">
-              <button nz-button nzType="primary" nzSize="small" (click)="selectImportFromScan(item.id)">Chọn</button>
-            </td>
-          </tr>
-        </tbody>
-      </nz-table>
-    </ng-container>
-  </nz-modal>
+  <app-lot-picker-popup
+    [open]="scanBatchSelectOpen"
+    [title]="'Chọn lô nhập'"
+    [subtitle]="'Thuốc ' + scanBatchSelectMedicineName + ' có nhiều lô còn hàng. Vui lòng chọn lô để bán.'"
+    [imports]="scanBatchSelectImports"
+    [disabled]="false"
+    (close)="closeScanBatchSelectModal()"
+    (pick)="selectImportFromScan($event.id)"
+  ></app-lot-picker-popup>
 
   <app-popup-khach-hang
     [open]="customerPopupOpen"

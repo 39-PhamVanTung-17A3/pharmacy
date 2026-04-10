@@ -1,0 +1,166 @@
+﻿
+      .lot-picker-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.42);
+        backdrop-filter: blur(2px);
+        z-index: 1200;
+      }
+
+      .lot-picker-modal {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(920px, calc(100vw - 16px));
+        max-height: calc(100dvh - 20px);
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        background: #ffffff;
+        box-shadow: 0 30px 60px rgba(15, 23, 42, 0.25);
+        z-index: 1201;
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .lot-picker-header {
+        padding: 10px 12px 9px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+      }
+
+      .lot-picker-title {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.2;
+        color: #0f172a;
+      }
+
+      .lot-picker-sub {
+        margin: 4px 0 0;
+        color: #64748b;
+        font-size: 13px;
+      }
+
+      .lot-picker-close {
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: #ffffff;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        color: #334155;
+      }
+
+      .lot-picker-list {
+        padding: 10px;
+        overflow-y: auto;
+        display: grid;
+        gap: 8px;
+        background: #f8fafc;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .lot-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 8px;
+        background: #ffffff;
+        display: grid;
+        gap: 8px;
+      }
+
+      .lot-item-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+        font-size: 13px;
+        color: #334155;
+      }
+
+      .lot-label {
+        color: #64748b;
+      }
+
+      .lot-value {
+        color: #0f172a;
+        font-weight: 600;
+      }
+
+      .lot-price {
+        color: #1677ff;
+        font-weight: 700;
+      }
+
+      .lot-item-cta {
+        display: inline-flex;
+        justify-content: flex-end;
+      }
+
+      .lot-pick-btn {
+        border: 1px solid #1677ff;
+        border-radius: 10px;
+        background: #1677ff;
+        color: #fff;
+        height: 30px;
+        padding: 0 12px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .lot-pick-btn:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+
+      .lot-empty {
+        color: #64748b;
+        font-size: 13px;
+        background: #ffffff;
+        border: 1px dashed #cbd5e1;
+        border-radius: 10px;
+        padding: 12px;
+        text-align: center;
+      }
+
+      @media (max-width: 640px) {
+        .lot-picker-modal {
+          width: calc(100vw - 12px);
+          max-height: calc(100dvh - 12px);
+          border-radius: 12px;
+        }
+
+        .lot-picker-header {
+          padding: 10px;
+        }
+
+        .lot-picker-title {
+          font-size: 16px;
+        }
+
+        .lot-picker-list {
+          padding: 10px;
+          gap: 8px;
+          grid-template-columns: 1fr;
+        }
+
+        .lot-item-grid {
+          grid-template-columns: 1fr;
+          gap: 6px;
+        }
+
+        .lot-item-cta {
+          justify-content: stretch;
+        }
+
+        .lot-pick-btn {
+          width: 100%;
+        }
+      }
+    

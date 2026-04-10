@@ -1,0 +1,39 @@
+﻿<div class="lot-picker-backdrop" *ngIf="open" (click)="onClose()"></div>
+<section class="lot-picker-modal" *ngIf="open">
+  <header class="lot-picker-header">
+    <div>
+      <h3 class="lot-picker-title">{{ title }}</h3>
+      <p class="lot-picker-sub" *ngIf="subtitle">{{ subtitle }}</p>
+    </div>
+    <button type="button" class="lot-picker-close" aria-label="Đóng" (click)="onClose()">✕</button>
+  </header>
+
+  <div class="lot-picker-list">
+    <div class="lot-item" *ngFor="let item of imports; trackBy: trackByImportId">
+      <div class="lot-item-grid">
+        <div>
+          <span class="lot-label">Lô: </span>
+          <span class="lot-value">{{ item.batchCode }}</span>
+        </div>
+        <div>
+          <span class="lot-label">Hạn dùng: </span>
+          <span class="lot-value">{{ item.expiryDate || 'Không xác định' }}</span>
+        </div>
+        <div>
+          <span class="lot-label">Tồn kho: </span>
+          <span class="lot-value">{{ item.quantity }}</span>
+        </div>
+        <div>
+          <span class="lot-label">Giá áp dụng: </span>
+          <span class="lot-price">{{ getDisplayPrice(item) | number }} đ</span>
+        </div>
+      </div>
+
+      <div class="lot-item-cta">
+        <button type="button" class="lot-pick-btn" [disabled]="disabled" (click)="onPick(item)">Chọn lô này</button>
+      </div>
+    </div>
+
+    <div class="lot-empty" *ngIf="imports.length === 0">Không có lô khả dụng.</div>
+  </div>
+</section>
