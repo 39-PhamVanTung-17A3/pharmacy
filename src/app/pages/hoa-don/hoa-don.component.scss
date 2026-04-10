@@ -159,6 +159,29 @@
     background: #fff;
 }
 
+.product-row-error td {
+    background: #fff1f0;
+}
+
+.item-error-text {
+    color: #cf1322;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.payment-warning {
+    color: #cf1322;
+    font-size: 14px;
+}
+
+:host ::ng-deep .payment-card .ant-card-body {
+    font-size: 16px;
+}
+
+:host ::ng-deep .payment-card .ant-input-number-input {
+    font-size: 16px;
+}
+
 @media (max-width: 1200px) {
     .bill-grid {
         grid-template-columns: 1fr;
