@@ -35,6 +35,11 @@
     min-width: 0;
 }
 
+:host ::ng-deep .bill-grid .ant-card {
+    width: 100%;
+    max-width: 100%;
+}
+
 .summary-col {
     display: grid;
     gap: 16px;
@@ -45,6 +50,12 @@
 .medicine-pane,
 .customer-pane {
     min-height: 0;
+}
+
+.medicine-pane {
+    display: grid;
+    gap: 12px;
+    align-content: start;
 }
 
 .text-right {
@@ -98,31 +109,13 @@
 
 .medicine-select-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
     align-items: start;
 }
 
 .medicine-select-row app-medicine-import-tree-select {
     width: 100%;
-}
-
-.medicine-action-column {
-    display: grid;
-    grid-template-rows: auto auto;
-    gap: 8px;
-}
-
-.medicine-action-column button {
-    width: 100%;
-    white-space: nowrap;
-}
-
-.selected-items-title {
-    margin: 4px 0 10px;
-    font-size: 16px;
-    font-weight: 700;
-    color: #1f2937;
 }
 
 .camera-scan-wrap {
@@ -144,6 +137,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.selected-table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .stack-12 {
@@ -226,6 +225,16 @@
     font-size: 16px;
 }
 
+:host ::ng-deep .bill-grid .ant-card-head {
+    min-height: 44px;
+    padding: 0 14px;
+}
+
+:host ::ng-deep .bill-grid .ant-card-head-title {
+    padding: 10px 0;
+    font-size: 18px;
+}
+
 @media (max-width: 1200px) {
     .bill-grid {
         grid-template-columns: 1fr;
@@ -259,21 +268,51 @@
 }
 
 @media (max-width: 992px) {
+    :host,
+    .page-wrap {
+        overflow-x: hidden;
+    }
+
     .main-content {
         margin-left: 0;
         width: 100%;
+        max-width: 100%;
         padding: 16px;
+        overflow-x: hidden;
+        box-sizing: border-box;
     }
     .page-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
     }
+    .bill-grid,
+    .medicine-pane,
+    .customer-pane,
+    .bill-grid>* {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+    .bill-grid {
+        display: block;
+    }
+    .medicine-pane,
+    .customer-pane {
+        display: block;
+    }
     .customer-actions {
         grid-template-columns: 1fr;
     }
     .medicine-select-row {
         grid-template-columns: 1fr;
+    }
+    .medicine-pane,
+    .customer-pane {
+        height: auto;
+        overflow: visible;
+        padding-right: 0;
     }
     .customer-select {
         width: 100%;
@@ -294,5 +333,22 @@
     }
     .medicine-thumb:active {
         transform: scale(3.1);
+    }
+    :host ::ng-deep .bill-grid .ant-card-head {
+        min-height: 40px;
+        padding: 0 12px;
+    }
+    :host ::ng-deep .bill-grid .ant-card-head-title {
+        padding: 8px 0;
+        font-size: 15px;
+    }
+    :host ::ng-deep .bill-grid .ant-card {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+    }
+    :host ::ng-deep .medicine-select-pane .ant-card-body,
+    :host ::ng-deep .customer-pane .ant-card-body {
+        overflow-x: hidden;
     }
 }

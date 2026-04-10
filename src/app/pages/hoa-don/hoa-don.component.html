@@ -11,108 +11,105 @@
     </header>
 
     <div class="bill-grid">
-      <nz-card nzTitle="Chọn thuốc cho hóa đơn" class="medicine-pane">
-        <form [formGroup]="saleForm" class="mb-12 stack-12">
-          <div class="medicine-select-row">
+      <div class="medicine-pane">
+        <nz-card nzTitle="Chọn thuốc cho hóa đơn" class="medicine-select-pane">
+          <form [formGroup]="saleForm" class="stack-12">
+            <div class="medicine-select-row">
             <app-medicine-import-tree-select
               formControlName="selectedImportKey"
               class="w-full"
               [reloadToken]="medicineTreeReloadToken"
               (importSelected)="onMedicineImportSelected($event)"
+              (cameraClick)="openCameraScanner()"
+              (addMedicineClick)="openMedicinePopup()"
             ></app-medicine-import-tree-select>
-            <div class="medicine-action-column">
-              <button nz-button nzType="default" type="button" (click)="openCameraScanner()">
-                <span nz-icon nzType="camera"></span>
-                <span>Quét camera</span>
-              </button>
-              <button nz-button nzType="default" type="button" (click)="openMedicinePopup()">
-                <span nz-icon nzType="file-add"></span>
-                <span>Thêm thuốc mới</span>
-              </button>
-            </div>
           </div>
         </form>
+        </nz-card>
 
-        <h3 class="selected-items-title">Danh sách sản phẩm đã chọn mua</h3>
-        <nz-table [nzData]="billItems" [nzShowPagination]="false" nzSize="middle">
-          <thead>
-            <tr>
-              <th class="image-col">Ảnh</th>
-              <th>Sản phẩm</th>
-              <th class="text-right">Số lượng</th>
-              <th class="text-right">Đơn giá bán</th>
-              <th class="text-right">Thành tiền</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let item of billItems; index as i" [class.product-row-error]="isBillItemInvalid(item)">
-              <td class="image-col">
-                <img *ngIf="item.imageUrl" [src]="item.imageUrl" alt="Ảnh sản phẩm" class="medicine-thumb" />
-                <span *ngIf="!item.imageUrl" class="subtle">Chưa có</span>
-              </td>
-              <td>
-                <strong>{{ item.name }}</strong>
-                <div class="subtle">{{ item.stockLabel }}</div>
-                <div *ngIf="isBillItemInvalid(item)" class="item-error-text">Dòng này đang có lỗi dữ liệu (số lượng/giá).</div>
-              </td>
-              <td class="text-right">
-                <div class="qty-actions">
-                  <button nz-button nzType="default" nzSize="small" (click)="decreaseQty(i)">-</button>
-                  <input
-                    #qtyInput
-                    nz-input
-                    type="number"
-                    [ngModel]="item.quantity"
-                    [ngModelOptions]="{ standalone: true }"
-                    (ngModelChange)="onQtyInput(i, $event, qtyInput)"
-                    min="1"
-                    [max]="item.maxQuantity"
-                    step="1"
-                    class="qty-input"
-                  />
-                  <button nz-button nzType="default" nzSize="small" (click)="increaseQty(i)">+</button>
-                </div>
-              </td>
-              <td class="text-right">
-                <nz-input-number
-                  [ngModel]="item.price"
-                  [ngModelOptions]="{ standalone: true }"
-                  (ngModelChange)="updatePrice(i, $event)"
-                  [nzMin]="0"
-                  [nzStep]="1000"
-                  class="price-input"
-                ></nz-input-number>
-              </td>
-              <td class="text-right">{{ item.price * item.quantity | number }} đ</td>
-              <td class="text-right">
-                <button nz-button nzType="text" nzDanger (click)="removeItem(i)">
-                  <span nz-icon nzType="delete"></span>
-                  Xóa
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </nz-table>
+        <nz-card nzTitle="Danh sách sản phẩm đã chọn mua" class="selected-list-pane">
+          <div class="selected-table-scroll">
+            <nz-table [nzData]="billItems" [nzShowPagination]="false" nzSize="middle">
+              <thead>
+                <tr>
+                  <th class="image-col">Ảnh</th>
+                  <th>Sản phẩm</th>
+                  <th class="text-right">Số lượng</th>
+                  <th class="text-right">Đơn giá bán</th>
+                  <th class="text-right">Thành tiền</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of billItems; index as i" [class.product-row-error]="isBillItemInvalid(item)">
+                  <td class="image-col">
+                    <img *ngIf="item.imageUrl" [src]="item.imageUrl" alt="Ảnh sản phẩm" class="medicine-thumb" />
+                    <span *ngIf="!item.imageUrl" class="subtle">Chưa có</span>
+                  </td>
+                  <td>
+                    <strong>{{ item.name }}</strong>
+                    <div class="subtle">{{ item.stockLabel }}</div>
+                    <div *ngIf="isBillItemInvalid(item)" class="item-error-text">Dòng này đang có lỗi dữ liệu (số lượng/giá).</div>
+                  </td>
+                  <td class="text-right">
+                    <div class="qty-actions">
+                      <button nz-button nzType="default" nzSize="small" (click)="decreaseQty(i)">-</button>
+                      <input
+                        #qtyInput
+                        nz-input
+                        type="number"
+                        [ngModel]="item.quantity"
+                        [ngModelOptions]="{ standalone: true }"
+                        (ngModelChange)="onQtyInput(i, $event, qtyInput)"
+                        min="1"
+                        [max]="item.maxQuantity"
+                        step="1"
+                        class="qty-input"
+                      />
+                      <button nz-button nzType="default" nzSize="small" (click)="increaseQty(i)">+</button>
+                    </div>
+                  </td>
+                  <td class="text-right">
+                    <nz-input-number
+                      [ngModel]="item.price"
+                      [ngModelOptions]="{ standalone: true }"
+                      (ngModelChange)="updatePrice(i, $event)"
+                      [nzMin]="0"
+                      [nzStep]="1000"
+                      class="price-input"
+                    ></nz-input-number>
+                  </td>
+                  <td class="text-right">{{ item.price * item.quantity | number }} đ</td>
+                  <td class="text-right">
+                    <button nz-button nzType="text" nzDanger (click)="removeItem(i)">
+                      <span nz-icon nzType="delete"></span>
+                      Xóa
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </nz-table>
+          </div>
 
-        <div class="table-footer">
-          <button
-            nz-button
-            nzType="default"
-            nzDanger
-            nz-popconfirm
-            nzPopconfirmTitle="Bạn có chắc muốn xóa toàn bộ hóa đơn này không?"
-            nzPopconfirmPlacement="topLeft"
-            nzOkText="Xóa tất cả"
-            nzCancelText="Hủy"
-            (nzOnConfirm)="clearBill()"
-          >
-            <span nz-icon nzType="delete"></span>
-            <span>Xóa tất cả</span>
-          </button>
-          <span>{{ billItems.length }} mặt hàng</span>
-        </div>
-      </nz-card>
+          <div class="table-footer">
+            <button
+              nz-button
+              nzType="default"
+              nzDanger
+              nz-popconfirm
+              nzPopconfirmTitle="Bạn có chắc muốn xóa toàn bộ hóa đơn này không?"
+              nzPopconfirmPlacement="topLeft"
+              nzOkText="Xóa tất cả"
+              nzCancelText="Hủy"
+              (nzOnConfirm)="clearBill()"
+            >
+              <span nz-icon nzType="delete"></span>
+              <span>Xóa tất cả</span>
+            </button>
+            <span>{{ billItems.length }} mặt hàng</span>
+          </div>
+        </nz-card>
+      </div>
 
       <div class="summary-col customer-pane">
         <nz-card nzTitle="Thông tin khách hàng">

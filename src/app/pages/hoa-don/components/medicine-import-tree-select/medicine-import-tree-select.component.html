@@ -1,19 +1,32 @@
-﻿<div class="mode-toggle-row">
-  <button type="button" class="mode-toggle-btn" [class.active]="selectionMode === 'modern'" (click)="setSelectionMode('modern')">
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <rect x="1" y="1" width="4" height="4" stroke="currentColor" />
-      <rect x="7" y="1" width="4" height="4" stroke="currentColor" />
-      <rect x="1" y="7" width="4" height="4" stroke="currentColor" />
-      <rect x="7" y="7" width="4" height="4" stroke="currentColor" />
-    </svg>
-    <span>Kiểu lưới</span>
-  </button>
-  <button type="button" class="mode-toggle-btn" [class.active]="selectionMode === 'tree'" (click)="setSelectionMode('tree')">
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <path d="M6 1V11M6 3H2M6 6H3M6 9H4" stroke="currentColor" stroke-linecap="round" />
-    </svg>
-    <span>Kiểu cây</span>
-  </button>
+﻿<div class="mode-toolbar">
+  <div class="mode-toggle-row">
+    <button type="button" class="mode-toggle-btn" [class.active]="selectionMode === 'modern'" (click)="setSelectionMode('modern')">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+        <rect x="1" y="1" width="4" height="4" stroke="currentColor" />
+        <rect x="7" y="1" width="4" height="4" stroke="currentColor" />
+        <rect x="1" y="7" width="4" height="4" stroke="currentColor" />
+        <rect x="7" y="7" width="4" height="4" stroke="currentColor" />
+      </svg>
+      <span>Kiểu lưới</span>
+    </button>
+    <button type="button" class="mode-toggle-btn" [class.active]="selectionMode === 'tree'" (click)="setSelectionMode('tree')">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+        <path d="M6 1V11M6 3H2M6 6H3M6 9H4" stroke="currentColor" stroke-linecap="round" />
+      </svg>
+      <span>Kiểu cây</span>
+    </button>
+  </div>
+
+  <div class="quick-action-row">
+    <button type="button" class="quick-action-btn" [disabled]="isDisabled" (click)="onCameraClick()">
+      <span nz-icon nzType="camera"></span>
+      <span>Quét camera</span>
+    </button>
+    <button type="button" class="quick-action-btn" [disabled]="isDisabled" (click)="onAddMedicineClick()">
+      <span nz-icon nzType="file-add"></span>
+      <span>Thêm thuốc mới</span>
+    </button>
+  </div>
 </div>
 
 <ng-container *ngIf="selectionMode === 'modern'; else treeModeTpl">

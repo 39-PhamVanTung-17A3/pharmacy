@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { NzTreeNodeOptions } from 'ng-zorro-antd/core/tree';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzFormatEmitEvent } from 'ng-zorro-antd/tree';
 import { NzTreeSelectComponent, NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
@@ -37,7 +38,7 @@ interface MedicineOptionItem {
 @Component({
   selector: 'app-medicine-import-tree-select',
   standalone: true,
-  imports: [CommonModule, FormsModule, NzTreeSelectModule, LotPickerPopupComponent],
+  imports: [CommonModule, FormsModule, NzTreeSelectModule, NzIconModule, LotPickerPopupComponent],
   templateUrl: './medicine-import-tree-select.component.html',
   styleUrl: './medicine-import-tree-select.component.scss',
   providers: [
@@ -56,6 +57,8 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
   @Input() placeholder = 'Chọn thuốc theo lô nhập';
   @Input() reloadToken = 0;
   @Output() importSelected = new EventEmitter<SelectedMedicineImportPayload>();
+  @Output() cameraClick = new EventEmitter<void>();
+  @Output() addMedicineClick = new EventEmitter<void>();
 
   @ViewChild('medicineTreeSelect') medicineTreeSelect?: NzTreeSelectComponent;
 
@@ -161,6 +164,14 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
 
   setSelectionMode(mode: 'modern' | 'tree'): void {
     this.selectionMode = mode;
+  }
+
+  onCameraClick(): void {
+    this.cameraClick.emit();
+  }
+
+  onAddMedicineClick(): void {
+    this.addMedicineClick.emit();
   }
 
   onMedicineKeywordInput(event: Event): void {
