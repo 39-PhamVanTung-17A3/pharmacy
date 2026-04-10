@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -19,6 +19,7 @@ import { MenuComponent } from '../../components/menu/menu.component';
 import { PaggingComponent } from '../../components/pagging/pagging.component';
 import { getErrorMessage } from '../../utils/error.util';
 import { printInvoiceViaPopup } from '../../utils/invoice-print.util';
+import { HoaDonStatus } from '../../models/hoa-don.model';
 import { HoaDon, HoaDonService } from '../hoa-don/hoa-don.service';
 import { NhapHang, NhapHangService } from '../nhap-hang/nhap-hang.service';
 import { PopupChiTietHoaDonComponent } from './popup-chi-tiet-hoa-don/popup-chi-tiet-hoa-don.component';
@@ -58,6 +59,7 @@ interface ProcessingItem {
   styleUrl: './danh-sach-hoa-don.component.scss'
 })
 export class DanhSachHoaDonComponent implements OnInit {
+  pageTitle = 'Danh sách hóa đơn';
   pageIndex = 1;
   readonly pageSize = 10;
   totalItems = 0;
@@ -82,9 +84,11 @@ export class DanhSachHoaDonComponent implements OnInit {
   private readonly importsByMedicineId = new Map<number, NhapHang[]>();
 
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
   private readonly hoaDonService = inject(HoaDonService);
   private readonly nhapHangService = inject(NhapHangService);
   private readonly notification = inject(NzNotificationService);
+  private invoiceStatusFilter: HoaDonStatus | null = null;
 
   readonly filterForm = this.fb.nonNullable.group({
     keyword: ['']
@@ -93,6 +97,9 @@ export class DanhSachHoaDonComponent implements OnInit {
   invoices: HoaDon[] = [];
 
   async ngOnInit(): Promise<void> {
+    this.pageTitle = (this.route.snapshot.data['pageTitle'] as string) || 'Danh sách hóa đơn';
+    this.invoiceStatusFilter = this.resolveStatusFilter(this.route.snapshot.data['invoiceStatus']);
+
     this.filterForm.controls.keyword.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe(() => {
@@ -360,7 +367,12 @@ export class DanhSachHoaDonComponent implements OnInit {
   private async loadInvoices(): Promise<void> {
     this.loading = true;
     try {
-      const pageData = await this.hoaDonService.findAll(this.pageIndex, this.pageSize, this.filterForm.controls.keyword.value);
+      const pageData = await this.hoaDonService.findAll(
+        this.pageIndex,
+        this.pageSize,
+        this.filterForm.controls.keyword.value,
+        this.invoiceStatusFilter ?? undefined
+      );
       this.invoices = pageData.items;
       this.totalItems = pageData.totalElements;
       this.pageIndex = pageData.page;
@@ -388,5 +400,12 @@ export class DanhSachHoaDonComponent implements OnInit {
 
   private syncProcessingAmountPaid(): void {
     this.processingAmountPaid = this.processingTotalNeedPay;
+  }
+
+  private resolveStatusFilter(rawStatus: unknown): HoaDonStatus | null {
+    if (rawStatus === 'PENDING_PAYMENT' || rawStatus === 'DEBT' || rawStatus === 'PAID' || rawStatus === 'CANCELLED') {
+      return rawStatus;
+    }
+    return null;
   }
 }

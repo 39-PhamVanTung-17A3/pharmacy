@@ -5,12 +5,12 @@
         <header class="page-header">
             <nz-breadcrumb>
                 <nz-breadcrumb-item>Trang chủ</nz-breadcrumb-item>
-                <nz-breadcrumb-item>Danh sách hóa đơn</nz-breadcrumb-item>
+                <nz-breadcrumb-item>{{ pageTitle }}</nz-breadcrumb-item>
             </nz-breadcrumb>
             <button nz-button nzType="primary" routerLink="/hoa-don">Tạo hóa đơn mới</button>
         </header>
 
-        <nz-card nzTitle="Danh sách hóa đơn">
+        <nz-card [nzTitle]="pageTitle">
             <div class="filter-row" [formGroup]="filterForm">
                 <input nz-input formControlName="keyword" placeholder="Tìm mã hóa đơn hoặc tên khách hàng" />
             </div>

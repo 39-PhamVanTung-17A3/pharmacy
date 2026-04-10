@@ -6,6 +6,7 @@ import {
   HoaDon,
   HoaDonApiResponse,
   HoaDonItem,
+  HoaDonStatus,
   HoaDonItemApiResponse,
   HoaDonItemRequest
 } from '../../models/hoa-don.model';
@@ -21,10 +22,13 @@ export class HoaDonService {
   private readonly apiUrl = environment.beDomain + '/api/hoa-don';
   private readonly http = inject(HttpClient);
 
-  async findAll(page: number, size: number, keyword?: string): Promise<PageResponse<HoaDon>> {
+  async findAll(page: number, size: number, keyword?: string, status?: HoaDonStatus): Promise<PageResponse<HoaDon>> {
     let params = new HttpParams().set('page', page).set('size', size);
     if (keyword?.trim()) {
       params = params.set('keyword', keyword.trim());
+    }
+    if (status) {
+      params = params.set('status', status);
     }
 
     const result = await firstValueFrom(

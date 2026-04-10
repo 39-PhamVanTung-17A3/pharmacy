@@ -56,6 +56,7 @@ export class MenuComponent implements OnInit {
         { label: 'Khách hàng', route: '/khach-hang', icon: 'team', permission: 'PERM_CUSTOMER_MANAGE' },
         { label: 'Tạo hóa đơn', route: '/hoa-don', icon: 'file-add', permission: 'PERM_INVOICE_MANAGE' },
         { label: 'Danh sách hóa đơn', route: '/danh-sach-hoa-don', icon: 'file-text', permission: 'PERM_INVOICE_MANAGE' },
+        { label: 'Đơn hàng chờ xử lý', route: '/don-hang-cho-xu-ly', icon: 'clock-circle', permission: 'PERM_INVOICE_MANAGE' },
         { label: 'Công nợ khách hàng', route: '/cong-no-khach-hang', icon: 'wallet', permission: 'PERM_INVOICE_MANAGE' }
       ]
     },

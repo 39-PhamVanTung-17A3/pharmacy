@@ -77,6 +77,16 @@ export const routes: Routes = [
     data: { permission: 'PERM_INVOICE_MANAGE' }
   },
   {
+    path: 'don-hang-cho-xu-ly',
+    component: DanhSachHoaDonComponent,
+    canActivate: [authGuard, permissionGuard],
+    data: {
+      permission: 'PERM_INVOICE_MANAGE',
+      invoiceStatus: 'PENDING_PAYMENT',
+      pageTitle: 'Đơn hàng chờ xử lý'
+    }
+  },
+  {
     path: 'cong-no-khach-hang',
     component: CongNoKhachHangComponent,
     canActivate: [authGuard, permissionGuard],
