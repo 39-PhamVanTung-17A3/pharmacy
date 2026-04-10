@@ -36,11 +36,44 @@
 }
 
 .medicine-thumbnail {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 8px;
   object-fit: cover;
   border: 1px solid #e8e8e8;
+}
+
+.zoomable-thumbnail {
+  cursor: zoom-in;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transform-origin: center;
+  position: relative;
+  z-index: 1;
+}
+
+.zoomable-thumbnail:hover {
+  transform: scale(2.8);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  z-index: 5;
+}
+
+.zoomable-thumbnail:active {
+  transform: scale(3.2);
+  z-index: 6;
+}
+
+@media (max-width: 768px) {
+  .zoomable-thumbnail {
+    transform-origin: left center;
+  }
+
+  .zoomable-thumbnail:hover {
+    transform: scale(2.8);
+  }
+
+  .zoomable-thumbnail:active {
+    transform: scale(3);
+  }
 }
 
 .subtle {

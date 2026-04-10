@@ -76,7 +76,7 @@
                 <article class="product-card" *ngFor="let item of pagedProducts">
                     <div class="product-top">
                         <div class="thumb-wrap">
-                            <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.name" class="product-thumb" />
+                            <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.name" class="product-thumb zoomable-medicine" />
                             <div *ngIf="!item.imageUrl" class="thumb-placeholder">Không ảnh</div>
                         </div>
                         <div class="product-head">
@@ -132,7 +132,7 @@
         <div class="cart-list" *ngIf="cartItems.length">
             <article class="cart-item" *ngFor="let item of cartItems; index as i; trackBy: trackByCartItem">
                 <div class="cart-item-top">
-                    <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.medicineName" class="product-thumb" />
+                    <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.medicineName" class="product-thumb zoomable-medicine" />
                     <div *ngIf="!item.imageUrl" class="thumb-placeholder">Không ảnh</div>
                     <div class="cart-item-meta">
                         <h3>{{ item.medicineName }}</h3>
