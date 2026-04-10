@@ -48,6 +48,15 @@ interface BillItem {
 
 type PaymentMode = 'CASH' | 'BANK_QR';
 
+interface HoaDonDraftData {
+  billItems: BillItem[];
+  customerId: number | null;
+  customerPhone: string;
+  paymentMode: PaymentMode;
+  discount: number;
+  amountPaid: number;
+}
+
 @Component({
   selector: 'app-hoa-don',
   standalone: true,
@@ -77,6 +86,7 @@ type PaymentMode = 'CASH' | 'BANK_QR';
 export class HoaDonComponent implements OnInit, OnDestroy {
   private static readonly BARCODE_API_COOLDOWN_MS = 5000;
   private static readonly BARCODE_NOTIFICATION_COOLDOWN_MS = 1200;
+  private static readonly DRAFT_STORAGE_KEY = 'hoa_don_draft_v1';
 
   private readonly fb = inject(FormBuilder);
   private readonly nhapHangService = inject(NhapHangService);
@@ -149,6 +159,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     });
 
     await this.loadCustomers();
+    this.restoreDraftFromStorage();
   }
 
   ngOnDestroy(): void {
@@ -191,6 +202,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.billItems[index].quantity += 1;
     this.billItems = [...this.billItems];
     this.syncAmountPaidWithTotalNeedPay();
+    this.saveDraftToStorage();
   }
 
   decreaseQty(index: number): void {
@@ -200,6 +212,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.billItems[index].quantity -= 1;
     this.billItems = [...this.billItems];
     this.syncAmountPaidWithTotalNeedPay();
+    this.saveDraftToStorage();
   }
 
   onQtyInput(index: number, value: number | string | null, inputEl?: HTMLInputElement): void {
@@ -219,6 +232,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     currentItem.quantity = safeValue;
     this.billItems = [...this.billItems];
     this.syncAmountPaidWithTotalNeedPay();
+    this.saveDraftToStorage();
   }
 
   updatePrice(index: number, value: number | null): void {
@@ -226,11 +240,13 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.billItems[index].price = nextValue;
     this.billItems = [...this.billItems];
     this.syncAmountPaidWithTotalNeedPay();
+    this.saveDraftToStorage();
   }
 
   removeItem(index: number): void {
     this.billItems = this.billItems.filter((_, itemIndex) => itemIndex !== index);
     this.syncAmountPaidWithTotalNeedPay();
+    this.saveDraftToStorage();
   }
 
   clearBill(): void {
@@ -239,6 +255,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.qrTransferNote = '';
     this.currentInvoiceCode = 'Tự động';
     this.syncAmountPaidWithTotalNeedPay();
+    this.clearDraftStorage();
   }
 
   async submitCheckout(): Promise<void> {
@@ -299,6 +316,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.customerForm.patchValue({
       phone: selected?.phone ?? ''
     });
+    this.saveDraftToStorage();
   }
 
   openCreateCustomerPopup(): void {
@@ -316,6 +334,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       customerId: saved.id,
       phone: saved.phone
     });
+    this.saveDraftToStorage();
   }
 
   openMedicinePopup(): void {
@@ -439,6 +458,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.billItems = [newItem, ...this.billItems];
     this.saleForm.controls.selectedImportKey.setValue(null, { emitEvent: false });
     this.syncAmountPaidWithTotalNeedPay();
+    this.saveDraftToStorage();
     this.notification.success('Thành công', `Đã thêm: ${selectedImport.medicineName} (SL: 1)`);
   }
 
@@ -616,6 +636,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
         this.qrCodeUrl = null;
         this.qrTransferNote = '';
       }
+      this.saveDraftToStorage();
       return;
     }
 
@@ -625,6 +646,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
       },
       { emitEvent: false }
     );
+    this.saveDraftToStorage();
   }
 
   private handlePaymentModeChange(mode: PaymentMode): void {
@@ -637,6 +659,7 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     this.paymentForm.controls.amountPaid.enable({ emitEvent: false });
     this.qrCodeUrl = null;
     this.qrTransferNote = '';
+    this.saveDraftToStorage();
   }
 
   private showPrintConfirmDialog(): void {
@@ -680,6 +703,66 @@ export class HoaDonComponent implements OnInit, OnDestroy {
     });
 
     this.triggerMedicineTreeReload();
+  }
+
+  private saveDraftToStorage(): void {
+    try {
+      const draft: HoaDonDraftData = {
+        billItems: this.billItems,
+        customerId: this.customerForm.controls.customerId.value ?? null,
+        customerPhone: this.customerForm.controls.phone.value ?? '',
+        paymentMode: this.paymentForm.controls.paymentMode.value,
+        discount: Number(this.paymentForm.controls.discount.value) || 0,
+        amountPaid: Number(this.paymentForm.controls.amountPaid.value) || 0
+      };
+      localStorage.setItem(HoaDonComponent.DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    } catch {
+      // Ignore browser storage failures.
+    }
+  }
+
+  private restoreDraftFromStorage(): void {
+    try {
+      const rawDraft = localStorage.getItem(HoaDonComponent.DRAFT_STORAGE_KEY);
+      if (!rawDraft) {
+        return;
+      }
+
+      const parsed = JSON.parse(rawDraft) as Partial<HoaDonDraftData>;
+      if (Array.isArray(parsed.billItems)) {
+        this.billItems = parsed.billItems;
+      }
+
+      this.customerForm.patchValue(
+        {
+          customerId: parsed.customerId ?? null,
+          phone: parsed.customerPhone ?? ''
+        },
+        { emitEvent: false }
+      );
+
+      this.paymentForm.patchValue(
+        {
+          paymentMode: parsed.paymentMode === 'BANK_QR' ? 'BANK_QR' : 'CASH',
+          discount: Number(parsed.discount) || 0,
+          amountPaid: Number(parsed.amountPaid) || 0
+        },
+        { emitEvent: false }
+      );
+
+      this.handlePaymentModeChange(this.paymentForm.controls.paymentMode.value);
+      this.syncAmountPaidWithTotalNeedPay();
+    } catch {
+      this.clearDraftStorage();
+    }
+  }
+
+  private clearDraftStorage(): void {
+    try {
+      localStorage.removeItem(HoaDonComponent.DRAFT_STORAGE_KEY);
+    } catch {
+      // Ignore browser storage failures.
+    }
   }
 
   private openScanBatchSelectModal(medicineName: string, imports: NhapHang[]): void {
