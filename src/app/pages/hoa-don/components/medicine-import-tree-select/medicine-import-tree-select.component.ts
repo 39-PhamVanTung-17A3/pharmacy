@@ -207,7 +207,7 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
     try {
       const imports = await this.ensureMedicineImportsLoaded(item.id);
       if (imports.length === 0) {
-        this.notification.warning('Cảnh báo', 'Thuốc này chưa có lô bán khả dụng');
+        this.notification.warning('Cảnh báo', 'Thuốc này chưa có lô bán khả dụng hoặc đã hết hàng');
         return;
       }
 
@@ -390,7 +390,7 @@ export class MedicineImportTreeSelectComponent implements OnInit, OnChanges, Con
 
   private applyModernMedicineFilter(): void {
     const normalizedSearch = this.normalizeTreeSearchText(this.medicineKeyword);
-    const source = this.medicineOptions.filter((item) => item.totalQuantity > 0);
+    const source = this.medicineOptions;
 
     if (!normalizedSearch) {
       this.filteredMedicineOptions = source;
