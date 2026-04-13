@@ -1,0 +1,44 @@
+﻿<div class="horror-page">
+    <main class="content-shell">
+        <h1>Huyền học dân gian</h1>
+    <p class="intro">
+      Tổng hợp truyện tâm linh dân gian Việt - Hoa, pha hành động, trinh thám và góc nhìn nhân văn. Chọn truyện bên dưới để đọc từng phần.
+    </p>
+
+    <button type="button" class="toggle-list-btn" (click)="toggleStoryList()">
+      {{ isStoryListOpen ? 'Đóng danh sách truyện' : 'Mở danh sách truyện' }}
+    </button>
+
+    <section class="library-layout" [class.list-collapsed]="!isStoryListOpen">
+            <aside class="story-list" [class.collapsed]="!isStoryListOpen">
+                <h2>Danh sách truyện</h2>
+                <button type="button" class="story-item" *ngFor="let story of stories" [class.active]="story.id === selectedStoryId" (click)="selectStory(story.id)">
+          <span class="story-tag">{{ story.tag }}</span>
+          <strong>{{ story.title }}</strong>
+          <small>{{ story.subtitle }}</small>
+          <span class="story-count">{{ story.parts.length }} phần</span>
+        </button>
+            </aside>
+
+            <article class="story-reader">
+                <header class="reader-head">
+                    <span class="chip">{{ selectedStory.tag }}</span>
+                    <h2>{{ selectedStory.title }}</h2>
+                    <p>{{ selectedStory.subtitle }}</p>
+                </header>
+
+                <section class="part-list">
+                    <article class="part-card" *ngFor="let part of selectedStory.parts; index as i">
+                        <button type="button" class="part-toggle" (click)="togglePart(i)">
+              <h3>Phần {{ i + 1 }}: {{ part.title }}</h3>
+              <span class="part-toggle-icon">{{ isPartExpanded(i) ? '−' : '+' }}</span>
+            </button>
+                        <div class="part-body" *ngIf="isPartExpanded(i)">
+                            <p *ngFor="let paragraph of part.content">{{ paragraph }}</p>
+                        </div>
+                    </article>
+                </section>
+            </article>
+        </section>
+    </main>
+</div>

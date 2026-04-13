@@ -14,11 +14,13 @@ import { LoginComponent } from './pages/login/login.component';
 import { NhanVienComponent } from './pages/nhan-vien/nhan-vien.component';
 import { NhapHangComponent } from './pages/nhap-hang/nhap-hang.component';
 import { ThuocComponent } from './pages/thuoc/thuoc.component';
+import { TruyenMaComponent } from './pages/truyen-ma/truyen-ma.component';
 import { authGuard, permissionGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: 'landing', component: LandingComponent },
   { path: 'landing-khach-hang', component: LandingKhachHangComponent },
+  { path: 'truyen-ma', component: TruyenMaComponent },
   { path: 'login', component: LoginComponent },
   { path: '', pathMatch: 'full', component: LandingComponent },
   { path: 'dashboard-thong-ke', pathMatch: 'full', redirectTo: 'bao-cao-thong-ke' },
