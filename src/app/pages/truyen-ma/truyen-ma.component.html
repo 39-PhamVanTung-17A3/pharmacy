@@ -25,6 +25,7 @@
                     <span class="chip">{{ selectedStory.tag }}</span>
                     <h2>{{ selectedStory.title }}</h2>
                     <p>{{ selectedStory.subtitle }}</p>
+                    <p class="author" *ngIf="selectedStory.author">Tác giả: {{ selectedStory.author }}</p>
                 </header>
                 <p class="audio-error" *ngIf="audioErrorMessage">{{ audioErrorMessage }}</p>
 

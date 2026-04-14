@@ -12,6 +12,7 @@ interface StoryItem {
   id: string;
   title: string;
   subtitle: string;
+  author?: string;
   tag: string;
   parts: StoryPart[];
 }
@@ -33,11 +34,12 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
     {
       id: 'giai-nghiep',
       title: 'GIẢI NGHIỆP',
-      subtitle: 'Ngoại truyện về thầy Lương ở làng Thiết Trụ',
+      subtitle: 'Ngoại truyện: Thầy Tàu ly kỳ truyện',
+      author: 'LongPV',
       tag: 'Tâm linh - Trinh thám - Nhân văn',
       parts: [
         {
-          title: 'Tiếng ru sau bãi nhãn',
+          title: 'Tiếng ru',
           audioUrl: 'https://drive.google.com/file/d/1zgAWcvUBYWVD40sH2H2ViA_sMQuooQvE/view?usp=sharing',
           content: [
             'Năm 2005, làng Thiết Trụ vẫn còn nguyên cái vẻ cũ kỹ, chậm rãi của một vùng quê ven sông Bắc Bộ.',
@@ -139,7 +141,7 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
           ]
         },
         {
-          title: '',
+          title: 'Lập trận Trấn hồn',
           content: [
             'Nhà thằng Tính nằm ở cuối làng, nép mình bên con mương nhỏ nước đục lờ đờ trôi. Hai bên bờ mương là đám cỏ dại mọc um tùm, chiều xuống đã bắt đầu bốc lên mùi ẩm lạnh.',
             'Khi ông Lễ dẫn thầy Lương tới nơi, Tính đang ngồi bó gối ngoài hiên. Gương mặt nó hốc hác, đôi mắt thâm quầng như người đã nhiều đêm không ngủ. Vừa nhìn thấy người lạ, lại nhìn đến chiếc túi vải chéo vai, nó bất giác nuốt khan.',
@@ -176,7 +178,7 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
             'Ông dừng lại một chút rồi nói tiếp:',
             '“Người chết oan, oán không tan. Nếu bị trấn sai cách… sẽ thành thứ dữ hơn.”',
             'Không ai dám lên tiếng.',
-            'Một lúc sau, ông mở túi vải, lấy ra la bàn gỗ, chuỗi tiền đồng và vài lá bùa cũ. Động tác chậm nhưng dứt khoát.',
+            // 'Một lúc sau, ông mở túi vải, lấy ra la bàn gỗ, chuỗi tiền đồng và vài lá bùa cũ. Động tác chậm nhưng dứt khoát.',
             'Ông Lễ hỏi:',
             '“Thầy định xử lý thế nào?”',
             'Thầy Lương đáp, ánh mắt không đổi:',
@@ -192,12 +194,105 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
             '“Để gọi đúng thứ đang khóc ngoài bãi nhãn.”',
             'Không ai dám hỏi thêm.',
             'Gió từ ngoài mương thổi vào, mang theo cái lạnh ẩm mốc len qua từng kẽ áo.',
-            'Chiếc lu sành dưới mái hiên… khẽ phát ra một tiếng “cốc” rất nhỏ.'
+            'Chiếc lu sành dưới mái hiên… khẽ phát ra một tiếng “cốc” rất nhỏ.',
+            'Trời sập tối rất nhanh. Mới lúc chiều còn le lói chút nắng vương trên mái rạ, vậy mà chỉ một thoáng sau, cả làng đã chìm vào một màu xám đục, nặng nề như có đám mây đen nào đó đè xuống.',
+            'Người trong làng lục tục kéo nhau về nhà từ sớm hơn mọi ngày.Không ai bảo ai, nhưng bước chân ai cũng vội, cũng cúi gằm mặt, như sợ phải nhìn thấy thứ gì đó đang rình rập ngoài đường.',
+
+            'Cửa nhà đóng then cài chặt. Ánh đèn dầu leo lét hắt ra qua khe cửa, yếu ớt đến mức chẳng đủ xua đi bóng tối ngoài sân.',
+
+            'Trong từng nếp nhà, tiếng người nói chuyện vẫn có… nhưng nhỏ đến mức chỉ còn là những lời thì thào, đứt quãng.Có nhà còn chẳng dám bật đèn sáng, chỉ ngồi im trong bóng tối, lắng nghe từng tiếng động rất khẽ ngoài ngõ.',
+
+            'Cả làng im ắng một cách kỳ lạ.',
+
+            'Không còn tiếng chó sủa, không tiếng trẻ con khóc, chỉ có gió lùa qua lũy tre, rì rào như ai đó đang nói chuyện ở rất xa… mà lại nghe rõ ngay bên tai.',
+
+            'Ông Lễ đứng chần chừ một lúc, rồi tiến lại gần thầy Lương, giọng hạ thấp:',
+            '“Thưa thầy… việc đêm nay xem ra không phải chuyện nhỏ. Nếu thầy cho phép… tôi xin được ở lại đây, có gì còn phụ giúp thầy một tay.”',
+
+            'Anh Phúc đứng bên cạnh cũng gật đầu:',
+            '“Vâng, tôi cũng xin ở lại. Dù gì tôi cũng là công an trong làng, để thầy một mình… chúng tôi không yên tâm.”',
+
+            'Thầy Lương liếc nhìn hai người, ánh mắt sâu mà trầm. Ông im lặng một lúc lâu, như đang cân nhắc.',
+            'Thầy Lương nhìn họ thêm một lúc, rồi khẽ gật đầu:',
+            '“Được. Hai người ở lại. Nhưng phải nhớ lời ta dặn.”',
+
+            'Ông đưa tay chỉ ra ngoài sân:',
+            '“Khi ta làm việc… Dù 2 người có thấy gì… cũng không được tự ý ra tay.”',
+
+            'Cả hai người cùng đáp:',
+            '“Vâng, chúng tôi nhớ rồi.”',
+
+            'Màn đêm buông xuống',
+            'Gian giữa nhà Tính chỉ thắp một ngọn đèn dầu, ánh sáng phập phùng, lấp ló qua những khe cửa. Trước sân nhà, Thầy Lương ngồi xuống chiếc ghế thấp, đặt nghiên mực trước mặt, Bên cạnh là một con dao mỏng. Ông nhắm mắt lại, hai tay đặt lên đầu gối, hơi thở chậm dần. Miệng ông lẩm nhẩm những câu chú nhỏ và trầm, nghe như tiếng gió lẫn trong tiếng đất.',
+            'Một lúc sau, ông mở mắt. Ánh nhìn sáng quắc, khác hẳn vẻ mệt mỏi ban ngày. Ông lấy chu sa, dùng mũi dao rạch nhẹ đầu ngón tay trái, nhỏ thêm vài giọt máu từ đầu ngón tay vào nghiên. Mực đỏ sẫm lại, đặc quánh.',
+            'Tờ giấy vàng được trải ra. Bút lông chạm xuống giấy, thầy Lương bắt đầu vẽ.',
+            'Nét đầu tiên kéo dài, liền mạch. Rồi nét thứ hai, thứ ba… uốn lượn như rồng bay. Không hề ngập ngừng. Tính đứng nhìn mà thấy sống lưng lạnh toát.',
+            'Vẽ xong, thầy kẹp lá bùa giữa hai ngón tay, đưa lên ngang mặt, thổi mạnh một hơi:',
+            '“Cẩn!”',
+            'Ngọn nến bên cạnh rung bần bật.',
+            'Thầy Lương đứng dậy, bảo Tính mang bát tro bếp và con gà trống ra. Dùng dao cắt nhanh vào cổ gà, hứng lấy vài giọt máu còn nóng vào bát sứ. Máu đỏ sẫm, bốc hơi nhẹ trong khí lạnh.',
+            'Ông trộn máu gà vào tro bếp, dùng tay bóp nhẹ cho hòa đều, rồi rải hỗn hợp đó thành một vòng tròn kín quanh cái lu. Mỗi nắm tro rải xuống, ông đều lẩm nhẩm đọc chú. Sau đó thầy rắc tiếp gạo nếp, muối và cắm tám cọc gỗ theo tám hướng tương ứng với 8 quẻ: Càn, Khảm, Cấn, Chấn, Tốn, Ly, Khôn, Đoài. Những sợi chỉ ngũ sắc được đan vào nhau và được nối từ chiếc lu ở tâm trận ra 8 hướng, tạo thành 1 mạng nhện khổng lồ, xung quanh treo thêm vài lá bùa và chuông nhỏ.',
+            'Mỗi bước ông đi không thẳng mà theo hình vòng, lúc tiến lúc lùi, như đang vẽ thêm một vòng vô hình dưới chân.',
+            'Tiếng chú ông đọc lúc này trầm và nặng, khiến không khí như đặc lại.',
+            'Tính khẽ hỏi:',
+            '“Thưa thầy… trận pháp này tên là gì và thế này đã giữ được nó chưa ?”',
+            'Thầy Lương không quay lại:',
+            '"Bát Quái Phục Ma... trận đã lập, nhưng lòng người có tĩnh thì trận mới bền. Đêm nay, sống hay chết là ở ý trời."',
+            'Ông dừng lại, chống tay lên đầu gối. Trán đã lấm tấm mồ hôi.',
+
+
+            'Canh hai vừa điểm, chó cả làng đồng loạt tru.',
+            'Rồi tiếng ru nổi lên.',
+            '“Ầu ơ... ví dầu cầu ván đóng đinh...”',
+            'Giọng đàn bà văng vẳng ngoài cổng, não nề đến sởn gai ốc.',
+            'Mẹ Tính bụm miệng khóc: “Thầy ơi, nó tới rồi.”',
+            'Ông Lương không quay đầu lại: “Mọi người tắt bớt đèn.”',
+            'Ngọn đèn dầu được vặn nhỏ xuống. Sân nhà tối mờ.',
+            'Từ ngoài cổng, một bóng trắng lướt vào. Không phải đi, mà như trôi trên mặt đất. Đầu tóc dài xõa kín mặt, hai tay ôm một cái bọc đen như đứa trẻ quấn tã.',
+            'Tính rú lên: “Chính nó! Chính nó!”',
+            'Ông Lương cầm chuỗi tiền đồng, đứng dậy. Cái bóng trắng dừng lại ở mép vòng tro, ngẩng đầu. Dưới mớ tóc ướt là khuôn mặt một người đàn bà đã rữa nát, một bên mắt hõm sâu, bên còn lại đỏ quạch như than hồng.',
+            'Nó cất giọng rít: “Hãy đền mạng cho mẹ con ta...”',
+            'Một nhịp sau, tiếng rít chuyển thành tiếng tru dài: “Hãy đền mạng cho mẹ con ta...”',
+            'Ông Lương nhìn thẳng vào nó, giọng vẫn trầm thấp: “Ngươi vốn bị trấn dưới đất. Sao còn quẩn quanh hại người?”',
+            'Con quỷ cười the thé: “Người làng này giết ta. Chôn ta cùng con ta. Sao ta có thể tha cho bọn chúng?”',
+
+            "Dứt lời, con quỷ vung tay. Một luồng âm phong đen kịch tạt mạnh vào sân, khiến dãy đèn cầy quanh trận đồ chao đảo, chỉ còn những đốm lửa xanh lét bé xíu. Tính và mẹ gục xuống, hơi lạnh buốt thấu xương khiến họ không thể thở nổi.",
+            "Nhưng ngay khi luồng hắc khí chạm vào vòng tro bếp, trận đồ bỗng rực sáng.",
+
+            "Tám cọc gỗ đào rung lên bần bật như có hàng chục bàn tay vô hình đang lay giật. Những sợi chỉ ngũ sắc căng ra, phát ra tiếng ong ong chói tai như tiếng đàn đứt dây. Những chiếc chuông đồng nhỏ bỗng gầm lên, tiếng kêu không còn là 'keng keng' mà là những tiếng vang trầm hùng, đập thẳng vào linh hồn con quỷ.",
+            "Con quỷ rít lên, nó lao thẳng vào, đôi tay đầy móng vuốt đen ngòm định xé toạc mạng lưới chỉ đỏ. Nhưng vừa chạm vào, một tia chớp vàng loé lên từ lá bùa treo trên chỉ, hất văng nó ra ngoài. Thầy Lương lúc này hai chân bám chặt xuống đất theo thế Tấn, tay trái cầm chuỗi tiền đồng ép chặt vào ngực để giữ tâm cốt, tay phải bắt ấn nhắm thẳng về phía cái lu ở tâm trận.",
+            "Ông quát lớn, tiếng vang như sấm dội:",
+            "— Càn Khôn định vị, bát quái phục ma. Trấn!",
+            "Một luồng áp lực khổng lồ từ tám hướng ép lại, khiến bóng trắng của con quỷ méo mó, co rúm. Những sợi chỉ ngũ sắc bắt đầu rỉ ra một chất lỏng màu vàng như ánh kim, vây chặt lấy nó. Con quỷ vùng vẫy điên cuồng, miệng sùi ra những bọt đen hôi thối, oán khí tỏa ra nồng nặc đến mức lá cây nhãn trong sân rụng rào rào như tẩm thuốc độc.",
+            "Mồ hôi trên trán thầy Lương chảy xuống mắt cay xè, nhưng ông không dám chớp. Chỉ cần ông xao nhãng một giây để con quỷ làm đứt sợi chỉ ở hướng Cấn, toàn bộ người trong sân sẽ mất mạng ngay lập tức.",
+            "Dưới áp lực của trận đồ, luồng hắc khí quanh con quỷ dần tan bớt, để lộ thân hình tiều tụy đang run rẩy vì bị pháp lực áp chế. Thấy nó đã bị cầm chân, thầy Lương lúc này mới hơi nới lỏng ấn chú, liếc nhanh về phía Tính:",
+            "— “Ngồi im. Đừng nhìn vào mắt nó.”",
+            "Rồi ông giơ một lá bùa khác lên, phất rất nhẹ để giải bớt sát khí của trận pháp, đủ để nó có thể thốt ra lời:",
+            "— “Lui!”",
+            "Chỉ một chữ, sức mạnh từ lá phù hất ngược con quỷ về phía mép cổng, nhưng lần này nó không còn lao lên nữa mà đứng sững lại, gầm ghè trong cổ họng. Tiếng rít chói lên như kim loại cào vào tai.",
+            'Anh Phúc đứng ngoài cửa, mặt tái mét: “Thầy... sao thầy không đánh tan xác nó luôn?”',
+            'Ông Lương không quay lại, mắt vẫn dán chặt vào đôi mắt đỏ quạch của ma nữ:',
+            '“Thứ này không đánh bằng sức. Đánh bằng nợ.”',
+            'Con quỷ ôm cái bọc đen, vừa khóc vừa cười: “Ta muốn lấy mạng! Ta muốn cả làng này chôn cùng ta!”',
+            'Ông Lương chậm rãi bước thêm một bước: “Nếu ta cho ngươi cơ hội được kêu oan, ngươi có dám chỉ tên kẻ đã hại mình không?”',
+            "Con quỷ bỗng khựng lại. Tiếng rít gào tan đi, thay vào đó là một sự im lặng đến đáng sợ. Lần đầu tiên kể từ khi xuất hiện, nó bắt đầu lùi bước, đôi mắt đỏ quạch như dịu đi trong cơn đau đớn tột cùng.",
+            "Ông Lương hạ giọng, thanh âm không còn gắt gao mà trở nên trầm buồn, thấu hiểu:",
+            "'Ngươi nhuốm máu đôi tay, giết lũ trẻ, sát hại sinh linh... làm tất cả những chuyện đại ác đó cũng chẳng thể khiến đứa con trong tay ngươi ấm lại được đâu. Muốn đòi nợ cho ra nợ, oán cho ra oán, thì phải đào đúng mồ, gọi đúng tên kẻ thủ ác. Đừng để nỗi hận làm mù quáng chân linh thêm nữa.'",
+            "Không gian như đông cứng lại. Con quỷ run lên bần bật, chiếc bọc đen trên tay nó khẽ động đậy. Từ sau mái tóc rối bời, một tiếng nấc nghẹn ngào vang lên — không phải tiếng rít của quỷ dữ, mà là tiếng khóc xé lòng của một người đàn bà mất con:",
+            "'Dưới... gốc nhãn... cứu mẹ con ta...'",
+            "Vừa dứt lời, bóng trắng tan biến thành một làn khói đen kịt, lướt nhanh rồi chui tọt vào trong lu sành. Ngọn đèn dầu trên bàn phụt tắt, cả sân nhà Tính chìm trong bóng tối đặc quánh và mùi tử khí thoang thoảng.",
+            "Mãi một lúc sau, tiếng lạch cạch của chiếc ghế gỗ mới vang lên. Thầy Lương ngồi sụp xuống, lồng ngực phập phồng, hơi thở nặng nhọc. Trong bóng tối, người ta chỉ thấy đôi mắt ông mệt mỏi nhưng đầy trăn trở. Trán ông sũng mồ hôi, thấm đẫm cả vạt áo đen.",
+            "Ông Lễ run rẩy, lắp bắp hỏi:",
+            "'Thầy... thế là... xong rồi hả thầy?'",
+            "Thầy Lương nhìn đăm đăm vào cái lu sành lạnh lẽo, giọng ông khàn đi:",
+            "'Chưa xong đâu. Những gì chúng ta vừa thấy... mới chỉ là phần oan hồn uất nghẹn của nó thôi.'",
+            "Anh Phúc lau mồ hôi trên trán, giọng vẫn chưa hết bàng hoàng:",
+            "'Vậy còn cái xác... nó đang ở đâu hả thầy?'",
+            "Ông Lương im lặng một hồi lâu, hướng ánh mắt về phía bóng tối mịt mù sau đình làng, nơi có cây nhãn già cô độc đang đứng sừng sững:",
+            "'Dưới cây nhãn già sau đình. Ở đó có nỗi oan khuất bị vùi lấp.'",
+            "Ông nhìn mọi người, ánh mắt nghiêm nghị đến lạnh người:",
+            "'Sáng mai, khi mặt trời lên, chúng ta sẽ đào nó lên. Sự thật phải được đưa ra ánh sáng thôi.'"
           ]
-        },
-        {
-          title: 'Phần 3',
-          content: ['Nội dung phần 3 đang được cập nhật...']
         },
         {
           title: 'Phần 4',
