@@ -37,7 +37,7 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
       tag: 'Tâm linh - Trinh thám - Nhân văn',
       parts: [
         {
-          title: 'Phần 1: Chương 1 - Tiếng ru sau bãi nhãn',
+          title: 'Tiếng ru sau bãi nhãn',
           audioUrl: 'https://drive.google.com/file/d/1zgAWcvUBYWVD40sH2H2ViA_sMQuooQvE/view?usp=sharing',
           content: [
             'Năm 2005, làng Thiết Trụ vẫn còn nguyên cái vẻ cũ kỹ, chậm rãi của một vùng quê ven sông Bắc Bộ.',
@@ -139,8 +139,61 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
           ]
         },
         {
-          title: 'Phần 2',
-          content: ['Nội dung phần 2 đang được cập nhật...']
+          title: '',
+          content: [
+            'Nhà thằng Tính nằm ở cuối làng, nép mình bên con mương nhỏ nước đục lờ đờ trôi. Hai bên bờ mương là đám cỏ dại mọc um tùm, chiều xuống đã bắt đầu bốc lên mùi ẩm lạnh.',
+            'Khi ông Lễ dẫn thầy Lương tới nơi, Tính đang ngồi bó gối ngoài hiên. Gương mặt nó hốc hác, đôi mắt thâm quầng như người đã nhiều đêm không ngủ. Vừa nhìn thấy người lạ, lại nhìn đến chiếc túi vải chéo vai, nó bất giác nuốt khan.',
+            '“Cụ… cụ cũng là thầy ạ?”',
+            'Thầy Lương không trả lời ngay. Ông bước vào sân với dáng đi khoan thai, vững chãi. Bộ đồ tào xá màu sẫm theo từng bước khẽ lay động. Ánh mắt ông lướt qua mọi thứ trong sân một lượt, rồi dừng lại trước chiếc lu sành.',
+            'Chiếc lu đen sì, phủ bùn đất khô, nắp bị cạy lệch. Trên vành còn sót lại vết bùa đã mục.',
+            'Ông khom người xuống, chòm râu dài khẽ lay, nhưng tuyệt nhiên không chạm vào.',
+            '“Cái lu này… cậu đã tự tay mở ra?”',
+            'Giọng ông trầm, không lớn, nhưng khiến người nghe không dám nói dối.',
+            'Tính cúi đầu:',
+            '“Dạ… con lỡ tay mở cái lu đó, thưa thầy.”',
+            'Thầy Lương nhìn nó, giọng trầm:',
+            '“Cậu không phải vô tình mở đâu. Có thứ đã dẫn cậu mở ra.”',
+            'Tính run lên.',
+            '“Bên trong có gì, nói rõ cho ta nghe.”',
+            '“Thưa thầy… trong đó có một mớ tóc rối, một con dao gỉ… và có mùi tanh rất nặng, giống như mùi xác chết.”',
+            'Thầy Lương khẽ gật đầu, ánh mắt sâu lại.',
+            '“Đúng rồi… vậy là cậu đã phá trấn. Những thứ cậu nhìn thấy chỉ là phần vỏ. Quan trọng là thứ bị trấn bên trong… bây giờ đã thoát ra rồi.”',
+            'Mẹ Tính đứng nép trong cửa bật khóc:',
+            '“Thầy ơi, cứu con tôi. Từ hôm mang cái lu về, đêm nào nó cũng mê sảng. Có hôm nửa đêm nó tự đi ra giếng, gọi không quay lại…”',
+            'Thầy Lương quay sang nhìn Tính, ánh mắt như xuyên thấu:',
+            '“Trong mơ, cậu có thấy một người đàn bà bế đứa trẻ quấn tã không?”',
+            'Tính lập tức run bắn.',
+            '“Dạ… có.”',
+            '“Cô ta quay lưng, tóc xõa kín, không thấy mặt… rồi bảo cậu trả lại đứa con cho cô ta, đúng không?”',
+            'Tính khuỵu xuống:',
+            '“Thầy… con chưa từng kể chuyện này với ai…”',
+            'Thầy Lương đứng thẳng dậy, giọng vẫn đều:',
+            '“Không cần cậu nói. Oán khí ở đây đã nói thay rồi.”',
+            'Anh Phúc đứng bên cạnh, cổ họng khô khốc:',
+            '“Thầy… rốt cuộc thứ trong lu là gì?”',
+            'Thầy Lương chắp tay sau lưng, nhìn về phía bãi nhãn xa xa.',
+            '“Không phải đồ cổ. Đó là vật để trấn… dùng để khóa một oan hồn. Hoặc một thứ đáng lẽ không nên còn tồn tại.”',
+            'Ông dừng lại một chút rồi nói tiếp:',
+            '“Người chết oan, oán không tan. Nếu bị trấn sai cách… sẽ thành thứ dữ hơn.”',
+            'Không ai dám lên tiếng.',
+            'Một lúc sau, ông mở túi vải, lấy ra la bàn gỗ, chuỗi tiền đồng và vài lá bùa cũ. Động tác chậm nhưng dứt khoát.',
+            'Ông Lễ hỏi:',
+            '“Thầy định xử lý thế nào?”',
+            'Thầy Lương đáp, ánh mắt không đổi:',
+            '“Đêm nay ta sẽ ở lại. Việc này không giải trong một sớm một chiều.”',
+            '“Chúng tôi cần chuẩn bị gì không, thầy cứ nói.”',
+            'Ông Lương suy nghĩ một nhịp rồi nói:',
+            '“Chuẩn bị cho ta một con gà trống tơ. Bảy cây đinh gỉ, tháo từ nhà cũ. Một bát tro bếp của người góa phụ. Và nhớ cho kỹ…”',
+            'Ông nhìn từng người:',
+            '“Từ giờ tới sáng mai, sau giờ Tý, không một ai được bước chân ra khỏi nhà. Dù có nghe thấy gì… cũng không được mở cửa.”',
+            'Anh Phúc cau mày:',
+            '“Tro bếp nhà góa phụ… dùng để làm gì vậy thầy?”',
+            'Thầy Lương quay lại nhìn anh, ánh mắt sâu và lạnh:',
+            '“Để gọi đúng thứ đang khóc ngoài bãi nhãn.”',
+            'Không ai dám hỏi thêm.',
+            'Gió từ ngoài mương thổi vào, mang theo cái lạnh ẩm mốc len qua từng kẽ áo.',
+            'Chiếc lu sành dưới mái hiên… khẽ phát ra một tiếng “cốc” rất nhỏ.'
+          ]
         },
         {
           title: 'Phần 3',
@@ -185,6 +238,7 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
   isAudioPlaying = false;
   isAudioLoading = false;
   audioErrorMessage = '';
+  private readonly partAudioCache = new WeakMap<StoryPart, { audioUrl: string | null; previewUrl: SafeResourceUrl | null }>();
 
   private readonly audioPlayer: HTMLAudioElement | null =
     typeof Audio !== 'undefined' ? new Audio() : null;
@@ -263,26 +317,11 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
   }
 
   getAudioUrlForPart(part: StoryPart): string | null {
-    if (!part.audioUrl) {
-      return null;
-    }
-    return this.getAudioCandidates(part.audioUrl)[0] ?? null;
+    return this.getOrCreatePartAudioMeta(part).audioUrl;
   }
 
   getGoogleDrivePreviewUrlForPart(part: StoryPart): SafeResourceUrl | null {
-    const source = part.audioUrl?.trim() ?? null;
-    if (!source || !source.includes('drive.google.com')) {
-      return null;
-    }
-    const fileId = this.extractGoogleDriveFileId(source);
-    if (!fileId) {
-      return null;
-    }
-    const resourceKey = this.extractGoogleDriveResourceKey(source);
-    const previewUrl = resourceKey
-      ? `https://drive.google.com/file/d/${fileId}/preview?resourcekey=${resourceKey}`
-      : `https://drive.google.com/file/d/${fileId}/preview`;
-    return this.sanitizer.bypassSecurityTrustResourceUrl(previewUrl);
+    return this.getOrCreatePartAudioMeta(part).previewUrl;
   }
 
   async toggleAudioForPart(partIndex: number, audioUrl: string): Promise<void> {
@@ -387,5 +426,35 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
     }
     const absoluteUrl = new URL(assetPath, document.baseURI).toString();
     return `url("${absoluteUrl}")`;
+  }
+
+  private getOrCreatePartAudioMeta(part: StoryPart): { audioUrl: string | null; previewUrl: SafeResourceUrl | null } {
+    const cached = this.partAudioCache.get(part);
+    if (cached) {
+      return cached;
+    }
+
+    const source = part.audioUrl?.trim() ?? null;
+    if (!source) {
+      const emptyMeta = { audioUrl: null, previewUrl: null };
+      this.partAudioCache.set(part, emptyMeta);
+      return emptyMeta;
+    }
+
+    const audioUrl = this.getAudioCandidates(source)[0] ?? null;
+    const fileId = source.includes('drive.google.com') ? this.extractGoogleDriveFileId(source) : null;
+    const resourceKey = fileId ? this.extractGoogleDriveResourceKey(source) : null;
+    const previewRawUrl = fileId
+      ? (resourceKey
+        ? `https://drive.google.com/file/d/${fileId}/preview?resourcekey=${resourceKey}`
+        : `https://drive.google.com/file/d/${fileId}/preview`)
+      : null;
+
+    const meta = {
+      audioUrl,
+      previewUrl: previewRawUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(previewRawUrl) : null
+    };
+    this.partAudioCache.set(part, meta);
+    return meta;
   }
 }
