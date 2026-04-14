@@ -5,6 +5,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 interface StoryPart {
   title: string;
   content: string[];
+  audioUrl?: string;
 }
 
 interface StoryItem {
@@ -23,7 +24,7 @@ interface StoryItem {
   styleUrl: './truyen-ma.component.scss'
 })
 export class TruyenMaComponent implements OnInit, OnDestroy {
-  constructor(private readonly sanitizer: DomSanitizer) {}
+  constructor(private readonly sanitizer: DomSanitizer) { }
 
   readonly desktopBackgroundCssUrl = this.buildBackgroundCssUrl('assets/images/ngu-hanh-desktop.png');
   readonly mobileBackgroundCssUrl = this.buildBackgroundCssUrl('assets/images/ngu-hanh-mobile.png');
@@ -37,6 +38,7 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
       parts: [
         {
           title: 'Phần 1: Chương 1 - Tiếng ru sau bãi nhãn',
+          audioUrl: 'https://drive.google.com/file/d/1zgAWcvUBYWVD40sH2H2ViA_sMQuooQvE/view?usp=sharing',
           content: [
             'Năm 2005, làng Thiết Trụ vẫn còn nguyên cái vẻ cũ kỹ, chậm rãi của một vùng quê ven sông Bắc Bộ.',
             'Con đường làng chạy ngoằn ngoèo giữa những bức tường gạch cũ loang rêu, chỗ thì lát gạch nghiêng ngả, chỗ thì trơ đất nện, cứ mưa xuống là lầy, nắng lên là bụi. Buổi sáng, người ta nghe tiếng quang gánh kẽo kẹt của mấy bà đi chợ sớm, tiếng vịt kêu ngoài mương, tiếng máy tuốt lúa từ cánh đồng vọng về từng chập. Đến trưa, cả làng lịm đi trong cái nắng trắng chang chang, chỉ còn tiếng ve dội từ những tán nhãn, tán gạo, với tiếng loa xã rè rè phát mấy bản tin cũ. Chiều xuống, gió từ ngoài đê sông thổi vào mang theo mùi rơm rạ, mùi bùn non, mùi khói đốt đồng ngai ngái len qua từng ngõ nhỏ, quấn vào mái tóc, nếp áo của người đi đường.',
@@ -85,19 +87,44 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
             'Thầy cúng dừng phắt. Gió lùa phụt tắt cả hai cây nến. Một bàn tay đen sì in hằn lên cánh cửa gỗ.',
             'Thầy cúng tái mét, ném luôn kiếm đào, ôm túi chạy mất dép.',
             'Từ hôm đó, không ai còn dám bén mảng ra bãi nhãn nữa.',
-            'Chiều hôm ấy, ở quán nước đầu làng, ông Lễ trưởng thôn, anh Phúc công an viên, lão Đoài, ông Bảy và mấy người đàn ông ngồi chụm đầu bàn chuyện.',
+
+            'Trời về chiều, con đường đất từ phía Thái Bình sang Hưng Yên phủ một lớp bụi mỏng vàng đục. Nắng đã dịu đi, nhưng hơi nóng vẫn hắt lên từ mặt đường, khiến không khí rung nhẹ như có làn khói mỏng lơ lửng.',
+            'Thầy Lương bước đi chậm rãi. Cây gậy trúc trong tay ông chạm xuống đất từng nhịp đều đặn, khô và chắc. Quãng đường từ Thái Bình sang không hề ngắn, vậy mà ông đi như thể đã quen với những chuyến độc hành như vậy từ rất lâu rồi. Áo nâu bạc màu dính đầy bụi, lưng áo thấm mồ hôi, nhưng dáng đi vẫn vững vàng, không hề tỏ ra mệt mỏi.',
+            'Khi đặt chân lên con đê đầu làng Thiết Trụ, ông bỗng dừng lại.',
+            'Một cơn gió từ bãi sông thổi lên, mang theo mùi phù sa quen thuộc… nhưng ẩn sâu trong đó lại có một thứ gì khác. Một cảm giác lạnh và nặng, giống như mùi đất vừa bị xới tung lên rồi vội vã lấp lại.',
+
+            'Ông khẽ nhíu mày, ánh mắt trầm xuống.',
+
+            '“Đất ở đây đã bị động rồi… không phải chuyện nhỏ,” ông lẩm bẩm, giọng thấp nhưng rõ ràng.',
+
+            'Dưới chân đê, cánh đồng vẫn hiện ra yên bình như mọi ngày. Xa xa, vài người nông dân đang gánh rạ, tiếng nói cười vang lên rồi lại tắt dần theo gió. Thế nhưng, khi ông bước thêm vài bước vào đầu làng, cảm giác bất thường càng lúc càng rõ rệt.',
+
+            'Những con chó nằm im lìm, không sủa lấy một tiếng.',
+            'Cây đa đầu ngõ đứng lặng, không có lấy một cánh chim đậu.',
+            'Không khí xung quanh dường như đặc quánh lại, nặng nề hơn bình thường, khiến người ta khó thở nếu đứng lâu.',
+
+            'Thầy Lương dừng lại lần nữa. Ông chậm rãi đưa mắt nhìn về phía đình làng, nơi bãi nhãn nằm khuất sau mái ngói cũ kỹ.',
+
+            'Ông hít sâu một hơi.',
+
+            'Mùi âm khí lúc này đã hiện rõ, không còn lẫn lộn.',
+
+            'Bóng người thầy pháp già, cao gầy, kéo dài trên con đường làng phủ bụi. Dáng đi tuy chậm nhưng vững chãi, mỗi bước đều như đã định sẵn.',
+            'Ông biết rất rõ, chuyến đi này… mình đã đến đúng nơi cần đến.',
+
+            'Cùng lúc ấy, ở quán nước đầu làng, ông Lễ trưởng thôn, anh Phúc công an viên, lão Đoài, ông Bảy và mấy người đàn ông ngồi chụm đầu bàn chuyện.',
             'Lão Đoài châm điếu thuốc lào, rít một hơi, rồi nói như sợ ai nghe thấy: “Tôi nói thật, mọi chuyện bắt đầu từ hôm thằng Tính đào được cái lu sành.”',
             'Ông Lễ ngẩng lên: “Lu gì?”',
             '“Lu đen. Chôn sát gốc nhãn già sau đình. Nắp dán bùa đỏ. Hôm ấy nó với thằng Cường đào giun, cuốc phải. Nó thấy lạ đem về.”',
             'Anh Phúc đập tay xuống bàn: “Sao giờ ông mới nói?”',
             '“Thì tôi tưởng đồ cổ. Ai ngờ mang họa.”',
             'Ngay lúc ấy, trước quán có một người đàn ông già đi vào.',
-            'Ông mặc áo nâu đã bạc màu, cổ áo sờn mép, quần tối màu, chân đi dép nhựa. Dáng người gầy, lưng hơi còng, tóc điểm bạc gần hết. Trông chẳng khác gì một ông lão nhà quê đi đường xa ghé xin bát nước.',
+            'Ông mặc áo nâu đã bạc màu, cổ áo sờn mép, quần tối màu, chân đi giày vải, đeo một chiếc túi vải chéo vai. Dáng người gầy, lưng hơi còng, tóc điểm bạc gần hết. Trông chẳng khác gì một ông lão nhà quê đi đường xa ghé xin bát nước.',
             'Nhưng khi ông bước vào, mấy câu chuyện trong quán tự nhiên chùng xuống. Không ai bảo ai, nhưng tất cả đều liếc nhìn.',
             'Ông đặt cái túi vải cũ xuống ghế, ngồi chậm rãi như đã quen với việc bị quan sát, rồi lên tiếng: “Bà chủ, cho tôi bát nước chè. Đi từ đầu đê vào đây, nắng gắt quá.”',
             'Giọng ông cụ khàn nhưng rõ, có chút mệt của người đi đường xa.',
             'Bà bán nước rót chè, tò mò hỏi: “Cụ ở đâu sang mà lạ thế?”',
-            'Ông cười nhẹ: “Đi nhiều nơi rồi, chỗ nào có việc thì ghé. Làng mình dạo này… không yên.”',
+            'Ông cười nhẹ: “Tôi đi nhiều nơi rồi, chỗ nào có việc thì ghé. Làng mình dạo này… không yên.”',
             'Câu nói khiến mấy người trong quán khựng lại.',
             'Ông Lễ nheo mắt: “Cụ nghe ai nói?”',
             'Ông Lương lắc đầu: “Không cần nghe. Đất nói trước rồi.”',
@@ -158,18 +185,6 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
   isAudioPlaying = false;
   isAudioLoading = false;
   audioErrorMessage = '';
-
-  // Paste full Google Drive share links (or direct MP3 links) by part index.
-  // Supported Drive formats:
-  // - https://drive.google.com/file/d/<FILE_ID>/view?usp=sharing
-  // - https://drive.google.com/open?id=<FILE_ID>
-  readonly audioSourcesByStory: Record<string, string[]> = {
-    'giai-nghiep': [
-      'https://drive.google.com/file/d/1pPJvnmMlq5DohMkUjH7jYP0bg5aisdcD/view?usp=sharing',
-      // Phần 2, 3, ... thêm link theo thứ tự index:
-      // 'https://drive.google.com/file/d/<FILE_ID_PART_2>/view?usp=sharing'
-    ]
-  };
 
   private readonly audioPlayer: HTMLAudioElement | null =
     typeof Audio !== 'undefined' ? new Audio() : null;
@@ -247,16 +262,15 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
     this.expandedPartIndexes.add(index);
   }
 
-  getAudioUrlForPart(partIndex: number): string | null {
-    const rawSource = this.audioSourcesByStory[this.selectedStoryId]?.[partIndex];
-    if (!rawSource) {
+  getAudioUrlForPart(part: StoryPart): string | null {
+    if (!part.audioUrl) {
       return null;
     }
-    return this.getAudioCandidates(rawSource)[0] ?? null;
+    return this.getAudioCandidates(part.audioUrl)[0] ?? null;
   }
 
-  getGoogleDrivePreviewUrlForPart(partIndex: number): SafeResourceUrl | null {
-    const source = this.audioSourcesByStory[this.selectedStoryId]?.[partIndex] ?? null;
+  getGoogleDrivePreviewUrlForPart(part: StoryPart): SafeResourceUrl | null {
+    const source = part.audioUrl?.trim() ?? null;
     if (!source || !source.includes('drive.google.com')) {
       return null;
     }

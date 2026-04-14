@@ -34,8 +34,8 @@
               <h3>Phần {{ i + 1 }}: {{ part.title }}</h3>
               <span class="part-toggle-icon">{{ isPartExpanded(i) ? '-' : '+' }}</span>
             </button>
-                        <div class="part-audio" *ngIf="getAudioUrlForPart(i) as audioUrl">
-                            <ng-container *ngIf="getGoogleDrivePreviewUrlForPart(i) as drivePreviewUrl; else directAudioControl">
+                        <div class="part-audio" *ngIf="getAudioUrlForPart(part) as audioUrl">
+                            <ng-container *ngIf="getGoogleDrivePreviewUrlForPart(part) as drivePreviewUrl; else directAudioControl">
                                 <iframe class="drive-audio-frame" [src]="drivePreviewUrl" allow="autoplay"></iframe>
                             </ng-container>
                             <ng-template #directAudioControl>
