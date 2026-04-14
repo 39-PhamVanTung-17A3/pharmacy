@@ -142,6 +142,7 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
         },
         {
           title: 'Lập trận Trấn hồn',
+          audioUrl: 'https://drive.google.com/file/d/1dBwl8mlqR0U8Pn8PcUO1nqAcqhE20q7B/view?usp=sharing',
           content: [
             'Nhà thằng Tính nằm lẻ loi ở cuối làng, nép mình bên con mương nước đọng đen ngòm, lờ đờ trôi như một dải lụa chết. Hai bên bờ mương, cỏ dại mọc cao quá đầu người, chiều xuống lại bốc lên cái mùi ẩm mục, tanh tao của bùn đất lâu ngày không thấy ánh mặt trời.',
             'Khi ông Lễ dẫn thầy Lương tới nơi, Tính đang ngồi bó gối ngoài hiên. Gương mặt nó xám ngoét, đôi mắt trũng sâu, hốc hác như người đã bị rút cạn sinh khí. Vừa thấy dáng người mặc bộ đồ tào xá sẫm màu, túi vải chéo vai bước vào, nó bất giác nuốt khan, giọng run bắn:',
