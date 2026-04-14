@@ -22,7 +22,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: url('/assets/images/ngu-hanh-desktop.png') center / cover no-repeat;
+  background: var(--horror-desktop-bg) center / cover no-repeat;
   filter: blur(1.8px) brightness(0.62) saturate(0.98);
   transform: scale(1.02);
 }
@@ -202,6 +202,13 @@ h1 {
   gap: 12px;
 }
 
+.audio-error {
+  margin: 12px 2px 0;
+  color: #fecaca;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 .part-card {
   border-radius: 14px;
   border: 1px solid rgba(253, 186, 116, 0.3);
@@ -236,6 +243,43 @@ h1 {
   flex-shrink: 0;
 }
 
+.part-audio {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.drive-audio-frame {
+  width: 100%;
+  min-height: 92px;
+  border: 1px solid rgba(253, 186, 116, 0.32);
+  border-radius: 10px;
+  background: rgba(20, 11, 6, 0.8);
+}
+
+.audio-btn {
+  border: 1px solid rgba(253, 186, 116, 0.45);
+  background: rgba(84, 36, 14, 0.86);
+  color: #fde68a;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.audio-btn.secondary {
+  background: rgba(45, 25, 10, 0.78);
+  color: #f8ecd5;
+}
+
+.audio-status {
+  font-size: 13px;
+  color: #a7f3d0;
+}
+
 .part-body {
   margin-top: 8px;
 }
@@ -258,6 +302,11 @@ h1 {
     background: rgba(68, 31, 11, 0.8);
     transform: translateY(-1px);
   }
+
+  .audio-btn:hover {
+    border-color: rgba(253, 230, 138, 0.62);
+    background: rgba(112, 48, 17, 0.88);
+  }
 }
 
 @media (max-width: 900px) {
@@ -272,7 +321,7 @@ h1 {
 
 @media (max-width: 768px) {
   .horror-page::before {
-    background-image: url('/assets/images/ngu-hanh-mobile.png');
+    background-image: var(--horror-mobile-bg);
     filter: blur(2.2px) brightness(0.52) saturate(0.9);
     transform: scale(1.06);
   }

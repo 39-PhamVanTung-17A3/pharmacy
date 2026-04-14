@@ -1,5 +1,6 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+﻿import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 interface StoryPart {
   title: string;
@@ -21,7 +22,12 @@ interface StoryItem {
   templateUrl: './truyen-ma.component.html',
   styleUrl: './truyen-ma.component.scss'
 })
-export class TruyenMaComponent implements OnInit {
+export class TruyenMaComponent implements OnInit, OnDestroy {
+  constructor(private readonly sanitizer: DomSanitizer) {}
+
+  readonly desktopBackgroundCssUrl = this.buildBackgroundCssUrl('assets/images/ngu-hanh-desktop.png');
+  readonly mobileBackgroundCssUrl = this.buildBackgroundCssUrl('assets/images/ngu-hanh-mobile.png');
+
   readonly stories: StoryItem[] = [
     {
       id: 'giai-nghiep',
@@ -148,11 +154,71 @@ export class TruyenMaComponent implements OnInit {
   selectedStoryId = this.stories[0].id;
   isStoryListOpen = true;
   expandedPartIndexes = new Set<number>([0]);
+  currentAudioPartIndex: number | null = null;
+  isAudioPlaying = false;
+  isAudioLoading = false;
+  audioErrorMessage = '';
+
+  // Paste full Google Drive share links (or direct MP3 links) by part index.
+  // Supported Drive formats:
+  // - https://drive.google.com/file/d/<FILE_ID>/view?usp=sharing
+  // - https://drive.google.com/open?id=<FILE_ID>
+  readonly audioSourcesByStory: Record<string, string[]> = {
+    'giai-nghiep': [
+      'https://drive.google.com/file/d/1pPJvnmMlq5DohMkUjH7jYP0bg5aisdcD/view?usp=sharing',
+      // Phần 2, 3, ... thêm link theo thứ tự index:
+      // 'https://drive.google.com/file/d/<FILE_ID_PART_2>/view?usp=sharing'
+    ]
+  };
+
+  private readonly audioPlayer: HTMLAudioElement | null =
+    typeof Audio !== 'undefined' ? new Audio() : null;
+
+  private readonly handleAudioEnded = (): void => {
+    this.isAudioPlaying = false;
+    this.isAudioLoading = false;
+    this.currentAudioPartIndex = null;
+  };
+
+  private readonly handleAudioPause = (): void => {
+    this.isAudioPlaying = false;
+    this.isAudioLoading = false;
+  };
+
+  private readonly handleAudioPlay = (): void => {
+    this.isAudioPlaying = true;
+    this.isAudioLoading = false;
+    this.audioErrorMessage = '';
+  };
+
+  private readonly handleAudioError = (): void => {
+    this.isAudioPlaying = false;
+    this.isAudioLoading = false;
+  };
 
   ngOnInit(): void {
     if (typeof window !== 'undefined' && window.innerWidth <= 768) {
       this.isStoryListOpen = false;
     }
+
+    if (this.audioPlayer) {
+      this.audioPlayer.preload = 'metadata';
+      this.audioPlayer.addEventListener('ended', this.handleAudioEnded);
+      this.audioPlayer.addEventListener('pause', this.handleAudioPause);
+      this.audioPlayer.addEventListener('play', this.handleAudioPlay);
+      this.audioPlayer.addEventListener('error', this.handleAudioError);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (!this.audioPlayer) {
+      return;
+    }
+    this.audioPlayer.pause();
+    this.audioPlayer.removeEventListener('ended', this.handleAudioEnded);
+    this.audioPlayer.removeEventListener('pause', this.handleAudioPause);
+    this.audioPlayer.removeEventListener('play', this.handleAudioPlay);
+    this.audioPlayer.removeEventListener('error', this.handleAudioError);
   }
 
   get selectedStory(): StoryItem {
@@ -160,6 +226,7 @@ export class TruyenMaComponent implements OnInit {
   }
 
   selectStory(storyId: string): void {
+    this.stopAudio();
     this.selectedStoryId = storyId;
     this.expandedPartIndexes = new Set<number>([0]);
   }
@@ -178,5 +245,133 @@ export class TruyenMaComponent implements OnInit {
       return;
     }
     this.expandedPartIndexes.add(index);
+  }
+
+  getAudioUrlForPart(partIndex: number): string | null {
+    const rawSource = this.audioSourcesByStory[this.selectedStoryId]?.[partIndex];
+    if (!rawSource) {
+      return null;
+    }
+    return this.getAudioCandidates(rawSource)[0] ?? null;
+  }
+
+  getGoogleDrivePreviewUrlForPart(partIndex: number): SafeResourceUrl | null {
+    const source = this.audioSourcesByStory[this.selectedStoryId]?.[partIndex] ?? null;
+    if (!source || !source.includes('drive.google.com')) {
+      return null;
+    }
+    const fileId = this.extractGoogleDriveFileId(source);
+    if (!fileId) {
+      return null;
+    }
+    const resourceKey = this.extractGoogleDriveResourceKey(source);
+    const previewUrl = resourceKey
+      ? `https://drive.google.com/file/d/${fileId}/preview?resourcekey=${resourceKey}`
+      : `https://drive.google.com/file/d/${fileId}/preview`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(previewUrl);
+  }
+
+  async toggleAudioForPart(partIndex: number, audioUrl: string): Promise<void> {
+    if (!this.audioPlayer) {
+      this.audioErrorMessage = 'Trình duyệt hiện tại không hỗ trợ audio player.';
+      return;
+    }
+
+    this.audioErrorMessage = '';
+
+    if (this.currentAudioPartIndex === partIndex && this.isAudioPlaying) {
+      this.audioPlayer.pause();
+      return;
+    }
+
+    this.currentAudioPartIndex = partIndex;
+    this.isAudioLoading = true;
+
+    const candidates = this.getAudioCandidates(audioUrl);
+    for (const candidateUrl of candidates) {
+      if (this.audioPlayer.src !== candidateUrl) {
+        this.audioPlayer.src = candidateUrl;
+        this.audioPlayer.load();
+      }
+      try {
+        await this.audioPlayer.play();
+        return;
+      } catch {
+        // Try next candidate URL for Google Drive.
+      }
+    }
+
+    this.isAudioLoading = false;
+    this.isAudioPlaying = false;
+    this.audioErrorMessage =
+      'Không phát được audio từ Google Drive. Hãy đặt quyền "Anyone with the link", kiểm tra định dạng (mp3/m4a), hoặc thử file nhỏ hơn.';
+  }
+
+  stopAudio(): void {
+    if (!this.audioPlayer) {
+      return;
+    }
+    this.audioPlayer.pause();
+    this.audioPlayer.currentTime = 0;
+    this.currentAudioPartIndex = null;
+    this.isAudioPlaying = false;
+    this.isAudioLoading = false;
+  }
+
+  private normalizeAudioSource(source: string): string {
+    const trimmed = source.trim();
+    if (!trimmed.includes('drive.google.com')) {
+      return trimmed;
+    }
+    const fileId = this.extractGoogleDriveFileId(trimmed);
+    if (!fileId) {
+      return trimmed;
+    }
+    return `https://docs.google.com/uc?export=open&id=${fileId}`;
+  }
+
+  private getAudioCandidates(source: string): string[] {
+    const normalized = this.normalizeAudioSource(source);
+    if (!normalized.includes('google.com/uc?')) {
+      return [normalized];
+    }
+    const fileId = this.extractGoogleDriveFileId(source) ?? this.extractGoogleDriveFileId(normalized);
+    if (!fileId) {
+      return [normalized];
+    }
+    return [
+      `https://docs.google.com/uc?export=open&id=${fileId}`,
+      `https://docs.google.com/uc?export=download&id=${fileId}`,
+      `https://drive.google.com/uc?export=download&id=${fileId}`
+    ];
+  }
+
+  private extractGoogleDriveFileId(url: string): string | null {
+    const matchByPath = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (matchByPath?.[1]) {
+      return matchByPath[1];
+    }
+
+    const matchByQuery = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (matchByQuery?.[1]) {
+      return matchByQuery[1];
+    }
+    return null;
+  }
+
+  private extractGoogleDriveResourceKey(url: string): string | null {
+    const match = url.match(/[?&]resourcekey=([^&]+)/);
+    if (match?.[1]) {
+      return decodeURIComponent(match[1]);
+    }
+    return null;
+  }
+
+  private buildBackgroundCssUrl(assetPath: string): string {
+    if (typeof document === 'undefined') {
+      return `url("${assetPath}")`;
+    }
+    const absoluteUrl = new URL(assetPath, document.baseURI).toString();
+    return `url("${absoluteUrl}")`;
   }
 }

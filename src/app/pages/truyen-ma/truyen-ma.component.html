@@ -1,4 +1,4 @@
-﻿<div class="horror-page">
+﻿<div class="horror-page" [style.--horror-desktop-bg]="desktopBackgroundCssUrl" [style.--horror-mobile-bg]="mobileBackgroundCssUrl">
     <main class="content-shell">
         <h1>Huyền học dân gian</h1>
     <p class="intro">
@@ -26,13 +26,28 @@
                     <h2>{{ selectedStory.title }}</h2>
                     <p>{{ selectedStory.subtitle }}</p>
                 </header>
+                <p class="audio-error" *ngIf="audioErrorMessage">{{ audioErrorMessage }}</p>
 
                 <section class="part-list">
                     <article class="part-card" *ngFor="let part of selectedStory.parts; index as i">
                         <button type="button" class="part-toggle" (click)="togglePart(i)">
               <h3>Phần {{ i + 1 }}: {{ part.title }}</h3>
-              <span class="part-toggle-icon">{{ isPartExpanded(i) ? '−' : '+' }}</span>
+              <span class="part-toggle-icon">{{ isPartExpanded(i) ? '-' : '+' }}</span>
             </button>
+                        <div class="part-audio" *ngIf="getAudioUrlForPart(i) as audioUrl">
+                            <ng-container *ngIf="getGoogleDrivePreviewUrlForPart(i) as drivePreviewUrl; else directAudioControl">
+                                <iframe class="drive-audio-frame" [src]="drivePreviewUrl" allow="autoplay"></iframe>
+                            </ng-container>
+                            <ng-template #directAudioControl>
+                                <button type="button" class="audio-btn" (click)="toggleAudioForPart(i, audioUrl)">
+                {{ currentAudioPartIndex === i && isAudioPlaying ? 'Tạm dừng audio' : 'Phát audio' }}
+              </button>
+                                <button type="button" class="audio-btn secondary" *ngIf="currentAudioPartIndex === i" (click)="stopAudio()">
+                Dừng
+              </button>
+                                <span class="audio-status" *ngIf="isAudioLoading && currentAudioPartIndex === i">Đang tải audio...</span>
+                            </ng-template>
+                        </div>
                         <div class="part-body" *ngIf="isPartExpanded(i)">
                             <p *ngFor="let paragraph of part.content">{{ paragraph }}</p>
                         </div>
