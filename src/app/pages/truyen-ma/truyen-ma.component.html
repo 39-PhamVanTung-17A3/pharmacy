@@ -26,6 +26,9 @@
                     <h2>{{ selectedStory.title }}</h2>
                     <p>{{ selectedStory.subtitle }}</p>
                     <p class="author" *ngIf="selectedStory.author">Tác giả: {{ selectedStory.author }}</p>
+                    <p class="full-audio-note" *ngIf="getGoogleDrivePreviewUrlForSelectedStory()">Audio bản full</p>
+                    <iframe class="drive-audio-frame full-drive-frame" *ngIf="getGoogleDrivePreviewUrlForSelectedStory() as fullDrivePreviewUrl"
+                        [src]="fullDrivePreviewUrl" allow="autoplay"></iframe>
                 </header>
                 <p class="audio-error" *ngIf="audioErrorMessage">{{ audioErrorMessage }}</p>
 

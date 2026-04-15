@@ -14,6 +14,7 @@ interface StoryItem {
   subtitle: string;
   author?: string;
   tag: string;
+  fullAudioUrl?: string;
   parts: StoryPart[];
 }
 
@@ -37,6 +38,7 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
       subtitle: 'Ngoại truyện: Thầy Tàu ly kỳ truyện',
       author: 'LongPV',
       tag: 'Tâm linh - Trinh thám - Nhân văn',
+      fullAudioUrl: 'https://drive.google.com/file/d/1H1kmC45Fnv7xUx-ABIyRRbbOUteKAVet/view?usp=sharing',
       parts: [
         {
           title: 'Tiếng ru',
@@ -348,6 +350,7 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
   isAudioLoading = false;
   audioErrorMessage = '';
   private readonly partAudioCache = new WeakMap<StoryPart, { audioUrl: string | null; previewUrl: SafeResourceUrl | null }>();
+  private readonly fullAudioCache = new WeakMap<StoryItem, { audioUrl: string | null; previewUrl: SafeResourceUrl | null }>();
 
   private readonly audioPlayer: HTMLAudioElement | null =
     typeof Audio !== 'undefined' ? new Audio() : null;
@@ -446,27 +449,7 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.currentAudioPartIndex = partIndex;
-    this.isAudioLoading = true;
-
-    const candidates = this.getAudioCandidates(audioUrl);
-    for (const candidateUrl of candidates) {
-      if (this.audioPlayer.src !== candidateUrl) {
-        this.audioPlayer.src = candidateUrl;
-        this.audioPlayer.load();
-      }
-      try {
-        await this.audioPlayer.play();
-        return;
-      } catch {
-        // Try next candidate URL for Google Drive.
-      }
-    }
-
-    this.isAudioLoading = false;
-    this.isAudioPlaying = false;
-    this.audioErrorMessage =
-      'Không phát được audio từ Google Drive. Hãy đặt quyền "Anyone with the link", kiểm tra định dạng (mp3/m4a), hoặc thử file nhỏ hơn.';
+    await this.playAudioForPart(partIndex, audioUrl);
   }
 
   stopAudio(): void {
@@ -480,6 +463,10 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
     this.isAudioLoading = false;
   }
 
+  getGoogleDrivePreviewUrlForSelectedStory(): SafeResourceUrl | null {
+    return this.getOrCreateFullAudioMeta(this.selectedStory).previewUrl;
+  }
+
   private normalizeAudioSource(source: string): string {
     const trimmed = source.trim();
     if (!trimmed.includes('drive.google.com')) {
@@ -489,7 +476,9 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
     if (!fileId) {
       return trimmed;
     }
-    return `https://docs.google.com/uc?export=open&id=${fileId}`;
+    const resourceKey = this.extractGoogleDriveResourceKey(trimmed);
+    const resourceKeyQuery = resourceKey ? `&resourcekey=${encodeURIComponent(resourceKey)}` : '';
+    return `https://docs.google.com/uc?export=open&id=${fileId}${resourceKeyQuery}`;
   }
 
   private getAudioCandidates(source: string): string[] {
@@ -501,11 +490,18 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
     if (!fileId) {
       return [normalized];
     }
-    return [
-      `https://docs.google.com/uc?export=open&id=${fileId}`,
-      `https://docs.google.com/uc?export=download&id=${fileId}`,
-      `https://drive.google.com/uc?export=download&id=${fileId}`
+    const resourceKey =
+      this.extractGoogleDriveResourceKey(source) ?? this.extractGoogleDriveResourceKey(normalized);
+    const resourceKeyQuery = resourceKey ? `&resourcekey=${encodeURIComponent(resourceKey)}` : '';
+    const candidates = [
+      `https://docs.google.com/uc?export=open&id=${fileId}${resourceKeyQuery}`,
+      `https://docs.google.com/uc?export=download&id=${fileId}${resourceKeyQuery}`,
+      `https://drive.google.com/uc?export=download&id=${fileId}${resourceKeyQuery}`,
+      `https://drive.usercontent.google.com/download?id=${fileId}&export=download${resourceKeyQuery}`,
+      `https://drive.usercontent.google.com/uc?id=${fileId}&export=download${resourceKeyQuery}`,
+      source
     ];
+    return Array.from(new Set(candidates));
   }
 
   private extractGoogleDriveFileId(url: string): string | null {
@@ -564,6 +560,66 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
       previewUrl: previewRawUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(previewRawUrl) : null
     };
     this.partAudioCache.set(part, meta);
+    return meta;
+  }
+
+  private async playAudioForPart(partIndex: number, audioUrl: string): Promise<boolean> {
+    if (!this.audioPlayer) {
+      this.audioErrorMessage = 'Trình duyệt hiện tại không hỗ trợ audio player.';
+      return false;
+    }
+
+    this.currentAudioPartIndex = partIndex;
+    this.isAudioLoading = true;
+
+    const candidates = this.getAudioCandidates(audioUrl);
+    for (const candidateUrl of candidates) {
+      if (this.audioPlayer.src !== candidateUrl) {
+        this.audioPlayer.src = candidateUrl;
+        this.audioPlayer.load();
+      }
+      try {
+        await this.audioPlayer.play();
+        return true;
+      } catch {
+        // Try next candidate URL for Google Drive.
+      }
+    }
+
+    this.isAudioLoading = false;
+    this.isAudioPlaying = false;
+    this.audioErrorMessage =
+      'Không phát được audio từ Google Drive. Hãy đặt quyền "Anyone with the link", kiểm tra định dạng (mp3/m4a), hoặc thử file nhỏ hơn.';
+    return false;
+  }
+
+  private getOrCreateFullAudioMeta(story: StoryItem): { audioUrl: string | null; previewUrl: SafeResourceUrl | null } {
+    const cached = this.fullAudioCache.get(story);
+    if (cached) {
+      return cached;
+    }
+
+    const source = story.fullAudioUrl?.trim() ?? null;
+    if (!source) {
+      const emptyMeta = { audioUrl: null, previewUrl: null };
+      this.fullAudioCache.set(story, emptyMeta);
+      return emptyMeta;
+    }
+
+    const audioUrl = this.getAudioCandidates(source)[0] ?? null;
+    const fileId = source.includes('drive.google.com') ? this.extractGoogleDriveFileId(source) : null;
+    const resourceKey = fileId ? this.extractGoogleDriveResourceKey(source) : null;
+    const previewRawUrl = fileId
+      ? (resourceKey
+        ? `https://drive.google.com/file/d/${fileId}/preview?resourcekey=${resourceKey}`
+        : `https://drive.google.com/file/d/${fileId}/preview`)
+      : null;
+
+    const meta = {
+      audioUrl,
+      previewUrl: previewRawUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(previewRawUrl) : null
+    };
+    this.fullAudioCache.set(story, meta);
     return meta;
   }
 }
