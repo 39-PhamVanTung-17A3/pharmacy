@@ -275,32 +275,66 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
           ]
         },
         {
-          title: 'Phần 4',
-          content: ['Nội dung phần 4 đang được cập nhật...']
+          title: 'Quan tài bảy đinh',
+          audioUrl: 'https://drive.google.com/file/d/1LHb-OXpaAcwCMnGwiSMnwJNlcfcrK28t/view?usp=sharing',
+          content: ['Sáng hôm sau, thầy Lương cùng gia đình anh Tính và dân làng ra bãi nhãn, sương muối phủ trắng xóa, cái lạnh không phải từ gió trời mà như từ dưới lòng đất bốc lên, luồn lách qua từng kẽ tóc.',
+            'Cây nhãn già sừng sững giữa bãi, thân to hai người ôm không xuể, lớp vỏ xù xì rạn nứt. Những chiếc rễ lớn nổi cuồn cuộn trên mặt đất, ngoằn ngoèo như đàn trăn đang canh giữ giấc ngủ ngàn năm. Thầy Lương đứng lặng trước gốc cây, tay bấm quyết, mắt lim dim. Ông rút ba nén hương, quẹt một mồi lửa, khấn vái thầm thì rồi cắm xuống đất. Lạ thay, khói hương không bay tản mác theo gió mà cứ lờ đờ, tụ lại thành một dải mỏng, xoáy nhẹ rồi chìm dần xuống ngay sát một rễ nhãn lớn',
+            'Thấy mọi người xầm xì lạ lẫm, thầy Lương ôn tồn giải thích:',
+            '"Hương vốn là cầu nối âm dương. Ở nơi có oan khí bị vùi lấp quá sâu, âm khí của đất sẽ níu khói hương lại không cho bay lên. Khói tụ ở đâu, tâm điểm của nỗi oan nằm ở đó."',
+            'Thầy nói tiếp, chỉ khẽ vào vị trí khói lặn:',
+            '"Đào ở đây. Nhẹ tay, đừng để cuốc phạm vào phần cốt."',
+            'Mấy thanh niên trai tráng mình đầy mồ hôi dù trời xe lạnh buổi sáng sớm, thay nhau quật đất. Đào xuống chừng hơn một thước, một tiếng "cộc" khô khốc vang lên. Lớp đất đen ẩm ướt được gạt sang bên, để lộ một tấm ván gỗ đen sì, mủn ra vì nước đọng.',
+            'Giữa tấm ván, bảy cây đinh mười phân gỉ sét đóng thành hình chữ "Sát". Một góc ván vẫn còn dính mẩu bùa đỏ thẫm đã mục nát, trông như vết máu khô. Mẹ Tính nhìn thấy thì khuỵu xuống, miệng lẩm bẩm: "Trời cao có mắt... thật sự có mộ"',
+            'Thầy Lương bước lại gần, khẽ thở dài, đôi lông mày ông nhíu lại đầy trăn trở. Ông cúi đầu nhìn thật kỹ nhưng ánh mắt không hề có vẻ ghê sợ, mà chỉ tràn đầy sự thương cảm, khẽ gạt lớp bùn trên mặt ván gỗ',
+            'Đây không phải mộ, đây là Địa Ngục thu nhỏ. Một cái quan tài được trấn bằng Thất Đinh Yểm Hồn. Họ dùng đinh gỉ để găm chặt linh hồn vào xác, dùng bùa chú để cắt đứt đường luân hồi. Kẻ ác muốn người mẹ này đời đời kiếp kiếp không thể đầu thai, phải chịu cảnh lạnh lẽo, u uất ngay trong lòng đất mẹ. Đau đớn thay, đến đứa trẻ vô tội cũng bị liên lụy... thật là quá nhẫn tâm.',
+            'Giữa lúc đám đông đang xầm xì sợ hãi, một tiếng ho khan từ phía sau vang lên. Cụ Mão — người già nhất cái làng này — chống gậy run rẩy tiến tới. Đôi mắt đục mờ của cụ nhìn trân trân vào bảy cây đinh gỉ, gương mặt cắt không còn giọt máu.',
+            '"Đúng nó rồi... oan nghiệt quá!" — Cụ Mão ngồi bệt xuống cỏ, nước mắt chảy dài qua những nếp nhăn sâu hoắm như rãnh đất.',
+            'Thầy Lương quay sang nhìn cụ Mão và bà con lối xóm, giọng ông trầm xuống, mang theo một nỗi xót xa khôn tả:',
+            '"Cụ biết chuyện này, vậy xin cụ hãy kể lại cho tôi và bà con được rõ"',
+            'Cụ Mão run giọng kể về năm bảy lăm đói khát. Cô Hồng góa chồng, một mình nuôi con nhỏ giữa cơn loạn lạc. Có dạo trẻ con trong làng ốm liên miên, người ta đồn cô luyện tà thuật trù ẻo lũ trẻ để hút linh khí cho con mình. Đỉnh điểm là khi đứa con ông đồ tể Chấn chết yểu, dân làng điên cuồng kéo tới...',
+            'Cụ dừng lại, nước mắt chảy ra theo những nếp nhăn sâu hoắm.',
+            '“Người ta trói nó ra bãi nhãn. Nó ôm con, quỳ lạy kêu oan đến khản đặc cả tiếng, nhưng không ai nghe. Chính tay ông Chấn cầm búa đóng đinh, vừa đóng vừa chửi rủa thậm tệ. Tôi... tôi cũng đứng đó nhìn mà không dám can.”',
+            'Cả bãi nhãn im bặt, chỉ còn tiếng gió rít qua kẽ lá nghe như tiếng khóc thầm. Thầy Lương nhìn cụ Mão một lúc lâu rồi hỏi:',
+            '"Ông Chấn giờ thế nào?"',
+            '"Nằm liệt giường mấy tháng nay, người lở loét như bị quỷ rỉa." — Cụ Mão trả lời',
+            'Nghe cụ Mão kể về nỗi oan năm xưa, thầy Lương không hề tỏ ra giận dữ với cụ. Ông tiến lại gần, đặt bàn tay gầy guộc nhưng ấm áp lên vai cụ già đang run rẩy, khẽ khàng an ủi:',
+            '"Cụ đừng quá dằn vặt. Lúc ấy thế sự loạn lạc, lòng người hoang mang nên mới lầm đường lạc lối. Nay tôi đến đây cũng là để giúp cụ và bà con hóa giải cái nghiệp chướng này."',
+            'Anh Phúc nhìn cái quan tài, mồ hôi hột chảy dài:',
+            '"Thầy... giờ tính sao với cái này?"',
+            'Thầy Lương nhìn đăm đăm vào tấm ván quan tài mục nát, đôi mắt ông trĩu nặng một nỗi xót thương. Ông quay sang, khẽ gật đầu với mấy anh thanh niên rồi ôn tồn nói:',
+            '"Các anh giúp tôi, hãy mở nắp quan tài này ra. Cẩn thận một chút, kẻo làm động đến cốt. Phải tháo bỏ những cái đinh này, linh hồn họ mới mong thoát khỏi xiềng xích bấy lâu."',
+            'Lúc nắp quan tài mở ra, một mùi tanh tưởi nồng nặc bốc ra khiến đám đông kinh hãi lùi lại, thầy Lương vẫn đứng yên đó, mắt ông nhắm lại, miệng lâm râm đọc bài chú vãng sanh cho hai linh hồn tội nghiệp. Khi nhìn thấy bộ cốt người mẹ ôm chặt lấy con, lòng thầy quặn thắt, đôi lông mày khẽ nhíu lại.',
+            'Ông nhìn mọi người, giọng nói lúc này vừa uy nghiêm vừa đầy sự bao dung:',
+            '"Oan có đầu, nợ có chủ. Đêm nay chúng ta sẽ mở đàn ở Đình Làng. Tôi muốn mời tất cả bà con trong làng tới dự. Không phải để chúng ta luận tội ai, mà để linh hồn cô Hồng có cơ hội trút bỏ hận thù, để người chết được cất tiếng nói kêu oan, và để người sống chúng ta có dịp cúi đầu, nói với họ một lời xin lỗi chân thành."',
+          ]
         },
         {
-          title: 'Phần 5',
-          content: ['Nội dung phần 5 đang được cập nhật...']
+          title: '',
+          content: ['Thầy Lương đói quá, xin các đồng đạo giúp đỡ cho thầy bữa cơm...']
         },
         {
-          title: 'Phần 6',
-          content: ['Nội dung phần 6 đang được cập nhật...']
+          title: '',
+          content: ['Thầy Lương đói quá, xin các đồng đạo giúp đỡ cho thầy bữa cơm...']
         },
         {
-          title: 'Phần 7',
-          content: ['Nội dung phần 7 đang được cập nhật...']
+          title: '',
+          content: ['Thầy Lương đói quá, xin các đồng đạo giúp đỡ cho thầy bữa cơm...']
         },
         {
-          title: 'Phần 8',
-          content: ['Nội dung phần 8 đang được cập nhật...']
+          title: '',
+          content: ['Thầy Lương đói quá, xin các đồng đạo giúp đỡ cho thầy bữa cơm...']
         },
         {
-          title: 'Phần 9',
-          content: ['Nội dung phần 9 đang được cập nhật...']
+          title: '',
+          content: ['Thầy Lương đói quá, xin các đồng đạo giúp đỡ cho thầy bữa cơm...']
         },
         {
-          title: 'Phần 10',
-          content: ['Nội dung phần 10 đang được cập nhật...']
+          title: '',
+          content: ['Thầy Lương đói quá, xin các đồng đạo giúp đỡ cho thầy bữa cơm...']
+        },
+        {
+          title: '',
+          content: ['Thầy Lương đói quá, xin các đồng đạo giúp đỡ cho thầy bữa cơm...']
         }
       ]
     }
