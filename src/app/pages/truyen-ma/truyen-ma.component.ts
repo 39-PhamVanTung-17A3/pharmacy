@@ -358,7 +358,13 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
             'Sau khi rửa sạch sẽ, lau khô các phần cốt, thầy Lương bắt đầu xếp cốt vào trong tiểu',
             'Thầy Lương lót dưới đáy tiểu một lớp giấy trang kim vàng óng, sau đó trải lớp vải lụa đỏ. Thầy bắt đầu xếp cốt theo đúng thứ tự: xương chân đặt dưới, xương sống xếp dọc theo thân quách. Sau cùng, thầy đặt bộ hài cốt của đứa nhỏ nằm gọn gàng vào giữa lồng ngực người mẹ, tạo thành tư thế ôm ấp chở che vĩnh cửu.',
             'Ông đặt chiếc vòng bạc và những đồng tiền đồng vào bốn góc để “giữ cửa”, rồi phủ lên trên một tấm vải lụa đỏ thắm. Trước khi đậy nắp tiểu, thầy Lương còn cẩn thận rảy thêm vài giọt rượu phép lên trên, mùi hương nồng đượm bay lên thơm nức cả sân đình.',
-            'Thầy dùng đôi bàn tay vừa rửa sạch cốt, vuốt nhẹ lên nắp tiểu sành mới tinh, gương mặt ông lúc này mới giãn ra, hiện rõ vẻ thư thái:'
+            'Thầy dùng đôi bàn tay vừa rửa sạch cốt, vuốt nhẹ lên nắp tiểu sành mới tinh, gương mặt ông lúc này mới giãn ra, hiện rõ vẻ thư thái:',
+            '"Xong rồi! Xiềng xích đã tháo, cốt cách cũng đã vẹn toàn. Từ nay về sau, mẹ con cô Hồng không còn phải chịu cảnh lạnh lẽo nữa!"',
+            'Thầy Lương đứng dậy, đưa tay chỉ về phía gò đất cao nằm ở phía Đông làng:',
+            '"Chiều nay, tôi đã đi khảo sát một vòng quanh làng. Ở phía gò cao kia, mạch đất vững vàng, lại đón được ánh nắng mặt trời buổi sớm, rất tốt để xua tan khí lạnh. Tôi muốn xin phép bà con được đưa mẹ con cô Hồng về đó an táng. Đó là nơi sơn thủy hữu tình, linh hồn họ ở đó mới mong sớm được thanh thản mà đi đầu thai."',
+            'Nghe thầy Lương nói, cả sân đình không ai bảo ai, tất cả đều đồng thanh đồng ý. Ông Lễ đại diện dân làng bước tới, giọng run run vì xúc động:',
+            '"Thầy đã ra tay cứu giúp làng con, lại còn lo cho họ vẹn toàn như thế, chúng con đâu dám có ý kiến gì. Mọi việc xin nghe theo ý thầy."',
+            
           ]
         },
         {
