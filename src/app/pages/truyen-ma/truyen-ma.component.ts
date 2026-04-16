@@ -314,7 +314,7 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
           title: 'Cải táng',
           content: ['Thầy Lương dặn ông Lễ đi thông báo cho mọi người, đúng giờ Hợi tối nay có mặt đông đủ tại đình làng.',
             'Thầy Lương dừng lại một nhịp, rồi nói tiếp:',
-            '"Nhân tiện, nhờ ông chuẩn bị gấp cho tôi cái quách, tiểu sành loại tốt, trang kim, tiền vàng,..., cùng vài lít rượu trắng và nước Vang. Đêm nay, tôi sẽ đích thân bốc cốt, tắm rửa rồi thu xếp lại nơi yên nghỉ cho mẹ con cô Hồng. Oan hồn có ấm chỗ, hận thù mới mong vơi bớt."',
+            '"Nhân tiện, nhờ ông chuẩn bị gấp cho tôi cái tiểu, quách sành loại tốt, trang kim, tiền vàng,..., cùng vài lít rượu trắng và nước Vang. Đêm nay, tôi sẽ đích thân bốc cốt, tắm rửa rồi thu xếp lại nơi yên nghỉ cho mẹ con cô Hồng. Oan hồn có ấm chỗ, hận thù mới mong vơi bớt."',
             'Tối đó, không gian ngôi đình cổ trở nên u uất dưới ánh đèn dầu leo lét đặt dọc hai bên hiên. Dân làng kéo đến đông nghịt, người đứng chen chúc từ trong mái đình lan ra tận ngoài sân, nhưng tuyệt nhiên không một ai dám nói cười. Trời đứng gió, ngay đến rặng tre ngoài ngõ cũng im thin thít, tịnh không một tiếng lá động. Sự im lặng ấy nặng nề đến mức người ta có thể nghe rõ cả tiếng bấc đèn cháy tí tách.',
             'Giữa sân đình, bàn hương án đã được bày sẵn. Trên đó, thầy Lương đặt chiếc lu sành u ám mà anh Tính đào được, cạnh bên là chiếc vòng bạc cũ vừa lấy lên từ dưới quan tài, bảy cây đinh gỉ sét và một bát nước giếng đình trong vắt.',
             'Đúng lúc ấy, hai người trai đinh khiêng lão Chấn đến trên một chiếc cáng tre ọp ẹp. Chỉ mới vài ngày phát bệnh mà lão đã gầy rộc đi như một bộ xương khô, đôi mắt lõm sâu hoắm, mặt mũi xanh tái không còn chút thần sắc, nhìn qua chẳng khác nào một cái xác đang thoi thóp hơi tàn.',
@@ -338,12 +338,13 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
             '“Hồng Nương, những kẻ thủ mưu năm ấy đều đã chết cả rồi, đất đã giữ họ lại để trả giá cho tội lỗi của mình. Chỉ còn lão Chấn đây, trời để lão sống đến ngày nay là để đối diện với sự thật này. Ngươi giết lão cũng không làm đứa nhỏ sống lại được. Đêm nay, ta sẽ tự tay tắm rửa, xếp lại cốt cách cho mẹ con ngươi, đưa các người về nơi ấm áp. Ngươi có chịu buông bỏ hận thù mà đi đầu thai không?”',
             'Bóng ma nữ im lặng một hồi lâu, rồi từ sau làn tóc rối, một tiếng nấc nghẹn ngào như tiếng người sống vang lên:',
             '"Thầy ơi... mẹ con ta bị găm đinh, nhốt dưới rễ nhãn lạnh lẽo suốt bao nhiêu năm, tối tăm chẳng thấy đường đi. Ta chịu khổ thế nào cũng được, nhưng đứa nhỏ này có tội tình gì đâu... Xin thầy tháo bỏ xiềng xích, cho mẹ con ta nấm mồ ấm, nén hương thơm, để con ta được nhẹ nhàng đi đầu thai, thoát khỏi kiếp ma quỷ lạnh lẽo này...”',
-            'Nghe đến đó, dân làng nhiều người đã bật khóc thành tiếng. Thầy Lương khẽ gật đầu, ánh mắt ông nhìn về phía hai chiếc tiểu sành mới tinh đang đặt chờ sẵn, giọng ông vang lên thâm trầm:',
+            'Nghe đến đó, dân làng nhiều người đã bật khóc thành tiếng. Giữa đám đông, lão Chấn cất tiếng nói thều thào yếu ớt: "Ta xin lỗi cô, ta đã biết lỗi của mình, nhiều năm qua ta đã phải sống trong sự hối hận và sợ hãi, ta thật sự xin lỗi..."',
+            'Thầy Lương khẽ gật đầu, ánh mắt ông nhìn về phía hai chiếc tiểu sành mới tinh đang đặt chờ sẵn, giọng ông vang lên thâm trầm:',
             '"Được! Ngươi đã có lòng buông bỏ hận thù để tìm đường giải thoát, thì lão già này dù có hao tổn chân khí cũng sẽ giúp mẹ con ngươi được ấm mồ ấm mả, sạch nợ trần gian."',
             'Dứt lời, thầy Lương quay phắt lại hương án, gương mặt ông trở nên uy nghiêm vô cùng. Thầy đưa mắt nhìn quanh rồi giải thích ngắn gọn cho ông Lễ và dân làng:',
             '"Bà con nhìn cho kỹ. Bát nước giếng đình thanh khiết này tôi sẽ dùng để tẩy trần, gột rửa đi bao nhiêu năm bụi bặm u uất. Chiếc vòng bạc kia là vật định tâm, cốt để đứa nhỏ dù có đi vào cõi u minh cũng không bị lạc mất mẹ. Còn bảy cây đinh này chính là mắt xích của Thất Đinh Yểm Hồn, nó xích chặt linh hồn mẹ con cô Hồng vào đau đớn suốt mấy chục năm qua. Nay tâm họ đã tĩnh, ta sẽ phá bỏ xiềng xích này."',
             'Nói đoạn, thầy Lương rút trong túi vải ra một lá bùa vàng, khẽ giơ lên trước ngọn đèn dầu. Dưới ánh lửa bập bùng, đôi mắt ông sáng quắc, tay trái kẹp chặt lá phù, tay phải giơ lên không trung. Ngón trỏ và ngón giữa của ông chụm lại thành kiếm ấn, di chuyển thoăn thoắt, vẽ nên những đường nét hư ảo mà mạnh mẽ như rồng bay phượng múa giữa hư không.',
-            ' Khi nét vẽ cuối cùng vừa dứt, ông quẹt lá bùa qua ngọn đèn dầu. Lá bùa bùng cháy, ông ném thẳng lá bùa đang cháy dở vào bát nước giếng rồi cầm bát nước vẩy mạnh lên bảy cây đinh gỉ.',
+            'Khi nét vẽ cuối cùng vừa dứt, ông quẹt lá bùa qua ngọn đèn dầu. Lá bùa bùng cháy, ông ném thẳng lá bùa đang cháy dở vào bát nước giếng rồi cầm bát nước vẩy mạnh lên bảy cây đinh gỉ.',
             'Ngay lập tức, một luồng khói đen kịt, đặc quánh bốc lên từ những cây đinh, nghe xèo xèo như sắt nóng gặp nước lạnh. Mùi hôi nồng nặc của tử khí tỏa ra khiến ai nấy phải bịt mũi. Thầy Lương mím môi, tay trái bắt quyết nhắm thẳng vào bàn hương, tay phải gõ mạnh cây gậy trúc xuống đất một tiếng "Cạch!".',
             '"Phá"',
             'Tiếng quát của ông vừa dứt, luồng khói đen tan biến sạch sẽ. Những cây đinh gỉ bỗng chốc trở nên xỉn màu, không còn tỏa ra cái hơi lạnh rợn người như trước nữa.',
@@ -352,7 +353,7 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
             'Thầy Lương không nói gì, ông chỉ khẽ gật đầu, ánh mắt ánh lên một vẻ bao dung buồn bã. Bóng ma nữ ôm chặt đứa con vào lòng, ngước nhìn dân làng một lần cuối bằng ánh mắt đã bớt đi phần oán hận, rồi dần dần mờ đi, hòa vào làn khói hương đang bay thẳng tắp lên bầu trời đêm. Chỉ trong chớp mắt, bóng hình ấy tan biến hoàn toàn, để lại sân đình một bầu không khí thanh thản lạ kỳ.',
 
             'Đợi cho đến giờ Tý, thầy Lương mới xắn cao tay áo, để lộ đôi cánh tay gầy guộc, chậm rãi tiến lại phía chiếc quan tài cũ được mang đến từ bãi nhãn. Thầy lẳng lặng tiến lại gần bộ hài cốt. Ông khom người, đôi bàn tay gầy guộc nhưng sạch sẽ khẽ chạm vào lớp gỗ mục. Trước sự nín thở của hàng trăm con người, ông dùng tay trần để thực hiện nghi thức sang tiểu. Với thầy, việc chạm trực tiếp vào hài cốt là cách để người thầy pháp cảm nhận hơi ấm cuối cùng của linh hồn và thấu hiểu nỗi oan khuất còn sót lại.',
-            'Thầy nhúng dải lụa trắng vào chậu nước sâm già pha lẫn rượu trắng, tỏa mùi thơm nồng nàn rồi bắt đầu lau rửa.',
+            'Thầy nhúng dải lụa trắng vào chậu nước Vang pha lẫn rượu trắng, tỏa mùi thơm nồng nàn rồi bắt đầu lau rửa.',
             'Dưới bàn tay đầy kinh nghiệm cũng như sự tỉ mỉ, cẩn thận của thầy Lương, từng đoạn xương từ xương bàn chân, lên đến xương ống chân, rồi đến xương sườn trở nên sạch sẽ, bóng loáng như đá ngọc, không còn chút vết bẩn của bùn đất. Thầy vừa làm, miệng vừa lâm râm bài chú tịnh hóa',
             'Đến đoạn nhặt xương đứa trẻ, thầy Lương khựng lại một nhịp. Đôi mắt ông chùng xuống khi nhìn thấy bộ xương bé xíu, trắng muốt đang nằm gọn trong hốc xương chậu của người mẹ. Ông khẽ khàng nâng niu từng mẩu xương nhỏ như hạt lựu, đặt lên một tấm vải đỏ điều.',
             'Sau khi rửa sạch sẽ, lau khô các phần cốt, thầy Lương bắt đầu xếp cốt vào trong tiểu',
@@ -364,7 +365,7 @@ export class TruyenMaComponent implements OnInit, OnDestroy {
             '"Chiều nay, tôi đã đi khảo sát một vòng quanh làng. Ở phía gò cao kia, mạch đất vững vàng, lại đón được ánh nắng mặt trời buổi sớm, rất tốt để xua tan khí lạnh. Tôi muốn xin phép bà con được đưa mẹ con cô Hồng về đó an táng. Đó là nơi sơn thủy hữu tình, linh hồn họ ở đó mới mong sớm được thanh thản mà đi đầu thai."',
             'Nghe thầy Lương nói, cả sân đình không ai bảo ai, tất cả đều đồng thanh đồng ý. Ông Lễ đại diện dân làng bước tới, giọng run run vì xúc động:',
             '"Thầy đã ra tay cứu giúp làng con, lại còn lo cho họ vẹn toàn như thế, chúng con đâu dám có ý kiến gì. Mọi việc xin nghe theo ý thầy."',
-            
+
           ]
         },
         {
